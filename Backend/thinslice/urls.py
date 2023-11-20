@@ -4,7 +4,7 @@ from .views import ThinSliceViewSet
 
 
 router = DefaultRouter()
-router.register('', ThinSliceViewSet, basename='ThinSlice')
+router.register('', ThinSliceViewSet, name='ThinSlice')
 
 urlpatterns = [
     path('', include(router.urls)),
