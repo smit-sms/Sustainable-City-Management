@@ -1,5 +1,6 @@
 import React, { useState, useEffect }  from 'react';
 import { useParams } from 'react-router-dom';
+import { API_URL } from './api';
 
 const ThinSlice = () => {
     const params = useParams();
@@ -9,7 +10,7 @@ const ThinSlice = () => {
     const [thinsliceobj, setThinSlice] = useState([]);
 
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/thinslice/" + id)
+        fetch(API_URL + id)
             .then(res => res.json())
             .then(
                 (data) => {
