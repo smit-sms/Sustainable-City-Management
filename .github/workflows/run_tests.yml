@@ -27,4 +27,5 @@ jobs:
         DJANGO_SETTINGS_MODULE: Backend.backend.settings
     - name: Running Tests
       run: |
+        cd Backend
         python manage.py test
