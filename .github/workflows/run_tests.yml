@@ -21,10 +21,10 @@ jobs:
     - name: Install Dependencies
       run: |
         cd Backend
-        python3 -m pip3 install --upgrade pip
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
       env:
         DJANGO_SETTINGS_MODULE: Backend.backend.settings
     - name: Running Tests
       run: |
-        python3 manage.py test
+        python manage.py test
