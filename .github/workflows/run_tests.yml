@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHON_VERSION: 3.9
+      POSTGRES_DBNAME: Sustainable-City-Management
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
       POSTGRES_HOST: localhost
-      POSTGRES_DB: Sustainable-City-Management
       POSTGRES_PORT: 5432
     services:
       postgres_main:
@@ -22,9 +22,9 @@ jobs:
         env:
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_DB: ${{ env.POSTGRES_DBNAME }}
         ports:
-          - 5432:5432
+          - ${{ env.POSTGRES_PORT }}:${{ env.POSTGRES_PORT }}
         options: >-
           --health-cmd pg_isready 
           --health-interval 10s 

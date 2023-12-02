@@ -1,0 +1,32 @@
+name: Push Image to Dockerhub
+
+on:
+  push:
+    # branches:
+    #   - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v3
+      - name: Docker Login
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          BACKEND_NAME: sustainable-city-management-backend
+          FRONTEND_NAME: sustainable-city-management-frontend
+        run: |
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - name: Building Docker Images
+        run: |
+          echo "Building backend image"
+          docker build ./Backend --file Dockerfile --tag $DOCKER_USERNAME/$BACKEND_NAME:${{ github.sha }}
+          echo "Building frontend image"
+          docker build ./frontend --file Dockerfile --tag $DOCKER_USERNAME/$FRONTEND_NAME:${{ github.sha }}
+      - name: Pushing Docker Images
+        run: |
+          echo "pushing backend image"
+          docker push $DOCKER_USERNAME/$BACKEND_NAME:${{ github.sha }}
+          echo "pushing frontend image"
+          docker push $DOCKER_USERNAME/$FRONTEND_NAME:${{ github.sha }}
