@@ -17,19 +17,19 @@ jobs:
         BACKEND_NAME: sustainable-city-management-backend
         FRONTEND_NAME: sustainable-city-management-frontend
       run: |
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
     - name: Get current date # get the date of the build
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
     - name: Building Docker Images
       run: |
         echo "Building backend image"
-        docker build ./Backend --file Dockerfile --tag $DOCKER_USERNAME/$BACKEND_NAME:latest
+        docker build ./Backend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
         echo "Building frontend image"
-        docker build ./frontend --file Dockerfile --tag $DOCKER_USERNAME/$FRONTEND_NAME:latest
+        docker build ./frontend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"
-        docker push $DOCKER_USERNAME/$BACKEND_NAME:latest
+        docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
         echo "pushing frontend image"
-        docker push $DOCKER_USERNAME/$FRONTEND_NAME:latest
+        docker push ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
