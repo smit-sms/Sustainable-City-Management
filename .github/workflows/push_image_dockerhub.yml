@@ -8,17 +8,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      BACKEND_NAME: sustainable-city-management-backend
+      FRONTEND_NAME: sustainable-city-management-frontend
     steps:
     - uses: actions/checkout@v3
     - name: Docker Login
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        BACKEND_NAME: sustainable-city-management-backend
-        FRONTEND_NAME: sustainable-city-management-frontend
       run: |
         docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-    - name: Get current date # get the date of the build
+    - name: Get current date # get the timestamp of the build
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
     - name: Building Docker Images
