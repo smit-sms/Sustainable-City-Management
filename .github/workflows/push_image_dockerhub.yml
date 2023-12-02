@@ -24,12 +24,12 @@ jobs:
     - name: Building Docker Images
       run: |
         echo "Building backend image"
-        docker build ./Backend --file Dockerfile --tag $DOCKER_USERNAME/$BACKEND_NAME:${{ steps.date.outputs.date }}
+        docker build ./Backend --file Dockerfile --tag $DOCKER_USERNAME/$BACKEND_NAME:latest
         echo "Building frontend image"
-        docker build ./frontend --file Dockerfile --tag $DOCKER_USERNAME/$FRONTEND_NAME:${{ steps.date.outputs.date }}
+        docker build ./frontend --file Dockerfile --tag $DOCKER_USERNAME/$FRONTEND_NAME:latest
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"
-        docker push $DOCKER_USERNAME/$BACKEND_NAME:${{ steps.date.outputs.date }}
+        docker push $DOCKER_USERNAME/$BACKEND_NAME:latest
         echo "pushing frontend image"
-        docker push $DOCKER_USERNAME/$FRONTEND_NAME:${{ steps.date.outputs.date }}
+        docker push $DOCKER_USERNAME/$FRONTEND_NAME:latest
