@@ -20,13 +20,13 @@ jobs:
         docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
     - name: Get current date # get the timestamp of the build
       id: date
-      run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d--%H-%M-%S')"
     - name: Building Docker Images
       run: |
         echo "Building backend image"
-        docker build ./Backend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
+        docker build ../../Backend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
         echo "Building frontend image"
-        docker build ./frontend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
+        docker build ../../frontend --file Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"
