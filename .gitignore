@@ -1,3 +1,6 @@
+# hide files starting with __my_
+__my_*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
