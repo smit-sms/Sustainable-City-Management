@@ -1,14 +1,13 @@
-FROM node:20-alpine                                                                                      
+FROM node:20.9.0-alpine
 
-WORKDIR /app                                                                                             
+WORKDIR /app
 
-COPY public/ /app/public                                                                                 
+COPY public/ /app/public
 
-COPY src/ /app/src                                                                                       
+COPY src/ /app/src
 
 COPY package.json /app/
 
-RUN npm install  --verbose
+RUN npm install --verbose
 
 CMD ["npm", "start"]
-

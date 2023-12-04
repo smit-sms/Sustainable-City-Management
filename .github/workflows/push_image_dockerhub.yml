@@ -2,8 +2,8 @@ name: Push Image to Dockerhub
 
 on:
   push:
-    # branches:
-    #   - main
+    branches:
+      - main
 
 jobs:
   build:
@@ -18,20 +18,18 @@ jobs:
     - name: Docker Login
       run: |
         docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-    - name: Get current date # get the timestamp of the build
+    - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y-%m-%d--%H-%M-%S')"
-    - name: List Repository Contents
-      run: ls -R
     - name: Building Docker Images
       run: |
         echo "Building backend image"
-        docker build ./Backend --file ./Backend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
+        docker build ./Backend --file ./Backend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:latest
         echo "Building frontend image"
-        docker build ./frontend --file ./frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
+        docker build ./frontend --file ./frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"
-        docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:${{ steps.date.outputs.date }}
+        docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:latest
         echo "pushing frontend image"
-        docker push ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:${{ steps.date.outputs.date }}
+        docker push ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest

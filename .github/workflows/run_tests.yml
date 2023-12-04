@@ -1,49 +1,49 @@
-# name: Django Tests
+name: Backend Tests
 
-# on: 
-#   push:
-#   # pull_request:
-#   #   branches:
-#   #     - main
+on: 
+  push:
+  # pull_request:
+  #   branches:
+  #     - main
 
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#     env:
-#       PYTHON_VERSION: 3.9
-#       POSTGRES_DBNAME: Sustainable-City-Management
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: admin
-#       POSTGRES_HOST: localhost
-#       POSTGRES_PORT: 5432
-#     services:
-#       postgres_main:
-#         image: postgres
-#         env:
-#           POSTGRES_USER: ${{ env.POSTGRES_USER }}
-#           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-#           POSTGRES_DB: ${{ env.POSTGRES_DBNAME }}
-#         ports:
-#           - 5432:5432
-#         options: >-
-#           --health-cmd pg_isready 
-#           --health-interval 10s 
-#           --health-timeout 5s 
-#           --health-retries 5
-#     steps:
-#     - uses: actions/checkout@v3
-#     - name: Set up Python ${{ env.PYTHON_VERSION }}
-#       uses: actions/setup-python@v3
-#       with:
-#         python-version: ${{ env.PYTHON_VERSION }}
-#     - name: Install Dependencies
-#       run: |
-#         cd Backend
-#         python -m pip install --upgrade pip
-#         pip install -r requirements.txt
-#       env:
-#         DJANGO_SETTINGS_MODULE: Backend.backend.settings
-#     - name: Running Tests
-#       run: |
-#         cd Backend
-#         python manage.py test -v 2
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: 3.9
+      POSTGRES_DBNAME: Sustainable-City-Management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+    services:
+      postgres_main:
+        image: postgres
+        env:
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DBNAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Dependencies
+      run: |
+        cd Backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      env:
+        DJANGO_SETTINGS_MODULE: Backend.backend.settings
+    - name: Running Tests
+      run: |
+        cd Backend
+        python manage.py test -v 2
