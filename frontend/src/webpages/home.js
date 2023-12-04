@@ -1,6 +1,7 @@
 import React, { useState, useEffect }  from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from './api';
+import Bikes from '../components/Bikes';
 
 const Home = () => {
     const [error, setError] = useState(null);
@@ -27,15 +28,18 @@ const Home = () => {
         return <div>Loading...</div>;
     } else {
         return (
-            <ul>
-                {thinslices.map((thinslice, i) => (
-                    <div className={"row"} key={i} id={i}>
-                        <li>
-                            <Link to={`thinslice/${thinslice.id}`}>{thinslice.firstname}</Link>
-                        </li>
-                    </div>
-                ))}
-            </ul>
+            <>
+                <ul>
+                    {thinslices.map((thinslice, i) => (
+                        <div className={"row"} key={i} id={i}>
+                            <li>
+                                <Link to={`thinslice/${thinslice.id}`}>{thinslice.firstname}</Link>
+                            </li>
+                        </div>
+                    ))}
+                </ul>
+                <Bikes />
+            </> 
         );
     }
 }

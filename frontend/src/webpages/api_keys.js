@@ -1,0 +1,1 @@
+export const KEY_GGN_JCDECAUX = "f45c44120a7ced757ee435aa5c1af77ec644e13f";
