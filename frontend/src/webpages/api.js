@@ -1,2 +1,2 @@
 // File to define the api calls
-export const API_URL = "http://127.0.0.1:8000/thinslice/"
+export const API_URL = process.env.REACT_APP_BACKEND_URL;

@@ -22,20 +22,32 @@ const Home = () => {
             )
       }, [])
     if (error) {
-        return <div>Error: {error.message}</div>;
+        return (
+            <div>
+                <h1>
+                    Sustainable City Management - ThinSlice
+                </h1>
+                <div>Error: {error.message}</div>
+            </div>
+        );
     } else if (!isLoaded) {
         return <div>Loading...</div>;
     } else {
         return (
-            <ul>
-                {thinslices.map((thinslice, i) => (
-                    <div className={"row"} key={i} id={i}>
-                        <li>
-                            <Link to={`thinslice/${thinslice.id}`}>{thinslice.firstname}</Link>
-                        </li>
-                    </div>
-                ))}
-            </ul>
+            <div>
+                <h1>
+                    Sustainable City Management - ThinSlice
+                </h1>
+                <ul>
+                    {thinslices.map((thinslice, i) => (
+                        <div className={"row"} key={i} id={i}>
+                            <li>
+                                <Link to={`thinslice/${thinslice.id}`}>{thinslice.firstname}</Link>
+                            </li>
+                        </div>
+                    ))}
+                </ul>
+            </div>
         );
     }
 }
