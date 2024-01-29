@@ -30,18 +30,91 @@ sensors_noise = [
     '01509', '01529', '01528'
 ]
 
-# Create your views here.
-@csrf_exempt
-def air_pm2_5(request):
-    url_root = "https://data.smartdublin.ie/sonitus-api"
-    data = {}
+# def post(self, request):
+#         url_root = "https://data.smartdublin.ie/sonitus-api"
+#         data = {}
+#         data["message"] = "Response to POST request."
+        
+#         # Get sensor ID and do sanity check.
+#         request_json = json.loads(request.body.decode('utf-8'))
+#         sensor_serial_number = request_json['sensor_serial_number']
+#         if sensor_serial_number not in sensors_noise:
+#             return JsonResponse({'message': 'Not a laeq sensor.'}, status=400, safe=True)
+        
+#         # Fetching data from now to 24 hrs ago.
+#         datetime_now = datetime.now()
+#         datetime_yesterday = datetime_now - timedelta(days=1)
+#         datetime_end = time.mktime(datetime_now.timetuple())
+#         datetime_start = time.mktime(datetime_yesterday.timetuple())
+#         print(datetime_start, datetime_end)
+#         try:
+#             res = requests.post(f"{url_root}/api/data", json={
+#                 'username': "dublincityapi",
+#                 'password': "Xpa5vAQ9ki",
+#                 'monitor': sensor_serial_number,
+#                 'start': datetime_start,
+#                 'end': datetime_end
+#             })
+#             if len(res.text) > 0: 
+#                 data_list = [{'datetime':d['datetime'], 'laeq':d['laeq']} for d in res.json()]
+#             else: data_list = []
+#         except Exception as e:
+#             return JsonResponse({'error': f'Failed to fetch data due to {e}'}, status=404, safe=True)
 
-    # POST 
-    if request.method == 'POST':
+#         data["data"] = data_list
+
+#         # Add to the database.
+#         db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
+#         if (db_obj_sensor != None):
+#             for d in data_list:
+#                 dt = datetime.strptime(d['datetime'], "%Y-%m-%d %H:%M:%S")
+#                 dt = dt.replace(tzinfo=pytz.timezone('GMT'))
+#                 db_datetime, db_datetime_created = DateTime.objects.get_or_create(datetime=dt)
+#                 try:
+#                     db_laeq = Noise.objects.get(laeq=d['laeq'], datetime_id=db_datetime.id, sensor_id=db_obj_sensor.id)
+#                 except Noise.DoesNotExist:
+#                     db_laeq = Noise(laeq=d['laeq'], datetime_id=db_datetime.id, sensor_id=db_obj_sensor.id)
+#                     db_laeq.save()
+#         else:
+#             data['message'] = {'message':'no such sensor'}
+#         data["message"] = "Response to POST request."
+#         return JsonResponse(data, status=200, safe=True)
+
+# Create your views here.
+@method_decorator(csrf_exempt, name='dispatch')
+class AirView(View):
+
+    def get(self, request):
+        data = {}
+        data["message"] = "Response to GET request."
+
+        # Get sensor ID and do sanity check.
+        sensor_serial_number = request.GET.get('sensor_serial_number')
+        if sensor_serial_number not in sensors_air:
+            return JsonResponse({'message': 'Not a pm2.5 sensor.'}, status=400, safe=True)
+        
+        db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
+        if (db_obj_sensor != None):
+            db_obj_pm2_5 = list(Air.objects.filter(sensor_id=db_obj_sensor.id).values())
+            pm2_5 = [o['pm2_5'] for o in db_obj_pm2_5]
+            datetime_ids = [o['datetime_id'] for o in db_obj_pm2_5]
+            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
+            data['data'] = {'datetime':dts, 'pm2_5':pm2_5}
+            return JsonResponse(data, status=200, safe=True)
+        else:
+            data['data'] = {'datetime':[], 'pm2_5':[]}
+            return JsonResponse(data, status=200, safe=True)
+        
+    def post(self, request):
+        url_root = "https://data.smartdublin.ie/sonitus-api"
+        data = {}
+        data["message"] = "Response to POST request."
+        
+        # Get sensor ID and do sanity check.
         request_json = json.loads(request.body.decode('utf-8'))
         sensor_serial_number = request_json['sensor_serial_number']
         if sensor_serial_number not in sensors_air:
-            return JsonResponse({'message': 'Not a pm2.5 sensor.'}, status=400, safe=True)
+            return JsonResponse({'message': 'Not a pm2_5 sensor.'}, status=400, safe=True)
         
         # Fetching data from now to 24 hrs ago.
         datetime_now = datetime.now()
@@ -81,22 +154,7 @@ def air_pm2_5(request):
             data['message'] = {'message':'no such sensor'}
         data["message"] = "Response to POST request."
         return JsonResponse(data, status=200, safe=True)
-    
-    # GET
-    else: 
-        data["message"] = "Response to GET request."
-        sensor_serial_number = request.GET.get('sensor_serial_number')
-        db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
-        if (db_obj_sensor != None):
-            db_obj_pm2_5 = list(Air.objects.filter(sensor_id=db_obj_sensor.id).values())
-            pm2_5 = [o['pm2_5'] for o in db_obj_pm2_5]
-            datetime_ids = [o['datetime_id'] for o in db_obj_pm2_5]
-            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
-            data['data'] = {'datetime':dts, 'pm2_5':pm2_5}
-            return JsonResponse(data, status=200, safe=True)
-        else:
-            data['data'] = {'datetime':[], 'pm2_5':[]}
-            return JsonResponse(data, status=200, safe=True)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class NoiseView(View):
