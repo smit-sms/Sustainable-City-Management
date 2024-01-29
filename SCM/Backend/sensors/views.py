@@ -7,7 +7,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from datetime import datetime, timedelta
 from .models import Sensor, Air, Noise, DateTime
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt, requires_csrf_token
 
 sensors_air = [
     'DCC-AQ2', 'DCC-AQ3', 'DCC-AQ4', 
@@ -96,7 +97,8 @@ def air_pm2_5(request):
         else:
             data['data'] = {'datetime':[], 'pm2_5':[]}
             return JsonResponse(data, status=200, safe=True)
-        
+
+@method_decorator(csrf_exempt, name='dispatch')
 class NoiseView(View):
 
     def get(self, request):
@@ -120,7 +122,6 @@ class NoiseView(View):
             data['data'] = {'datetime':[], 'laeq':[]}
             return JsonResponse(data, status=200, safe=True)
 
-    @csrf_exempt
     def post(self, request):
         url_root = "https://data.smartdublin.ie/sonitus-api"
         data = {}
