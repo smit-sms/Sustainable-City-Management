@@ -80,6 +80,7 @@ def air_pm2_5(request):
         else:
             data['message'] = {'message':'no such sensor'}
         data["message"] = "Response to POST request."
+        
         return JsonResponse(data, status=200, safe=True)
     
     # GET
@@ -100,7 +101,6 @@ def air_pm2_5(request):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class NoiseView(View):
-
     def get(self, request):
         data = {}
         data["message"] = "Response to GET request."
