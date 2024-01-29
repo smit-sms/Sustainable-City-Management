@@ -156,7 +156,6 @@ class AirView(View):
         
         return JsonResponse(data, status=200, safe=True)
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class NoiseView(View):
     def get(self, request):

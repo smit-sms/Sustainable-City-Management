@@ -27,9 +27,9 @@ class AirQualityTests(TestCase):
     #Tests the GET request for an invalid sensor serial number.
     def test_get_air_pm2_5_invalid_sensor(self):
         response = self.client.get(self.air_pm2_5_url, {'sensor_serial_number': 'INVALID-SENSOR'})
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertEqual(data['data']['pm2_5'], [])
+        self.assertEqual(data['message'], 'Not a pm2.5 sensor.')
 
     # Tests the POST request for a valid sensor serial number, mocking the requests.post call to return a predetermined JSON response.
     def test_post_air_pm2_5_valid_sensor(self):
