@@ -10,15 +10,6 @@ from .models import Sensor, Air, Noise, DateTime
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt, requires_csrf_token
 
-sensors_noise = [
-    '10.1.1.1', '01749', '01508',
-    '10118', '01548', '10115', 
-    '10.1.1.7', '01870', '01575', 
-    '01737', '10.1.1.11', '10.1.1.12', 
-    '01550', '01534', '01535', 
-    '01509', '01529', '01528'
-]
-
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
 class AirView(View):
@@ -29,9 +20,10 @@ class AirView(View):
         db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
         if (db_obj_sensor != None):
             db_obj_pm2_5 = list(Air.objects.filter(sensor_id=db_obj_sensor.id).values())
-            pm2_5 = [o['pm2_5'] for o in db_obj_pm2_5]
             datetime_ids = [o['datetime_id'] for o in db_obj_pm2_5]
+            pm2_5 = [o['pm2_5'] for o in db_obj_pm2_5]
             dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
+            print('DEBUG =', db_obj_pm2_5)
             data['data'] = {'datetime':dts, 'pm2_5':pm2_5}
             data["message"] = "Success."
             return JsonResponse(data, status=200, safe=True)
@@ -96,9 +88,9 @@ class NoiseView(View):
         db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
         if (db_obj_sensor != None):
             db_obj_laeq = list(Noise.objects.filter(sensor_id=db_obj_sensor.id).values())
-            laeq = [o['laeq'] for o in db_obj_laeq]
             datetime_ids = [o['datetime_id'] for o in db_obj_laeq]
             dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
+            laeq = [o['laeq'] for o in db_obj_laeq]
             data['data'] = {'datetime':dts, 'laeq':laeq}
             data["message"] = "Success."
             return JsonResponse(data, status=200, safe=True)
