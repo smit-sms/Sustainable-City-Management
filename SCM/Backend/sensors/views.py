@@ -20,11 +20,12 @@ class AirView(View):
         db_obj_sensor = Sensor.objects.filter(serial_number=sensor_serial_number).first()
         if (db_obj_sensor != None):
             db_obj_pm2_5 = list(Air.objects.filter(sensor_id=db_obj_sensor.id).values())
-            datetime_ids = [o['datetime_id'] for o in db_obj_pm2_5]
-            pm2_5 = [o['pm2_5'] for o in db_obj_pm2_5]
-            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
-            print('DEBUG =', db_obj_pm2_5)
-            data['data'] = {'datetime':dts, 'pm2_5':pm2_5}
+            data_processed = {'datetime_id': [], 'pm2_5': []}
+            for i in range(len(db_obj_pm2_5)):
+                data_processed['pm2_5'].append(db_obj_pm2_5[i]['pm2_5'])
+                data_processed['datetime_id'].append(db_obj_pm2_5[i]['datetime_id'])
+            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=data_processed['datetime_id']).values()]
+            data['data'] = {'datetime':dts, 'pm2_5':data_processed['pm2_5']}
             data["message"] = "Success."
             return JsonResponse(data, status=200, safe=True)
         else:
@@ -89,9 +90,12 @@ class NoiseView(View):
         if (db_obj_sensor != None):
             db_obj_laeq = list(Noise.objects.filter(sensor_id=db_obj_sensor.id).values())
             datetime_ids = [o['datetime_id'] for o in db_obj_laeq]
-            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=datetime_ids).values()]
-            laeq = [o['laeq'] for o in db_obj_laeq]
-            data['data'] = {'datetime':dts, 'laeq':laeq}
+            data_processed = {'datetime_id': [], 'laeq': []}
+            for i in range(len(db_obj_laeq)):
+                data_processed['laeq'].append(db_obj_laeq[i]['laeq'])
+                data_processed['datetime_id'].append(db_obj_laeq[i]['datetime_id'])
+            dts = [o['datetime'].strftime("%Y-%m-%d %H:%M:%S") for o in DateTime.objects.filter(id__in=data_processed['datetime_id']).values()]
+            data['data'] = {'datetime':dts, 'laeq':data_processed['laeq']}
             data["message"] = "Success."
             return JsonResponse(data, status=200, safe=True)
         else:
