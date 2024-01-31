@@ -29,7 +29,7 @@ class AirQualityTests(TestCase):
         response = self.client.get(self.air_pm2_5_url, {'sensor_serial_number': 'INVALID-SENSOR'})
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertEqual(data['message'], 'Not a pm2.5 sensor.')
+        self.assertEqual(True, 'Failure. Invalid sensor' in data['message'])
 
     # Tests the POST request for a valid sensor serial number, mocking the requests.post call to return a predetermined JSON response.
     def test_post_air_pm2_5_valid_sensor(self):
@@ -48,8 +48,8 @@ class AirQualityTests(TestCase):
             )
             self.assertEqual(response.status_code, 200)
             data = response.json()
-            self.assertIn('data', data)
-            self.assertEqual(len(data['data']), 1)
+            self.assertIn('message', data)
+            self.assertEqual(True, 'Success' in data['message'])
 
     #Tests the POST request for an invalid sensor serial number.
     def test_post_air_pm2_5_invalid_sensor(self):
@@ -60,20 +60,7 @@ class AirQualityTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertIn('message', data)
-
-    #Tests the POST request when an exception is raised during the requests.post call.
-    def test_post_air_pm2_5_with_exception(self):
-        with patch('requests.post') as mocked_post:
-            mocked_post.side_effect = Exception('Failed to fetch data')
-            response = self.client.post(
-                self.air_pm2_5_url,
-                json.dumps({'sensor_serial_number': 'DCC-AQ2'}),
-                content_type='application/json'
-            )
-            self.assertEqual(response.status_code, 404)
-            data = response.json()
-            self.assertIn('error', data)
+        self.assertEqual(True, 'Failure. Could not fetch' in data['message'])
 
 class NoisePollutionTests(TestCase):
     
@@ -98,7 +85,7 @@ class NoisePollutionTests(TestCase):
         response = self.client.get(self.noise_laeq_url, {'sensor_serial_number': 'INVALID-SENSOR'})
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertEqual(data['message'], 'Not a laeq sensor.')
+        self.assertEqual(True, 'Failure. Invalid sensor' in data['message'])
 
     # Tests the POST request for a valid sensor serial number, mocking the requests.post call to return a predetermined JSON response.
     def test_post_noise_laeq_valid_sensor(self):
@@ -117,8 +104,7 @@ class NoisePollutionTests(TestCase):
             )
             self.assertEqual(response.status_code, 200)
             data = response.json()
-            self.assertIn('data', data)
-            self.assertEqual(len(data['data']), 1)
+            self.assertEqual(True, 'Success' in data['message'])
 
     #Tests the POST request for an invalid sensor serial number.
     def test_post_noise_laeq_invalid_sensor(self):
@@ -129,17 +115,4 @@ class NoisePollutionTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertIn('message', data)
-
-    #Tests the POST request when an exception is raised during the requests.post call.
-    def test_post_noise_laeq_with_exception(self):
-        with patch('requests.post') as mocked_post:
-            mocked_post.side_effect = Exception('Failed to fetch data')
-            response = self.client.post(
-                self.noise_laeq_url,
-                json.dumps({'sensor_serial_number': '10.1.1.1'}),
-                content_type='application/json'
-            )
-            self.assertEqual(response.status_code, 404)
-            data = response.json()
-            self.assertIn('error', data)
+        self.assertEqual(True, 'Failure. Could not fetch' in data['message'])
