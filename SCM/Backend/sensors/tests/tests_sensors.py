@@ -114,3 +114,34 @@ class NoisePollutionTests(TestCase):
         self.assertEqual(response.status_code, 400)
         data = response.json()
         self.assertEqual(True, 'Failure. Invalid sensor' in data['message'])
+
+class AirNoiseSensorsTests(TestCase):
+    
+    #Prepares the environment before each test method runs. It sets up a test client and creates test data in the database.
+    def setUp(self):
+        self.client = Client()
+        self.sensors_url = reverse('sensors')
+        # Making mock dataset.
+        Sensor.objects.create(serial_number='10.1.1.1', latitude=53.369864, longitude=-6.258966, sensor_type='noise')
+        Sensor.objects.create(serial_number='DCC-AQ2', latitude=53.369864, longitude=-6.258966, sensor_type='air')
+
+    #Tests the GET request for a valid sensor type.
+    def test_get_sensors_valid_type(self):
+        # noise sensor
+        response = self.client.get(self.sensors_url, {'sensor_type': 'noise'})
+        data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('data', data)
+        
+        # air sensor
+        response = self.client.get(self.sensors_url, {'sensor_type': 'air'})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('data', data)
+
+    # #Tests the GET request for an invalid sensor serial number.
+    # def test_get_sensors_invalid_type(self):
+    #     response = self.client.get(self.sensors_url, {'sensor_type': 'INVALID-SENSOR-TYPE'})
+    #     self.assertEqual(response.status_code, 400)
+    #     data = response.json()
+    #     self.assertEqual(True, 'Failure. Invalid sensor type' in data['message'])

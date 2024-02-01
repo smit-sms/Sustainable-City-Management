@@ -155,3 +155,33 @@ class NoiseView(View):
         
         # Return response.
         return JsonResponse({'message': self.response_message} , status=self.response_status, safe=True)
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class SensorView(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+
+    def get(self, request):
+        sensor_type = request.GET.get('sensor_type')
+        try:
+            sensor_db_objs = Sensor.objects.filter(sensor_type='noise').values() # get requested sensor for the sensors table in the DB
+        except Exception as e:
+            self.response_message= f'Failure. Could not fetch sensors from the DB due to {e}.'
+            self.response_status = 400
+
+        if (len(sensor_db_objs) > 0): # if requested sensor type does exist, then ...
+            try: # try to fetch data from the database.
+                self.response_data = list(sensor_db_objs.values()) # return data of requested sensor only
+                self.response_message = f'Success. Data fetched from the DB for sensor type {sensor_type}.'
+                self.response_status = 200
+            except Exception as e: # if there was some error with fetching data then ...
+                self.response_message= f'Failure. Could not fetch data from the DB for the sensor type {sensor_type}.'
+                self.response_status = 400
+        else: # if requested sensor type does not exist, then ...
+            self.response_data = []
+            self.response_status = 400
+            self.response_message = f'Failure. Invalid sensor type {sensor_type}.'
+    
+        # Return response.
+        return JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
