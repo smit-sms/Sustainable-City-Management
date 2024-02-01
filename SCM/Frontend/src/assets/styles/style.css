@@ -59,4 +59,11 @@
   .signup-link span:hover {
     color: #583e90;
   }
+
+  .error {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+  
   
