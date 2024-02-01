@@ -78,7 +78,7 @@ class AirView(View):
                 self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
                 self.response_status = 400
         else: # If requested sensor does not exist then ...
-            self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
+            self.response_message = f'Failure. Invalid sensor {sensor_serial_number}.'
             self.response_status = 400 
         
         # Return response.
@@ -150,7 +150,7 @@ class NoiseView(View):
                 self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
                 self.response_status = 400
         else: # If requested sensor does not exist then ...
-            self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
+            self.response_message = f'Failure. Invalid sensor {sensor_serial_number}.'
             self.response_status = 400 
         
         # Return response.

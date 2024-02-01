@@ -1,21 +1,20 @@
-from django.urls import reverse
-from django.test import TestCase, Client
-from ..models import Sensor, Air, DateTime, Noise
-from unittest.mock import patch
+import pytz
 import json
 from datetime import datetime
-import pytz
+from unittest.mock import patch
+from django.urls import reverse
+from django.test import TestCase, Client
+from ..models import Sensor, Air, Noise
 
 class AirQualityTests(TestCase):
     
-    #Prepares the environment before each test method runs. It sets up a test client and creates test data in the database.
+    # Prepares the environment before each test method runs. It sets up a test client and creates test data in the database.
     def setUp(self):
         self.client = Client()
         self.air_pm2_5_url = reverse('air_pm2_5')  
         # Setup initial data in the database
         self.sensor = Sensor.objects.create(serial_number='DCC-AQ2',latitude=53.349805, longitude=-6.260310)
-        self.datetime_obj = DateTime.objects.create(datetime=datetime.now().replace(tzinfo=pytz.timezone('GMT')))
-        Air.objects.create(pm2_5=10, datetime=self.datetime_obj, sensor=self.sensor)
+        Air.objects.create(pm2_5=10, sensor_id=self.sensor.id, datetime=datetime.now().replace(tzinfo=pytz.timezone('GMT')))
 
     #Tests the GET request for a valid sensor serial number.
     def test_get_air_pm2_5_valid_sensor(self):
@@ -60,7 +59,7 @@ class AirQualityTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertEqual(True, 'Failure. Could not fetch' in data['message'])
+        self.assertEqual(True, 'Failure. Invalid sensor' in data['message'])
 
 class NoisePollutionTests(TestCase):
     
@@ -70,8 +69,7 @@ class NoisePollutionTests(TestCase):
         self.noise_laeq_url = reverse('noise_laeq')  
         # Setup initial data in the database
         self.sensor = Sensor.objects.create(serial_number='10.1.1.1', latitude=53.369864, longitude=-6.258966)
-        self.datetime_obj = DateTime.objects.create(datetime=datetime.now().replace(tzinfo=pytz.timezone('GMT')))
-        Noise.objects.create(laeq=41.09, datetime=self.datetime_obj, sensor=self.sensor)
+        Noise.objects.create(laeq=41.09, datetime=datetime.now().replace(tzinfo=pytz.timezone('GMT')), sensor_id=self.sensor.id)
 
     #Tests the GET request for a valid sensor serial number.
     def test_get_noise_laeq_valid_sensor(self):
@@ -115,4 +113,4 @@ class NoisePollutionTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         data = response.json()
-        self.assertEqual(True, 'Failure. Could not fetch' in data['message'])
+        self.assertEqual(True, 'Failure. Invalid sensor' in data['message'])
