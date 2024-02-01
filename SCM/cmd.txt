@@ -1,0 +1,23 @@
+This file contains some commonly used commands.
+
+frontend:
+    > npm create vite@latest
+    > npm install
+    > npm run dev
+
+backend:
+    > pip install django djangorestframework django-cors-headers
+    > django-admin startproject <project name>
+    > in the settings.py file change DATABASES['default'] to use postgresql DB.
+    > python manage.py createsuperuser
+    > python manage.py check
+    > python manage.py makemigrations
+    > python manage.py migrate
+    > python manage.py startapp <app name>
+    > python manage.py runserver
+    > Table manual delete and migrate restore.
+        1. Delete app migrations folder.
+        2. In the database, run > DELETE FROM django_migrations WHERE app = 'app_name'.
+        3. python manage.py makemigrations app_name
+        4. python manage.py migrate
+    > python manage.py runscript <name of file in scripts folder>
