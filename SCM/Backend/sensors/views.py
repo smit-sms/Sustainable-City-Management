@@ -49,23 +49,21 @@ class AirView(View):
         datetime_yesterday = datetime_now - timedelta(days=1)
         datetime_end = time.mktime(datetime_now.timetuple()) # Now.
         datetime_start = time.mktime(datetime_yesterday.timetuple()) # 24 hrs ago.
-        try:
-            # Request data @ https://data.smartdublin.ie/sonitus-api.
-            res = requests.post(f"{url_root}/api/data", json={ 
-                'username': "dublincityapi",
-                'password': "Xpa5vAQ9ki",
-                'monitor': sensor_serial_number,
-                'start': datetime_start,
-                'end': datetime_end
-            })
-            if len(res.text) > 0: # if response data is not empty then ...
-                res_data = [{'datetime':d['datetime'], 'pm2_5':d['pm2_5']} for d in res.json()]
-            else: # if response data is empty then ...
-                res_data = []
 
-            # Add to the database.
-            sensor_db_obj = Sensor.objects.filter(serial_number=sensor_serial_number).first() # Get requested sensor from the database.
-            if (sensor_db_obj != None): # If requested sensor exists then ...
+        sensor_db_obj = Sensor.objects.filter(serial_number=sensor_serial_number).first() # Get requested sensor from the database.
+        if (sensor_db_obj != None): # If requested sensor exists then ...
+            try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
+                res = requests.post(f"{url_root}/api/data", json={ 
+                    'username': "dublincityapi",
+                    'password': "Xpa5vAQ9ki",
+                    'monitor': sensor_serial_number,
+                    'start': datetime_start,
+                    'end': datetime_end
+                })
+                if len(res.text) > 0: # if response data is not empty then ...
+                    res_data = [{'datetime':d['datetime'], 'pm2_5':d['pm2_5']} for d in res.json()]
+                else: # if response data is empty then ...
+                    res_data = []
                 for d in res_data: # Process data received from the API.
                     dt = datetime.strptime(d['datetime'], "%Y-%m-%d %H:%M:%S") # Extract datetime in the correct format.
                     dt = dt.replace(tzinfo=pytz.timezone('GMT')) # Add timezone information.
@@ -76,12 +74,12 @@ class AirView(View):
                         self.response_status = 200
                     except Exception as e: # If something goes wrong with the save operation ...
                         self.response_message = f'Failure. Data could not be saved to the DB due to "{e}".'
-            else: # If requested sensor does not exist then ...
-                self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
-                self.response_status = 400 
-        except Exception as e:
-            self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
-            self.response_status = 400
+            except Exception as e:
+                self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
+                self.response_status = 400
+        else: # If requested sensor does not exist then ...
+            self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
+            self.response_status = 400 
         
         # Return response.
         return JsonResponse({'message': self.response_message} , status=self.response_status, safe=True)
@@ -123,23 +121,21 @@ class NoiseView(View):
         datetime_yesterday = datetime_now - timedelta(days=1)
         datetime_end = time.mktime(datetime_now.timetuple()) # Now.
         datetime_start = time.mktime(datetime_yesterday.timetuple()) # 24 hrs ago.
-        try:
-            # Request data @ https://data.smartdublin.ie/sonitus-api.
-            res = requests.post(f"{url_root}/api/data", json={ 
-                'username': "dublincityapi",
-                'password': "Xpa5vAQ9ki",
-                'monitor': sensor_serial_number,
-                'start': datetime_start,
-                'end': datetime_end
-            })
-            if len(res.text) > 0: # if response data is not empty then ...
-                res_data = [{'datetime':d['datetime'], 'laeq':d['laeq']} for d in res.json()]
-            else: # if response data is empty then ...
-                res_data = []
 
-            # Add to the database.
-            sensor_db_obj = Sensor.objects.filter(serial_number=sensor_serial_number).first() # Get requested sensor from the database.
-            if (sensor_db_obj != None): # If requested sensor exists then ...
+        sensor_db_obj = Sensor.objects.filter(serial_number=sensor_serial_number).first() # Get requested sensor from the database.
+        if (sensor_db_obj != None): # If requested sensor exists then ...
+            try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
+                res = requests.post(f"{url_root}/api/data", json={ 
+                    'username': "dublincityapi",
+                    'password': "Xpa5vAQ9ki",
+                    'monitor': sensor_serial_number,
+                    'start': datetime_start,
+                    'end': datetime_end
+                })
+                if len(res.text) > 0: # if response data is not empty then ...
+                    res_data = [{'datetime':d['datetime'], 'laeq':d['laeq']} for d in res.json()]
+                else: # if response data is empty then ...
+                    res_data = []
                 for d in res_data: # Process data received from the API.
                     dt = datetime.strptime(d['datetime'], "%Y-%m-%d %H:%M:%S") # Extract datetime in the correct format.
                     dt = dt.replace(tzinfo=pytz.timezone('GMT')) # Add timezone information.
@@ -150,12 +146,12 @@ class NoiseView(View):
                         self.response_status = 200
                     except Exception as e: # If something goes wrong with the save operation ...
                         self.response_message = f'Failure. Data could not be saved to the DB due to "{e}".'
-            else: # If requested sensor does not exist then ...
-                self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
-                self.response_status = 400 
-        except Exception as e:
-            self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
-            self.response_status = 400
+            except Exception as e:
+                self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
+                self.response_status = 400
+        else: # If requested sensor does not exist then ...
+            self.response_message = {f'Failure. Invalid sensor {sensor_serial_number}.'}
+            self.response_status = 400 
         
         # Return response.
         return JsonResponse({'message': self.response_message} , status=self.response_status, safe=True)
