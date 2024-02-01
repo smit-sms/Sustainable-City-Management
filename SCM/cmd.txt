@@ -1,7 +1,7 @@
 This file contains some commonly used commands.
 
 frontend:
-    > npm create vite@latest
+    > npx create-react-app 'app name'
     > npm install
     > npm run dev
 
