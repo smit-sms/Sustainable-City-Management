@@ -1,7 +1,5 @@
 import React from 'react';
-import Button from './Button';
 import dummyData from '../DummyData/air';
-import { Link } from 'react-router-dom';
 import TimeSeriesDashboard from './TimeSeriesDashboard';
 
 function HomePage() {
