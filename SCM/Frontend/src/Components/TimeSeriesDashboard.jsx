@@ -86,58 +86,13 @@ function TimeSeriesDashboard({ data }) {
     }
 
     const addHistPlot = (refSvg) => {
-        const timestamps = data.map(d => d3.isoParse(d.timestamp));
-        const timeSeriesValues = data.map(d => d.data);
-        const widthSvg = 300;
-        const heightSvg = 200;
-        const svg = d3.select(refSvg.current)
-                    .attr('id', '#plot-line')
-                    .attr('width', widthSvg)
-                    .attr('height', heightSvg);
-        const margins = {left: 50, top: 10, right: 10, bottom: 50};
-        const widthPlot = widthSvg - margins.left - margins.right;
-        const heightPlot = heightSvg - margins.top - margins.bottom;
-        const gPlot = svg.selectAll('.group-plot')
-                        .data(['g'])
-                        .join('g')
-                        .attr('class', 'group-plot')
-                        .attr('width', widthPlot)
-                        .attr('height', heightPlot)
-                        .attr('transform', `translate(${margins.left}, ${margins.top})`);
-        const gXAxis = gPlot.selectAll('.group-x-axis')
-                            .data(['g'])
-                            .join('g')
-                            .attr('class', 'group-x-axis')
-                            .attr('transform', `translate(${0}, ${heightPlot})`);;
-        const gYAxis = gPlot.selectAll('.group-y-axis')
-                            .data(['g'])
-                            .join('g')
-                            .attr('class', 'group-y-axis');
-        const scaleX = d3.scaleTime()
-                        .domain(d3.extent(timestamps))
-                        .range([0, widthPlot]);
-        const scaleY = d3.scaleLinear()
-                        .domain(d3.extent(timeSeriesValues))
-                        .range([heightPlot, 0]);
-        gXAxis.call(d3.axisBottom(scaleX));
-        gYAxis.call(d3.axisLeft(scaleY));
-        console.log(data.map(d => [scaleX(d.timestamp), scaleY(d.data)]));
-        gPlot.selectAll('.path-line')
-            .data([d3.line()(data.map(d => [scaleX(d3.isoParse(d.timestamp)), scaleY(d.data)]))])
-            .join("path")
-            .attr('class', 'path-line')
-            .attr("fill", "none")
-            .attr("stroke", "blue")
-            .attr("stroke-width", 1.5)
-            .transition()
-            .duration(1000)
-            .attr("d", d => d);
+        // TO DO ...
     }
 
     useEffect(() => {
         // Line plot.
         addLinePlot(svgLine);
-        // addHistPlot(svgHist);
+        addHistPlot(svgHist);
     }, []);
 
     return (
