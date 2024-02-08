@@ -6,6 +6,5 @@ class User(models.Model):
     password=models.CharField(null=False,max_length=20,default="")
     username=models.CharField(null=False,max_length=20,default="")
 
-class Whitelist(User):
-    
-
+class Whitelist(models.Model):
+    email=models.CharField(null=False,max_length=50,default='')
