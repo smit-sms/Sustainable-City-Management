@@ -1,11 +1,8 @@
 import * as d3 from 'd3'
 import { useRef, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
 
-function TimeSeriesDashboardPage() {
-  const location = useLocation()
-  const { data } = location.state;
-
+function TimeSeriesDashboard({ data }) {
+    data = data ?? [];
   const svgLine = useRef();
 
   const plots = [
@@ -15,24 +12,24 @@ function TimeSeriesDashboardPage() {
   ]
 
   const validateData = () => {
-      if (data.length == 0) {
-          return (
-              <div className='flex h-screen w-screen float p-20 flex-col justify-center align-center'>
-                  <div className='font-bold bg-red-500 text-white px-10 py-5 rounded-xl text-center border-4'>Please provide data to generate the dashboard.</div>
-              </div>
-          )
-      } else if (
-          typeof(data[0]) != typeof({}) 
-          || !Object.keys(data[0]).includes('timestamp') 
-          || !Object.keys(data[0]).includes('data')
-      ) {
-          return (
-              <div className='flex h-screen w-screen float p-20 flex-col justify-center align-center'>
-                  <div className='font-bold bg-red-500 text-white px-10 py-5 rounded-xl text-center border-4'>{"Incorrect data format. Expected data = [{timestamp: <date_time>, data: <float>}, ...]."}</div>
-              </div>
-          )
-      }
-      return plots;
+    if (data.length == 0) {
+        return (
+            <div className='flex h-screen w-screen float p-20 flex-col justify-center align-center'>
+                <div className='font-bold bg-red-500 text-white px-10 py-5 rounded-xl text-center border-4'>Please provide data to generate the dashboard.</div>
+            </div>
+        )
+    } else if (
+        typeof(data[0]) != typeof({}) 
+        || !Object.keys(data[0]).includes('timestamp') 
+        || !Object.keys(data[0]).includes('data')
+    ) {
+        return (
+            <div className='flex h-screen w-screen float p-20 flex-col justify-center align-center'>
+                <div className='font-bold bg-red-500 text-white px-10 py-5 rounded-xl text-center border-4'>{"Incorrect data format. Expected data = [{timestamp: <date_time>, data: <float>}, ...]."}</div>
+            </div>
+        )
+    }
+    return plots;
   }
 
   useEffect(() => {
@@ -84,10 +81,10 @@ function TimeSeriesDashboardPage() {
   }, []);
 
   return (
-      <div className='grid justify-items-center'>
+      <div className='w-full h-full grid justify-items-center'>
           {validateData()}
       </div>
   )
 }
 
-export default TimeSeriesDashboardPage;
+export default TimeSeriesDashboard;
