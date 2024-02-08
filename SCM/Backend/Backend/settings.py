@@ -31,6 +31,8 @@ CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+CORS_ALLOW_ALL_ORIGINS = True
+# CSRF_COOKIE_SECURE = False
 
 # Application definition
 
@@ -42,7 +44,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "authentication"
+    "authentication",
+    "django_extensions",
+    "sensors",
 ]
 
 MIDDLEWARE = [
@@ -81,12 +85,15 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'scm', 
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': '127.0.0.1', 
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
