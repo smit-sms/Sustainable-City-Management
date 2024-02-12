@@ -10,7 +10,11 @@ function HomePage() {
       
       {/* Time Series Dashboard */}
       <div>
-        <TimeSeriesDashboard data={dummyData} />
+        <TimeSeriesDashboard 
+            data={dummyData} 
+            seasonalityPeriod={12} 
+            movingAvgWindowSize={24}
+        />
       </div>
     </div>
   );
