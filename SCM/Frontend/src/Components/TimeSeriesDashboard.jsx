@@ -86,7 +86,56 @@ function TimeSeriesDashboard({ data }) {
     }
 
     const addHistPlot = (refSvg) => {
-        // TO DO ...
+        const timeSeriesValues = data.map(d => d.data);
+        const bins = d3.bin()
+        .thresholds(10)
+        .value(d => d)
+        (timeSeriesValues);
+        const widthSvg = 300;
+        const heightSvg = 200;
+        const svg = d3.select(refSvg.current)
+                    .attr('id', '#plot-histogram')
+                    .attr('width', widthSvg)
+                    .attr('height', heightSvg);
+        const margins = {left: 50, top: 10, right: 10, bottom: 50};
+        const widthPlot = widthSvg - margins.left - margins.right;
+        const heightPlot = heightSvg - margins.top - margins.bottom;
+        const gPlot = svg.selectAll('.group-plot')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-plot')
+                            .attr('width', widthPlot)
+                            .attr('height', heightPlot)
+                            .attr('transform', `translate(${margins.left}, ${margins.top})`);
+        const gXAxis = gPlot.selectAll('.group-x-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-x-axis')
+                            .attr('transform', `translate(${0}, ${heightPlot})`);;
+        const gYAxis = gPlot.selectAll('.group-y-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-y-axis');
+        const scaleX = d3.scaleLinear()
+                            .domain([bins[0].x0, bins[bins.length - 1].x1])
+                            .range([0, widthPlot]);
+
+        const scaleY = d3.scaleLinear()
+                            .domain([0, d3.max(bins, (d) => d.length)])
+                            .range([heightPlot,0]);
+        
+        gXAxis.call(d3.axisBottom(scaleX));
+        gYAxis.call(d3.axisLeft(scaleY));
+        gPlot.selectAll('.bar')
+        .data(bins)
+        .join("rect")
+        .attr('class', 'bar')
+        .attr("x", (d) => scaleX(d.x0)+1)
+        .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0)-1)
+        .attr("y", (d) => scaleY(d.length))
+        .attr("height", (d) => scaleY(0) - scaleY(d.length));
+
+    
     }
 
     useEffect(() => {
