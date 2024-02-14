@@ -8,22 +8,26 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
     const svgLineSeasonal = useRef();
     const svgLineResidual = useRef();
     const svgHist = useRef();
+    const svgPacf = useRef();
 
     const plots = [
         <div className='mt-10'>
-            <svg ref={svgLineLevel} className='bg-slate-200'></svg>
+            <svg ref={svgLineLevel} width={500} height={300} className='bg-slate-200'></svg>
         </div>,
         <div className='mt-10'>
-            <svg ref={svgLineTrend} className='bg-slate-200'></svg>
+            <svg ref={svgLineTrend} width={500} height={300} className='bg-slate-200'></svg>
         </div>,
         <div className='mt-10'>
-            <svg ref={svgLineSeasonal} className='bg-slate-200'></svg>
+            <svg ref={svgLineSeasonal} width={500} height={300} className='bg-slate-200'></svg>
         </div>,
         <div className='mt-10'>
-            <svg ref={svgLineResidual} className='bg-slate-200'></svg>
+            <svg ref={svgLineResidual} width={500} height={300} className='bg-slate-200'></svg>
         </div>,
         <div className='mt-10'>
-            <svg ref={svgHist} className='bg-slate-200'></svg>
+            <svg ref={svgHist} width={500} height={300} className='bg-slate-200'></svg>
+        </div>,
+        <div className='mt-10'>
+            <svg ref={svgPacf} width={500} height={300} className='bg-slate-200'></svg>
         </div>
     ]
 
@@ -58,8 +62,8 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         if (x.length != y.length) throw new Error('Inputs x and y must be of the same length.')
         let data = [];
         for (let i = 0; i < x.length; i++) data.push({'x': x[i], 'y': y[i]});
-        const widthSvg = 500;
-        const heightSvg = 300;
+        const widthSvg = Number(d3.select(refSvg.current).style('width').replace('px', ''));
+        const heightSvg = Number(d3.select(refSvg.current).style('height').replace('px', ''));
         const svg = d3.select(refSvg.current)
                     .attr('id', '#plot-line')
                     .attr('width', widthSvg)
@@ -106,14 +110,13 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
             .attr("d", d => d);
     }
 
-    const addHistPlot = (refSvg) => {
-        const timeSeriesValues = data.map(d => d.data);
-        const bins = d3.bin()
-        .thresholds(10)
-        .value(d => d)
-        (timeSeriesValues);
-        const widthSvg = 300;
-        const heightSvg = 200;
+    const addHistPlot = (refSvg, timeSeriesValues) => {
+        const bin = d3.bin()
+                    .thresholds(10)
+                    .value(d => d);
+        const buckets = bin(timeSeriesValues);
+        const widthSvg = Number(d3.select(refSvg.current).style('width').replace('px', ''));
+        const heightSvg = Number(d3.select(refSvg.current).style('height').replace('px', ''));
         const svg = d3.select(refSvg.current)
                     .attr('id', '#plot-histogram')
                     .attr('width', widthSvg)
@@ -138,25 +141,23 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
                             .join('g')
                             .attr('class', 'group-y-axis');
         const scaleX = d3.scaleLinear()
-                            .domain([bins[0].x0, bins[bins.length - 1].x1])
-                            .range([0, widthPlot]);
+                        .domain([buckets[0].x0, buckets[buckets.length - 1].x1])
+                        .range([0, widthPlot]);
 
         const scaleY = d3.scaleLinear()
-                            .domain([0, d3.max(bins, (d) => d.length)])
-                            .range([heightPlot,0]);
+                        .domain([0, d3.max(buckets, (d) => d.length)])
+                        .range([heightPlot,0]);
         
         gXAxis.call(d3.axisBottom(scaleX));
         gYAxis.call(d3.axisLeft(scaleY));
         gPlot.selectAll('.bar')
-        .data(bins)
-        .join("rect")
-        .attr('class', 'bar')
-        .attr("x", (d) => scaleX(d.x0)+1)
-        .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0)-1)
-        .attr("y", (d) => scaleY(d.length))
-        .attr("height", (d) => scaleY(0) - scaleY(d.length));
-
-    
+            .data(buckets)
+            .join("rect")
+            .attr('class', 'bar')
+            .attr("x", (d) => scaleX(d.x0)+1)
+            .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0)-1)
+            .attr("y", (d) => scaleY(d.length))
+            .attr("height", (d) => scaleY(0) - scaleY(d.length));
     }
 
     const decomposeTimeSeries = (series, seasonalityPeriod, movingAvgWindowSize) => {
@@ -218,6 +219,72 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         return residual;
     }
 
+    const acfPacf = (series, maxLag) => {
+        const pacfValues = [];
+        const acfValues = [];
+        
+        // Compute autocorrelation for each lag up to maxLag
+        for (let lag = 1; lag <= maxLag; lag++) {
+            // Compute autocorrelation at lag
+            const acfAtLag = computeAcf(series, lag);
+            acfValues.push(acfAtLag);
+            
+            // Compute partial autocorrelation at lag
+            const pacfAtLag = computePacf(series, lag, acfAtLag);
+            
+            // Store partial autocorrelation coefficient
+            pacfValues.push(pacfAtLag);
+        }
+        
+        return {
+            'acf': acfValues,
+            'pacf': pacfValues
+        };
+    }
+
+    const computeAcf = (series, lag) => {
+        const n = series.length;
+        const mean = series.reduce((acc, val) => acc + val, 0) / n;
+        
+        let numerator = 0;
+        let denominator = 0;
+        
+        for (let i = lag; i < n; i++) {
+            numerator += (series[i] - mean) * (series[i - lag] - mean);
+            denominator += Math.pow((series[i] - mean), 2);
+        }
+        
+        return numerator / denominator;
+    }
+
+    const computePacfCoefficient = (series, lag) => {
+        const n = series.length;
+        const mean = series.reduce((acc, val) => acc + val, 0) / n;
+        
+        let numerator = 0;
+        let denominator = 0;
+        
+        for (let i = lag; i < n; i++) {
+            numerator += (series[i] - mean) * (series[i - lag] - mean);
+            denominator += Math.pow((series[i] - mean), 2);
+        }
+        
+        return numerator / denominator;
+    }
+    
+    const computePacf = (series, lag, acfAtLag) => {
+        const n = series.length;
+        
+        // Calculate partial autocorrelation coefficient using Yule-Walker equations
+        let sum = acfAtLag;
+        
+        for (let j = 1; j <= lag - 1; j++) {
+            sum += (computePacfCoefficient(series, j) * computePacfCoefficient(series, lag - j));
+        }
+        
+        return sum;
+    }
+
     useEffect(() => {
         // Line plot.
         const timestamps = data.map(d => d3.isoParse(d.timestamp));
@@ -234,9 +301,12 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         addLinePlot(svgLineSeasonal, seasonal);
         addLinePlot(svgLineResidual, residual);
 
-        // PACF Plot.
-
         // Histogram.
+        addHistPlot(svgHist, timeSeriesValues);
+
+        // PACF Plot.
+        const res = acfPacf(timeSeriesValues, timeSeriesValues.length);
+        console.log('PACF =', res);
 
         // Box Plot.
 
@@ -245,7 +315,7 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
 
     return (
         <div className='w-full h-full grid justify-items-center'>
-            {validateData()}
+            { validateData() }
         </div>
     )
 }
