@@ -3,13 +3,12 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 from django.views import View
-from django.shortcuts import render
 from django.http import JsonResponse
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.tsa.seasonal import seasonal_decompose
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt, requires_csrf_token
+from django.views.decorators.csrf import csrf_exempt
 
 def validate_data_form(data):
     """
