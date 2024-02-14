@@ -4,16 +4,29 @@ import requests
 from django.shortcuts import render
 from django.core.cache import cache
 from django.http import JsonResponse
-from sklearn.externals import joblib
+import pickle
+# Load the model
+class DublinBikesModel:
+    def __new__(cls):
+        if not hasattr(cls, '_instance'):
+            cls._instance = super(DublinBikesModel, cls).__new__(cls)
+            # Initialize your variable here to ensure it's only done once.
+            print('Load Dublin Bikes Usage predictor model')
+            cls.model = pickle.load(open("dublinBikesPrediction/assets/Resources/RFmodel.pkl", 'rb'))
+            cls.df_stations = pd.read_csv('dublinBikesPrediction/assets/STATION ID - BIKE STANDS.csv')
+            print('Model load complete')
+        return cls._instance
 
-# import pickle
-# with open("RFmodel.pkl", "rb") as f:
-    # model = pickle.load(f)
 
-# Load and Cache the model
-print('Load and cache Dublin Bikes Usage predictor model')
-model = joblib.load('assets/RFmodel.pkl')
-cache.set('dublinBikesUsage_model', model)
+    # def set_some_variable(self, value):
+    #     Singleton.some_variable = value
+
+    def get_model(self):
+        return DublinBikesModel.model
+
+dublinBikesModel = DublinBikesModel()
+
+# cache.set('dublinBikesUsage_model', model)
 
 APIKEY_OPENWEATHER = 'eef810c9a22776cce17d0de14d316137'
 APIKEY_METEOSOURCE = 'wkz9f0gm7xust1d45patrd9uqugwm2qjrtctorxx'
@@ -42,16 +55,16 @@ def prepare_query_for_model(weather_forecast=None):
 
     res.drop('TIME', axis=1, inplace=True)
 
-    df_stations = pd.read_csv('assets/STATION ID - BIKE STANDS.csv')
+    df_stations = pd.read_csv('dublinBikesPrediction/assets/STATION ID - BIKE STANDS.csv')
     res['dummy'] = 1
     df_stations['dummy'] = 1
     res = pd.merge(df_stations, res, on='dummy')
     res = res.drop(columns='dummy')
     res = res.reset_index(drop=True)
-    
     return res
 
 def predict(request):
-    cached_model = cache.get('dublinBikesUsage_model')
-    prediction = cached_model.predict(prepare_query_for_model())
-    return JsonResponse({'prediction': prediction.tolist()})
+    data = prepare_query_for_model()
+    prediction = dublinBikesModel.get_model().predict(data)
+    data['prediction'] = prediction
+    return JsonResponse({'prediction': data.to_json()})
