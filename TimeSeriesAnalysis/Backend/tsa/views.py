@@ -107,6 +107,78 @@ def decompose_time_series(data, period, model_type='additive'):
         "residual": residual_list
     }
 
+def adf_stationarity_check(data):
+    """
+    Performs Augmented Dickey Fuller (ADF) test to check for stationarity of data.
+    @param data: Data series that is to be tested.
+    @return dict: {
+        "is_stationary": True if data is stationary and false otherwise.
+        "adf": ADF test statistic.
+        "p": Hypothesis test p value.
+        "num_lags": No. of lags used.
+        "num_obs": No. of observations used for ADF regression and critical value computation.
+    }
+    """
+    adf_res = adfuller(data)
+    adf = adf_res[0]
+    p = adf_res[1]
+    num_lags = adf_res[2]
+    num_obs = adf_res[3]
+    is_stationary = p < 0.05
+    return { 
+        "is_stationary": int(is_stationary),
+        "adf": adf,
+        "p": p,
+        "num_lags": num_lags,
+        "num_obs": num_obs
+    }
+
+def compute_first_difference(series):
+    """
+    Computes first order difference of given data to possibly make it
+    stationary.
+    @param series: Pandas series that needs to be differenced.
+    @return diff: Differenced data.
+    """
+    dist = series[(series.index.values)[0:len(series)-1]].to_numpy()
+    diff = series[(series.index.values)[1:len(series)]].to_numpy() - dist
+    return diff.tolist()
+
+def acf_pacf(data, lags):
+    """
+    Computes autocorrelation and partial autocorrelation 
+    between lags for given no. of lags.
+    @param data: Data to compute autocorrelation for.
+    @param lags: No of lags to consider.
+    @return dict: {
+        "lag": List of lags from 1 to given max lag.
+        "autocorrelation": Autocorrelation computed for each lag.
+        "partial_autocorrelation": Partial autocorrelation computed for each lag.
+        "confidence_interval": Confidence intervals associated with each lag.
+    }
+    """
+    if type(lags) != int or lags >= len(data):
+        raise Exception("Lags must be an integer < no. of timesteps in given data.")
+    res_acf = acf(data, nlags=lags)
+    res_pacf = pacf(data, nlags=lags)
+    num_obs = len(data)
+
+    # Compute the quantile function = inverse cumulative distribution function
+    # of the standard normal distribution at 95% confidence level to get z value.
+    z_critical = norm.ppf(1 - 0.05 / (2 * num_obs))  # 95% confidence level
+
+    # Calculate confidence intervals for each lag
+    # using the formula: Confidence Intervals = Z Score/sqrt(degrees of freedom)
+    # wherein the z score is set as the value associated with 95% confidence level.
+    conf_intervals = z_critical / np.sqrt(num_obs - np.arange(1, lags + 1))
+
+    return {
+        "lag": list(range(1, lags + 1)),
+        "partial_autocorrelation": res_pacf[1:lags + 1],
+        "autocorrelation": res_acf[1:lags + 1],
+        "confidence_interval": conf_intervals
+    }
+
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
 class Decomposition(View):
@@ -133,7 +205,6 @@ class Decomposition(View):
 
         try:
             df = make_dataframe(data, freq)
-            print(df)
             self.response_data = decompose_time_series(data=df.data, period=period, model_type=model_type)
             self.response_status = 200
             self.response_message = f'Success. Extracted trend, seasonal and residual components.'
@@ -141,6 +212,108 @@ class Decomposition(View):
             self.response_message = f"Failure. {e}"
             self.response_data = []
             self.response_status = 500
+        
+        return JsonResponse(
+            {'message': self.response_message, 'data': self.response_data}, 
+            status=self.response_status, safe=True
+        )
+    
+# Create your views here.
+@method_decorator(csrf_exempt, name='dispatch')
+class AdfStationarityCheck(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+        
+    def post(self, request):
+        """
+        Post request that shall decompose given time series data
+        and return it's trend, seasonal and residual components.
+        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param freq: Frequency at which time series values were collected.
+        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        """
+        request_json = json.loads(request.body.decode('utf-8'))
+        data = request_json['data']
+        freq = request_json['freq']
+
+        try:
+            df = make_dataframe(data, freq)
+            self.response_data = adf_stationarity_check(df.data)
+            self.response_status = 200
+            self.response_message = f'Success. Augmented Dickey Fuller test complete.'
+        except Exception as e:
+            self.response_message = f"Failure. {e}"
+            self.response_data = []
+            self.response_status = 500
+        
+        return JsonResponse(
+            {'message': self.response_message, 'data': self.response_data}, 
+            status=self.response_status, safe=True
+        )
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class FirstDifference(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+        
+    def post(self, request):
+        """
+        Post request that shall decompose given time series data
+        and return it's trend, seasonal and residual components.
+        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param freq: Frequency at which time series values were collected.
+        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        """
+        request_json = json.loads(request.body.decode('utf-8'))
+        data = request_json['data']
+        freq = request_json['freq']
+
+        try:
+            df = make_dataframe(data, freq)
+            self.response_data = compute_first_difference(df.data)
+            self.response_status = 200
+            self.response_message = f'Success. First order difference computed.'
+        except Exception as e:
+            self.response_message = f"Failure. {e}"
+            self.response_data = []
+            self.response_status = 500
+        
+        return JsonResponse(
+            {'message': self.response_message, 'data': self.response_data}, 
+            status=self.response_status, safe=True
+        )
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class AcfPacf(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+        
+    def post(self, request):
+        """
+        Post request that shall decompose given time series data
+        and return it's trend, seasonal and residual components.
+        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param freq: Frequency at which time series values were collected.
+        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        """
+        request_json = json.loads(request.body.decode('utf-8'))
+        data = request_json['data']
+        freq = request_json['freq']
+        lags = request_json['lags']
+
+        try:
+            df = make_dataframe(data, freq)
+            self.response_data = acf_pacf(df.data, lags)
+            self.response_status = 200
+            self.response_message = f'Success. First order difference computed.'
+        except Exception as e:
+            self.response_message = f"Failure. {e}"
+            self.response_data = []
+            self.response_status = 500
+        
         return JsonResponse(
             {'message': self.response_message, 'data': self.response_data}, 
             status=self.response_status, safe=True
