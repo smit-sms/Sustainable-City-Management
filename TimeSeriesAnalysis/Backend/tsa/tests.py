@@ -35,7 +35,10 @@ class TimeSeriesAnalysis(TestCase):
     def setUp(self):
         self.client = Client()
         self.urls = {
-            "tsa_decomposition": reverse('tsa_decomposition')  
+            "tsa_decomposition": reverse('tsa_decomposition'),
+            "tsa_stationarity": reverse("tsa_stationarity"),
+            "tsa_first_difference": reverse("tsa_first_difference"),
+            "tsa_correlation": reverse("tsa_correlation")
         }
         self.dummyData = fetch_noise_data('10.1.1.1')
 
@@ -51,10 +54,121 @@ class TimeSeriesAnalysis(TestCase):
             }),
             content_type='application/json'
         )
-        # print('RESPONSE =', response.json())
         res = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertIn('Success. Extracted trend, seasonal and residual components.', res["message"])
         self.assertEqual(len(res["data"]["trend"]) > 0, True)
         self.assertEqual(len(res["data"]["seasonal"]) > 0, True)
         self.assertEqual(len(res["data"]["residual"]) > 0, True)
+
+    def test_stationarity_success(self):
+        response = self.client.post(
+            path=self.urls["tsa_stationarity"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "30min",
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Success. Augmented Dickey Fuller test complete.', res["message"])
+        self.assertIn(res["data"]["is_stationary"], [1, 0])
+        self.assertEqual(type(res["data"]["adf"]) == float, True)
+        self.assertEqual(type(res["data"]["p"]) == float, True)
+        self.assertEqual(type(res["data"]["num_lags"]) == int, True)
+        self.assertEqual(type(res["data"]["num_obs"]) == int, True)
+
+    def test_first_difference_success(self):
+        response = self.client.post(
+            path=self.urls["tsa_first_difference"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "30min",
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Success. First order difference computed.', res["message"])
+        self.assertEqual(len(res["data"]) > 0, True)
+
+    def test_correlation_success(self):
+        response = self.client.post(
+            path=self.urls["tsa_correlation"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "30min",
+                "lags": 10
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Success. First order difference computed.', res["message"])
+        self.assertEqual(
+            len(res["data"]["lag"]) 
+            == len(res["data"]["partial_autocorrelation"])
+            == len(res["data"]["autocorrelation"])
+            == len(res["data"]["confidence_interval"])
+            > 0
+        , True)
+        self.assertEqual(type(res["data"]["lag"][0]) == int, True)
+        self.assertEqual(type(res["data"]["partial_autocorrelation"][0]) == float, True)
+        self.assertEqual(type(res["data"]["autocorrelation"][0]) == float, True)
+        self.assertEqual(type(res["data"]["confidence_interval"][0]) == float, True)
+
+    # Test failure.
+    def test_decomposition_failure(self):
+        response = self.client.post(
+            path=self.urls["tsa_decomposition"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "30min",
+                "period": "20", # Wrong data format. Should be integer.
+                "model_type":"additive"
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Failure.', res["message"])
+
+    def test_stationarity_failure(self):
+        response = self.client.post(
+            path=self.urls["tsa_stationarity"], 
+            data=json.dumps({
+                "data": self.dummyData, # Missing parameter freq.
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Failure.', res["message"])
+
+    def test_first_difference_failure(self):
+        response = self.client.post(
+            path=self.urls["tsa_first_difference"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "0min", # Invalid frequency offset
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Failure.', res["message"])
+
+    def test_correlation_failure(self):
+        response = self.client.post(
+            path=self.urls["tsa_correlation"], 
+            data=json.dumps({
+                "data": self.dummyData,
+                "freq": "30min",
+                "lags": len(self.dummyData['data'])+1 # Value for lags out of accepted range.
+            }),
+            content_type='application/json'
+        )
+        res = response.json()
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Failure.', res["message"])
