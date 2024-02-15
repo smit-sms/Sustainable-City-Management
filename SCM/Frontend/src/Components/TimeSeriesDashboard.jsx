@@ -483,9 +483,8 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         addLinePlot(svgLineTrend, trend);
         addLinePlot(svgLineSeasonal, seasonal);
         addLinePlot(svgLineResidual, residual);
-        addHistPlot(svgHist);
-        addBoxPlot(svgBox);
-        AddSummary(svgSummary);
+        addBoxPlot(svgBox,timeSeriesValues);
+        AddSummary(svgSummary,timeSeriesValues);
 
         // Histogram.
         addHistPlot(svgHist, timeSeriesValues);
