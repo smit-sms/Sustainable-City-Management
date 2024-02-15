@@ -8,6 +8,8 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
     const svgLineSeasonal = useRef();
     const svgLineResidual = useRef();
     const svgHist = useRef();
+    const svgBox=useRef();
+    const svgSummary=useRef();
     const svgPacf = useRef();
 
     const plots = [
@@ -28,6 +30,12 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         </div>,
         <div className='mt-10'>
             <svg ref={svgPacf} width={500} height={300} className='bg-slate-200'></svg>
+        </div>,
+        <div className='mt-10'>
+            <svg ref={svgBox} width={500} height={300} className='bg-slate-200'></svg>
+        </div>,
+        <div className='mt-10'>
+            <svg ref={svgSummary} width={500} height={300} className='bg-slate-200'></svg>
         </div>
     ]
 
@@ -110,11 +118,11 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
             .attr("d", d => d);
     }
 
-    const addHistPlot = (refSvg, timeSeriesValues) => {
+    const addHistPlot = (refSvg, data) => {
         const bin = d3.bin()
                     .thresholds(10)
                     .value(d => d);
-        const buckets = bin(timeSeriesValues);
+        const buckets = bin(data);
         const widthSvg = Number(d3.select(refSvg.current).style('width').replace('px', ''));
         const heightSvg = Number(d3.select(refSvg.current).style('height').replace('px', ''));
         const svg = d3.select(refSvg.current)
@@ -159,6 +167,181 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
             .attr("y", (d) => scaleY(d.length))
             .attr("height", (d) => scaleY(0) - scaleY(d.length));
     }
+    
+    const addBoxPlot = (refSvg,data) => {
+        const widthSvg = 300;
+        const heightSvg = 200;
+        const svg = d3.select(refSvg.current)
+                    .attr('id', '#plot-box')
+                    .attr('width', widthSvg)
+                    .attr('height', heightSvg);
+        const margins = {left: 50, top: 10, right: 10, bottom: 50};
+        const widthPlot = widthSvg - margins.left - margins.right;
+        const heightPlot = heightSvg - margins.top - margins.bottom;
+        const gPlot = svg.selectAll('.group-plot')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-plot')
+                            .attr('width', widthPlot)
+                            .attr('height', heightPlot)
+                            .attr('transform', `translate(${margins.left}, ${margins.top})`);
+        const gYAxis = gPlot.selectAll('.group-y-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-y-axis');
+        
+        let data_sorted=data.sort(d3.ascending);
+        let q1 = d3.quantile(data_sorted, .25);
+        let median = d3.quantile(data_sorted, .5);
+        let q3 = d3.quantile(data_sorted, .75);
+        let interQuantileRange = q3 - q1;
+        let min = q1 - 1.5 * interQuantileRange;
+        let max = q3 + 1.5 * interQuantileRange;
+        let outliers=[];
+        for (let i=0;i<data_sorted.length;i++){
+            if (data_sorted[i]<min || data_sorted[i] >max)
+                {
+                    outliers.push(data_sorted[i]);
+                } 
+        }
+        const scaleY = d3.scaleLinear()
+                        .domain([min-10,max+10])
+                        .range([heightPlot,0]);
+        
+        let center=120;
+        let width=100;
+
+        gYAxis.call(d3.axisLeft(scaleY));
+        
+
+        gPlot.selectAll('.line')
+        .data(['g'])
+        .join('line')
+        .attr('class','line')
+        .attr("x1", center)
+        .attr("x2",center)
+        .attr("y1", scaleY(min))
+        .attr("y2", scaleY(max))
+        .attr("stroke","black");
+
+        gPlot.selectAll(".rect")
+        .data(['g'])
+        .join('rect')
+        .attr('class','rect')
+        .attr("x", center - width/2)
+        .attr("y", scaleY(q3) )
+        .attr("height", (scaleY(q1)-scaleY(q3)) )
+        .attr("width", width )
+        .attr("stroke", "black")
+        .style("fill", "#69b3a2");
+
+        gPlot.selectAll(".line2")
+        .data([min, median, max])
+        .join("line")
+        .attr("class","line2")
+        .attr("x1", center-width/2)
+        .attr("x2", center+width/2)
+        .attr("y1", (d) => scaleY(d) )
+        .attr("y2", (d) => scaleY(d) )
+        .attr("stroke", "black");
+
+        gPlot.selectAll(".circle")
+            .data(outliers)
+            .join("circle")
+            .attr('class','circle')
+            .attr('cx',center)
+            .attr('cy',(d) => scaleY(d))
+            .attr('r',1)
+            .attr('stroke','black')
+            .attr('fill','white')
+
+    }
+
+    const AddSummary = (refSvg,data) =>{
+            const widthSvg = 300;
+            const heightSvg = 200;
+            const svg = d3.select(refSvg.current)
+                        .attr('id', '#plot-summary')
+                        .attr('width', widthSvg)
+                        .attr('height', heightSvg);
+
+            let data_sorted=data.sort(d3.ascending);
+            let q1 = d3.quantile(data_sorted, .25);
+            let median = d3.quantile(data_sorted, .5);
+            let q3 = d3.quantile(data_sorted, .75);
+
+            let data2 = [
+                ["Measure","Value"],
+                ["Max",data_sorted[data_sorted.length-1]],
+                ["Min",data_sorted[0]],
+                ["Median",median],
+                ["First quartile",q1],
+                ["Third quartile",q3]
+
+              ];
+
+
+              
+              // Cell dimensions
+              const cellWidth = 150;
+              const cellHeight = 30;
+              
+              // Append rows
+
+              const rows = svg.selectAll(".row")
+                .data(data2)
+                .join("g")
+                .attr("class", "row")
+                .attr("transform", (d, i) => `translate(0, ${(i) * cellHeight})`);
+
+              rows.selectAll(".hline")
+                .data(['g'])
+                .join('line')
+                .attr("class","hline")
+                .attr("x1", (d,i) => {return 0})
+                .attr("x2", (d,i) => {return 2*cellWidth})
+                .attr("y1", (d,i) => {return i*cellHeight} )
+                .attr("y2", (d,i) => {return i*cellHeight} )
+                .attr("stroke", "black");
+              
+              // Append cells
+              const cells = rows.selectAll(".cell")
+                .data(d => d)
+                .join('g')
+                .attr("class", "cell")
+                .attr("transform", (d, i) => `translate(${i * cellWidth}, 0)`);
+              
+              // Append cell background
+              cells.selectAll(".rect")
+                .data(d=>[d])
+                .join('rect')
+                .attr('class','rect')
+                .attr("width", cellWidth)
+                .attr("height", cellHeight)
+                .attr("fill", (d,i) => {if(d=="Measure" || d=="Value"){return "red";} else {return "lightgray";}});
+              
+              // Append text content
+              cells.selectAll('.text')
+                .data(d=>[d])
+                .join('text')
+                .attr('class','text')
+                .attr("x", cellWidth / 2)
+                .attr("y", cellHeight / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .attr("font-weight",(d,i) => {if(d=="Measure" || d=="Value"){return 900;} else {return 400;}})
+                .text(d => d);
+
+
+
+            
+            
+            
+            
+            
+    }
+
+
 
     const decomposeTimeSeries = (series, seasonalityPeriod, movingAvgWindowSize) => {
         /** This function decomposes a given time series to extract
@@ -300,6 +483,8 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
         addLinePlot(svgLineTrend, trend);
         addLinePlot(svgLineSeasonal, seasonal);
         addLinePlot(svgLineResidual, residual);
+        addBoxPlot(svgBox,timeSeriesValues);
+        AddSummary(svgSummary,timeSeriesValues);
 
         // Histogram.
         addHistPlot(svgHist, timeSeriesValues);
