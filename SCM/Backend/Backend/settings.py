@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     "django_extensions",
     "sensors",
+    "energy_usage",
 ]
 
 MIDDLEWARE = [
