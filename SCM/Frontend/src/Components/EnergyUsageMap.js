@@ -8,7 +8,7 @@ import countries from "../assets/area.json";
 
 function Style(countries) {
     return {
-      fillColor: getColor(countries.properties.Cost_Of_Energy),
+      fillColor: getColor(countries.properties.Estimated_Annual_Cost),
       fillOpacity: 0.6
     }  
   };
@@ -26,13 +26,13 @@ function getColor(d) {
 
 
 function onEachCountry(countries, layer) {
-    const name = countries.properties.Small_Area_Name;
-    const Energy_Use = countries.properties.Energy_Use;
-    const Cost_Of_Energy = countries.properties.Cost_Of_Energy
+    const name = countries.properties.Local_Electorial_Area_name;
+    const Energy_Use = countries.properties['Estimated_Annual_EnergyUse(kWh)'];
+    const Cost_Of_Energy = countries.properties.Estimated_Annual_Cost;
     layer.bindPopup(`<div class="pop" >
     Name:  ${name}
     <br/>
-    Energy_Use:${Energy_Use}
+    Energy_Use:${Energy_Use}(kWh)
     <br/>
     Cost_Of_Energy:${Cost_Of_Energy}
     </div>
