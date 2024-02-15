@@ -173,9 +173,9 @@ def acf_pacf(data, lags):
 
     return {
         "lag": list(range(1, lags + 1)),
-        "partial_autocorrelation": res_pacf[1:lags + 1],
-        "autocorrelation": res_acf[1:lags + 1],
-        "confidence_interval": conf_intervals
+        "partial_autocorrelation": list(res_pacf[1:lags + 1]),
+        "autocorrelation": list(res_acf[1:lags + 1]),
+        "confidence_interval": list(conf_intervals)
     }
 
 # Create your views here.
@@ -196,13 +196,12 @@ class Decomposition(View):
         @param model_type: Type of decomposition to perform ("additive", "multiplicative").
         @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
         """
-        request_json = json.loads(request.body.decode('utf-8'))
-        data = request_json['data']
-        freq = request_json['freq']
-        period = request_json['period']
-        model_type = request_json['model_type']
-
         try:
+            request_json = json.loads(request.body.decode('utf-8'))
+            data = request_json['data']
+            freq = request_json['freq']
+            period = request_json['period']
+            model_type = request_json['model_type']
             df = make_dataframe(data, freq)
             self.response_data = decompose_time_series(data=df.data, period=period, model_type=model_type)
             self.response_status = 200
@@ -232,11 +231,10 @@ class AdfStationarityCheck(View):
         @param freq: Frequency at which time series values were collected.
         @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
         """
-        request_json = json.loads(request.body.decode('utf-8'))
-        data = request_json['data']
-        freq = request_json['freq']
-
         try:
+            request_json = json.loads(request.body.decode('utf-8'))
+            data = request_json['data']
+            freq = request_json['freq']
             df = make_dataframe(data, freq)
             self.response_data = adf_stationarity_check(df.data)
             self.response_status = 200
@@ -265,11 +263,10 @@ class FirstDifference(View):
         @param freq: Frequency at which time series values were collected.
         @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
         """
-        request_json = json.loads(request.body.decode('utf-8'))
-        data = request_json['data']
-        freq = request_json['freq']
-
         try:
+            request_json = json.loads(request.body.decode('utf-8'))
+            data = request_json['data']
+            freq = request_json['freq']
             df = make_dataframe(data, freq)
             self.response_data = compute_first_difference(df.data)
             self.response_status = 200
@@ -298,12 +295,11 @@ class AcfPacf(View):
         @param freq: Frequency at which time series values were collected.
         @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
         """
-        request_json = json.loads(request.body.decode('utf-8'))
-        data = request_json['data']
-        freq = request_json['freq']
-        lags = request_json['lags']
-
         try:
+            request_json = json.loads(request.body.decode('utf-8'))
+            data = request_json['data']
+            freq = request_json['freq']
+            lags = request_json['lags']
             df = make_dataframe(data, freq)
             self.response_data = acf_pacf(df.data, lags)
             self.response_status = 200
