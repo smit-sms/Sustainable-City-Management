@@ -16,5 +16,5 @@ def run():
 
     for row in reader:
         print(row[0],"  ",row[1])
-        data_row = SA_energy_consumption(SA_code=row[1], Energy_use=float(row[2]), Energy_cost=float(row[3]), Total_Floor_Area=row[3], Small_Area_Name=row[4])
+        data_row = SA_energy_consumption(SA_code=row[1], Energy_use=row[2], Energy_cost=row[3], Total_Floor_Area=row[4], Small_Area_Name=row[5])
         data_row.save()
