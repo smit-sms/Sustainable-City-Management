@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from .models import Sensor, Air, Noise
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt, requires_csrf_token
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
@@ -35,7 +35,10 @@ class AirView(View):
             self.response_message = f'Failure. Invalid sensor {sensor_serial_number}.'
     
         # Return response.
-        return JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
+        response = JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
+        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'  # Replace with your React app's origin
+        response['Access-Control-Allow-Methods'] = 'GET'
+        return response
         
     def post(self, request):
         url_root = "https://data.smartdublin.ie/sonitus-api"

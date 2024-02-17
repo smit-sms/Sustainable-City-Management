@@ -90,9 +90,9 @@ def decompose_time_series(data, period, model_type='additive'):
     decomposition = seasonal_decompose(data, model=model_type, period=period)
     
     # Extract decomposed components.
-    trend = decomposition.trend
-    seasonal = decomposition.seasonal
-    residual = decomposition.resid
+    trend = decomposition.trend.fillna('nan')
+    seasonal = decomposition.seasonal.fillna('nan')
+    residual = decomposition.resid.fillna('nan')
     
     # Convert components to lists for easier manipulation.
     trend_list = trend.values.flatten().tolist()
@@ -141,7 +141,7 @@ def compute_first_difference(series):
     """
     dist = series[(series.index.values)[0:len(series)-1]].to_numpy()
     diff = series[(series.index.values)[1:len(series)]].to_numpy() - dist
-    return diff.tolist()
+    return diff.tolist()[1:]
 
 def acf_pacf(data, lags):
     """
