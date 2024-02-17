@@ -8,9 +8,12 @@ let controls = {
     lags: 1
 }
 
-const TSDashboard = ({ data, frequency, period, lags, title }) => {
+const TSADashboard = ({ data, frequency, period, lags, title }) => {
     const [stateChangeControls, setStateChangeControls] = useState(0);
-    const [decomposed, setDecomposed] = useState({'trend':[], 'seasonality':[], 'residual':[]});
+    const [dataLinePlot, setDataLinePlot] = useState({
+        'base':[], 'trend':[], 'seasonality':[], 'residual':[], 'stationary': []
+    });
+    const [numDiff, setNumDiff] = useState(0);
 
     const handleTextBoxChange = (id) => {
         const textBox = d3.select(`#${id}`).select('input');
@@ -32,6 +35,8 @@ const TSDashboard = ({ data, frequency, period, lags, title }) => {
             d3.select(`#text-box-${tb}`).select('input').property("value", "").attr('style', 'border:none');
         })
         setStateChangeControls(prevVal => 1 - prevVal);
+        // Update data.
+        updateLineData();
     }
 
     const sanityCheckControls = (textBoxType, val) => {
@@ -40,30 +45,83 @@ const TSDashboard = ({ data, frequency, period, lags, title }) => {
         if (textBoxType == 'lags') return val > 0 || val < data.data.length;
         return false
     }
+
+    const checkStationarity = async (data) => {
+        const responseBody = JSON.stringify({"data": data});
+        let response = await fetch('http://127.0.0.1:8001/tsa/stationarity/', {
+            method: 'POST',
+            body: responseBody,
+            headers: {'Content-Type':'application/json'}
+        });
+        response = await response.json();
+        return response.data.is_stationary;
+    }
+
+    const getFirstDifference = async (dataTime) => {
+        const responseBody = JSON.stringify({"data": dataTime, "freq": controls.freq});
+        let response = await fetch('http://127.0.0.1:8001/tsa/first_difference/', {
+            method: 'POST',
+            body: responseBody,
+            headers: {'Content-Type':'application/json'}
+        });
+        response = await response.json();
+        return response.data;
+    }
+
+    const updateLineData = async () => {
+        let lineData = {
+            base: data.data,
+            base_time: data.time,
+            decomposed_time: [],
+            trend: [], 
+            seasonal: [], 
+            residual: [], 
+            stationary: [],
+            stationary_time: []
+        }
+        let decomposed = await fetch('http://127.0.0.1:8001/tsa/decompose/', {
+            method: 'POST',
+            body: JSON.stringify({"data": data, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
+            headers: {'Content-Type':'application/json'}
+        })
+        decomposed = await decomposed.json();
+        decomposed = decomposed.data;
+        lineData.decomposed_time = decomposed.time;
+        lineData.trend = decomposed.trend;
+        lineData.seasonal = decomposed.seasonal;
+        lineData.residual = decomposed.residual;
+
+        let dataStationary = data;
+        let isStationary = false
+        while (true) {
+            isStationary = await checkStationarity(dataStationary.data);
+            if (isStationary == 1) break;
+            else {
+                dataStationary = await getFirstDifference(dataStationary);
+                setNumDiff(prevVal => prevVal + 1);
+            }
+        }
+        lineData.stationary = dataStationary.data;
+        lineData.stationary_time = dataStationary.time;
+        setDataLinePlot(prevVal => lineData);
+    }
+
+    const plotLineData = () => {
+        // TO DO ...
+        console.log("DATA LINE PLOT =", dataLinePlot);
+    }
     
     useEffect(() => {
         // Set user controls.
         controls.freq = frequency;
         controls.period = period;
         controls.lags = lags;
-
-        // Fetch decomposition data.
-        fetch('http://127.0.0.1:8001/tsa/decompose/', {
-            method: 'POST',
-            body: JSON.stringify({"data": data, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
-            headers: {'Content-Type':'application/json'}
-        })
-        .then(response => response.json())
-        .then(response => {
-            setDecomposed(prevVal => response.data);
-        });
-
         handleApply();
     }, []);
 
     useEffect(() => {
-        
-    }, [decomposed]);
+        plotLineData();
+    }, [dataLinePlot]);
     
     return (
         <div>
@@ -111,4 +169,4 @@ const TSDashboard = ({ data, frequency, period, lags, title }) => {
     )
 }
 
-export default TSDashboard
+export default TSADashboard

@@ -10,7 +10,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-def validate_data_form(data):
+def validate_data_form_dict(data):
     """
     Validates if data is in correct format and return True when it is so. 
     @param data: Input data.
@@ -32,6 +32,20 @@ def validate_data_form(data):
         pd.to_datetime(data['time'])
     except Exception as e: 
         raise Exception(f'Time could not be converted into pandas datetime format. {e}')
+    return True
+
+def validate_data_form_list(data):
+    """
+    Validates if data is in correct format and return True when it is so. 
+    @param data: Input data.
+    @return: True if data is in expected form. Throws exception otherwise.
+    """
+    if type(data) != type([]): 
+        raise Exception('Unrecognized form of data.')
+    if len(data) <= 0: 
+        raise Exception('No data received.')
+    if not 'float' in str(type(data[0])): 
+        raise Exception('Data must be floats.')
     return True
 
 def add_freq(idx, freq=None):
@@ -61,10 +75,10 @@ def make_dataframe(data, freq):
     """
     if type(freq) != str:
         raise Exception("Frequency must be a valid pandas frequency offset.")
-    validate_data_form(data)
+    validate_data_form_dict(data)
     data["time"] = pd.to_datetime(data["time"])
     df = pd.DataFrame(data)
-    df.set_index("time", inplace=True)
+    df.set_index("time", inplace=True, drop=False)
     df = df.asfreq(freq)
     df = df.ffill().bfill()
     return df
@@ -87,12 +101,12 @@ def decompose_time_series(data, period, model_type='additive'):
         # If there are 0s in the data, then it must be offset by 1
         # in order to perform multiplicative decomposition.
         data = data + 1
-    decomposition = seasonal_decompose(data, model=model_type, period=period)
+    decomposition = seasonal_decompose(data, model=model_type, period=period, extrapolate_trend='freq')
     
     # Extract decomposed components.
-    trend = decomposition.trend.fillna('nan')
-    seasonal = decomposition.seasonal.fillna('nan')
-    residual = decomposition.resid.fillna('nan')
+    trend = decomposition.trend
+    seasonal = decomposition.seasonal
+    residual = decomposition.resid
     
     # Convert components to lists for easier manipulation.
     trend_list = trend.values.flatten().tolist()
@@ -132,16 +146,17 @@ def adf_stationarity_check(data):
         "num_obs": num_obs
     }
 
-def compute_first_difference(series):
+def compute_first_difference(df):
     """
     Computes first order difference of given data to possibly make it
     stationary.
     @param series: Pandas series that needs to be differenced.
     @return diff: Differenced data.
     """
-    dist = series[(series.index.values)[0:len(series)-1]].to_numpy()
-    diff = series[(series.index.values)[1:len(series)]].to_numpy() - dist
-    return diff.tolist()[1:]
+    series = df.data
+    dist = series[(series.index)[0:len(series)-1]].to_numpy()
+    diff = series[(series.index)[1:len(series)]].to_numpy() - dist
+    return diff.tolist()
 
 def acf_pacf(data, lags):
     """
@@ -204,13 +219,14 @@ class Decomposition(View):
             model_type = request_json['model_type']
             df = make_dataframe(data, freq)
             self.response_data = decompose_time_series(data=df.data, period=period, model_type=model_type)
+            self.response_data['time'] = df.time.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
             self.response_status = 200
             self.response_message = f'Success. Extracted trend, seasonal and residual components.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
             self.response_data = []
             self.response_status = 500
-        
+
         return JsonResponse(
             {'message': self.response_message, 'data': self.response_data}, 
             status=self.response_status, safe=True
@@ -233,10 +249,9 @@ class AdfStationarityCheck(View):
         """
         try:
             request_json = json.loads(request.body.decode('utf-8'))
-            data = request_json['data']
-            freq = request_json['freq']
-            df = make_dataframe(data, freq)
-            self.response_data = adf_stationarity_check(df.data)
+            data = request_json['data'] # [<float>, ...]
+            validate_data_form_list(data)
+            self.response_data = adf_stationarity_check(data)
             self.response_status = 200
             self.response_message = f'Success. Augmented Dickey Fuller test complete.'
         except Exception as e:
@@ -253,7 +268,7 @@ class AdfStationarityCheck(View):
 class FirstDifference(View):
     response_message = ''
     response_status = 200
-    response_data = []
+    response_data = {'data': [], 'time': []}
         
     def post(self, request):
         """
@@ -268,7 +283,8 @@ class FirstDifference(View):
             data = request_json['data']
             freq = request_json['freq']
             df = make_dataframe(data, freq)
-            self.response_data = compute_first_difference(df.data)
+            self.response_data['data'] = compute_first_difference(df)
+            self.response_data['time'] = df.time[1:].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
             self.response_status = 200
             self.response_message = f'Success. First order difference computed.'
         except Exception as e:

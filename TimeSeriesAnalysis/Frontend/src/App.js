@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import TSDashboard from "./components/TSDashboard";
+import TSADashboard from "./components/TSADashboard";
 
 const App = () => {
 
@@ -26,7 +26,7 @@ const App = () => {
         <div className="App">
             {
                 data.data.length > 0 ? 
-                <TSDashboard 
+                <TSADashboard 
                     title={"Air Pollution (PM2.5) (Sensor = DCC-AQ2)"}
                     data={data} 
                     frequency={"15min"}

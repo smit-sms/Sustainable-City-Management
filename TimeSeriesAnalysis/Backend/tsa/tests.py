@@ -64,10 +64,7 @@ class TimeSeriesAnalysis(TestCase):
     def test_stationarity_success(self):
         response = self.client.post(
             path=self.urls["tsa_stationarity"], 
-            data=json.dumps({
-                "data": self.dummyData,
-                "freq": "30min",
-            }),
+            data=json.dumps({"data": self.dummyData['data']}),
             content_type='application/json'
         )
         res = response.json()
@@ -91,7 +88,8 @@ class TimeSeriesAnalysis(TestCase):
         res = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertIn('Success. First order difference computed.', res["message"])
-        self.assertEqual(len(res["data"]) > 0, True)
+        self.assertEqual(len(res["data"]["data"]) > 0, True)
+        self.assertEqual(len(res["data"]["data"]), len(res["data"]["time"]))
 
     def test_correlation_success(self):
         response = self.client.post(
@@ -137,9 +135,7 @@ class TimeSeriesAnalysis(TestCase):
     def test_stationarity_failure(self):
         response = self.client.post(
             path=self.urls["tsa_stationarity"], 
-            data=json.dumps({
-                "data": self.dummyData, # Missing parameter freq.
-            }),
+            data=json.dumps({}), # Missing parameter data.
             content_type='application/json'
         )
         res = response.json()
