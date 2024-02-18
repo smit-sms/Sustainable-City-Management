@@ -198,7 +198,7 @@ def acf_pacf(data, lags):
 class Decomposition(View):
     response_message = ''
     response_status = 200
-    response_data = []
+    response_data = {'trend':[], 'seasonal':[], 'residual':[], 'time':[]}
         
     def post(self, request):
         """
@@ -220,24 +220,27 @@ class Decomposition(View):
             df = make_dataframe(data, freq)
             self.response_data = decompose_time_series(data=df.data, period=period, model_type=model_type)
             self.response_data['time'] = df.time.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
-            self.response_status = 200
             self.response_message = f'Success. Extracted trend, seasonal and residual components.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
-            self.response_data = []
-            self.response_status = 500
-
-        return JsonResponse(
-            {'message': self.response_message, 'data': self.response_data}, 
-            status=self.response_status, safe=True
-        )
+        finally:
+            return JsonResponse(
+                {'message': self.response_message, 'data': self.response_data}, 
+                status=self.response_status, safe=True
+            )
     
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
 class AdfStationarityCheck(View):
     response_message = ''
     response_status = 200
-    response_data = []
+    response_data = {
+        "is_stationary": -1,
+        "adf": -1,
+        "p": -1,
+        "num_lags": -1,
+        "num_obs": -1
+    }
         
     def post(self, request):
         """
@@ -252,17 +255,14 @@ class AdfStationarityCheck(View):
             data = request_json['data'] # [<float>, ...]
             validate_data_form_list(data)
             self.response_data = adf_stationarity_check(data)
-            self.response_status = 200
             self.response_message = f'Success. Augmented Dickey Fuller test complete.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
-            self.response_data = []
-            self.response_status = 500
-        
-        return JsonResponse(
-            {'message': self.response_message, 'data': self.response_data}, 
-            status=self.response_status, safe=True
-        )
+        finally:
+            return JsonResponse(
+                {'message': self.response_message, 'data': self.response_data}, 
+                status=self.response_status, safe=True
+            )
     
 @method_decorator(csrf_exempt, name='dispatch')
 class FirstDifference(View):
@@ -285,23 +285,25 @@ class FirstDifference(View):
             df = make_dataframe(data, freq)
             self.response_data['data'] = compute_first_difference(df)
             self.response_data['time'] = df.time[1:].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
-            self.response_status = 200
             self.response_message = f'Success. First order difference computed.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
-            self.response_data = []
-            self.response_status = 500
-        
-        return JsonResponse(
-            {'message': self.response_message, 'data': self.response_data}, 
-            status=self.response_status, safe=True
-        )
+        finally:
+            return JsonResponse(
+                {'message': self.response_message, 'data': self.response_data}, 
+                status=self.response_status, safe=True
+            )
     
 @method_decorator(csrf_exempt, name='dispatch')
 class AcfPacf(View):
     response_message = ''
     response_status = 200
-    response_data = []
+    response_data = {
+        "lag": [],
+        "partial_autocorrelation": [],
+        "autocorrelation": [],
+        "confidence_interval": []
+    }
         
     def post(self, request):
         """
@@ -318,14 +320,11 @@ class AcfPacf(View):
             lags = request_json['lags']
             df = make_dataframe(data, freq)
             self.response_data = acf_pacf(df.data, lags)
-            self.response_status = 200
             self.response_message = f'Success. First order difference computed.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
-            self.response_data = []
-            self.response_status = 500
-        
-        return JsonResponse(
-            {'message': self.response_message, 'data': self.response_data}, 
-            status=self.response_status, safe=True
-        )
+        finally:
+            return JsonResponse(
+                {'message': self.response_message, 'data': self.response_data}, 
+                status=self.response_status, safe=True
+            )
