@@ -6,7 +6,7 @@ const App = () => {
     const [data, setData] = useState({data:[], time:[]});
 
     const fetchData = () => {
-        fetch('http://127.0.0.1:8000/sensors/pm2.5/?sensor_serial_number=DCC-AQ2')
+        fetch('http://127.0.0.1:8000/sensors/pm2.5/?sensor_serial_number=DCC-AQ2&time_start=2024-02-01 00:00:00&time_end=2024-02-02 00:00:00')
         .then(response => response.json())
         .then(response => {
             let dataFetched = {data: [], time: []}
