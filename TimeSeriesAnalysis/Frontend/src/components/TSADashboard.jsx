@@ -7,7 +7,7 @@ let controls = {
     freq: 'None',
     period: 0,
     lags: 1,
-    bins: 10,
+    bins: 15,
     outliers: false
 }
 
@@ -242,7 +242,7 @@ const TSADashboard = ({
         for (let i = 0; i < x.length; i++) dataToPlot.push({'x': x[i], 'y': y[i]});
         const widthSvg = Number(svg.style('width').replace('px', ''));
         const heightSvg = Number(svg.style('height').replace('px', ''));
-        const margins = {left: 65, top: 20, right: 20, bottom: 65};
+        const margins = {left: 65, top: 20, right: 20, bottom: 70};
         const widthPlot = widthSvg - margins.left - margins.right;
         const heightPlot = heightSvg - margins.top - margins.bottom;
         const gPlot = svg.selectAll('.group-plot')
@@ -284,9 +284,14 @@ const TSADashboard = ({
             .attr('class', 'axis-label')
             .text(d => d)
             .attr("x", widthSvg/2-38)
-            .attr("y", 50)
+            .attr("y", 60)
             .attr('fill', 'black')
             .attr('font-style', 'italic');
+        gXAxis.selectAll('.tick')
+            .select('text')
+            .attr('font-size', '8px')
+            .attr('font-weight', 'bold')
+            .attr('transform', 'rotate(-60) translate(-20, -5)')
         gYAxis.selectAll('.axis-label')
             .data(['VALUES'])
             .join('text')
@@ -360,7 +365,7 @@ const TSADashboard = ({
             .join('text')
             .attr('class', 'axis-label')
             .text(d => d)
-            .attr("x", -1*heightSvg/3)
+            .attr("x", -1*heightSvg/3.5)
             .attr("y", -35)
             .attr('fill', 'black')
             .attr('font-style', 'italic')
@@ -448,7 +453,7 @@ const TSADashboard = ({
             .join('text')
             .attr('class', 'axis-label')
             .text(d => d)
-            .attr("x", -1*heightSvg/3)
+            .attr("x", -1*heightSvg/4)
             .attr("y", -35)
             .attr('fill', 'black')
             .attr('font-style', 'italic')
@@ -522,14 +527,14 @@ const TSADashboard = ({
                 .text(d => d)
                 .attr('font-size', '12px')
                 .attr('fill', 'black')
-                .attr('transform', `translate(${widthPlot/2}, ${heightPlot+margins.bottom-20})`);
+                .attr('transform', `translate(${widthPlot/2-20}, ${heightPlot+margins.bottom-20})`);
         gLegendCi.selectAll('path')
                 .data(['p'])
                 .join('path')
                 .attr('d', 'M 0 0 H 50')
                 .style('stroke', 'blue')
                 .style('stroke-width', '3')
-                .attr('transform', `translate(${widthPlot/2 - 60}, ${heightPlot+margins.bottom-23})`)
+                .attr('transform', `translate(${widthPlot/2-80}, ${heightPlot+margins.bottom-23})`)
 
     }
 
@@ -684,7 +689,7 @@ const TSADashboard = ({
             {/* Title. */}
             <div className='text-3xl p-5 text-center'>{title}</div>
             <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
-                <div id='controls'>
+                <div id='controls mt-10 sm:mt-0'>
                     <div className='text-center grid grid-cols-2 gap-5 mb-5'> {/* Apply button. */}
                         <div className='font-bold min-h-full flex flex-row items-center'>CONTROLS</div>
                         <button className='py-2 px-5 text-center rounded-full text-sm font-bold bg-blue-500 text-white hover:bg-blue-600' onClick={handleApply}>
@@ -703,8 +708,8 @@ const TSADashboard = ({
                     </div>
                     <div className={statusMessage.includes('Success') ? 'text-green-600' : 'text-red-600'}>{statusMessage}</div>
                 </div>
-                <div id='line' className='col-span-2'>
-                    <p>Line Plot</p>
+                <div id='line' className='col-span-2 mt-10 sm:mt-0'>
+                    <b>Line Plot</b>
                     <svg id='svg-line' className='w-full h-72 bg-slate-200'></svg>
                     <div className='flex gap-5 justify-between'>
                         <RadioButton label={'Base'} id="radio-base" name="linetype" value="base" selected={selectedLineType == 'base'} uponClick={handleLineTypeSelection} />
@@ -714,22 +719,21 @@ const TSADashboard = ({
                         <RadioButton label={'Stationary'} id="radio-stationary" name="linetype" value="stationary" selected={selectedLineType == "stationary"} uponClick={handleLineTypeSelection} />
                     </div>
                 </div>
-                <div id='num_sum'>
-                    Number Summery
+                <div id='num_sum' className='mt-10 sm:mt-0'>
+                    <b>Number Summary</b>
                 </div>
-                <div id='hist' className='col-span-2'>
-                    Histogram Plot
+                <div id='hist' className='col-span-2 mt-10 sm:mt-0'>
+                    <b>Histogram Plot</b>
                     <svg id='svg-hist' className='w-full h-72 bg-slate-200'></svg>
                 </div>
-                <div id='box'>
+                <div id='box' className='mt-10 sm:mt-0'>
                     <div className='flex justify-between'>
-                        <p>Box Plot</p>
+                        <b>Box Plot</b>
                     </div>
-                    
                     <svg id='svg-box' className='w-full h-72 bg-slate-200'></svg>
                 </div>
-                <div id='corr' className='col-span-2'>
-                    <font color='red'>ACF</font> & <font color='green'>PACF</font> Plot
+                <div id='corr' className='col-span-2 mt-10 sm:mt-0'>
+                    <b><font color='red'>ACF</font> & <font color='green'>PACF</font> Plot</b>
                     <svg id='svg-corr' className='w-full h-72 bg-slate-200'></svg>
                 </div>
             </div>
