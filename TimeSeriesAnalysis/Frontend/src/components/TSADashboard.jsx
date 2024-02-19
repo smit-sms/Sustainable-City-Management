@@ -7,7 +7,7 @@ let controls = {
     freq: 'None',
     period: 0,
     lags: 1,
-    bins: 15,
+    bins: 10,
     outliers: false
 }
 
@@ -309,6 +309,7 @@ const TSADashboard = ({
             .attr("fill", "none")
             .attr("stroke", "blue")
             .attr("stroke-width", 1.5)
+            .attr('stroke-linecap', 'round')
             .transition()
             .duration(1000)
             .attr("d", d => d);
@@ -349,8 +350,6 @@ const TSADashboard = ({
         const scaleY = d3.scaleLinear()
                         .domain([0, d3.max(buckets, (d) => d.length)])
                         .range([heightPlot,0]);
-        gXAxis.call(d3.axisBottom(scaleX));
-        gYAxis.call(d3.axisLeft(scaleY));
         gXAxis.selectAll('.axis-label')
             .data([`VALUES (bin width = ${roundToNPlaces(buckets[0].x1 - buckets[0].x0, 2)})`])
             .join('text')
@@ -371,17 +370,25 @@ const TSADashboard = ({
             .attr('font-style', 'italic')
             .attr('transform', 'rotate(-90)');
         // Adding bars.
+        const offset = 10
         gPlot.selectAll('.bar')
             .data(buckets)
             .join("rect")
             .attr('class', 'bar')
-            .attr('fill', 'blue')
-            .attr("x", (d) => scaleX(d.x0)+1)
+            .attr('fill', '#4682B4')
+            .attr('opacity', 0.7)
+            .attr("x", (d) => scaleX(d.x0) + (offset/2))
             .attr("y", (d) => scaleY(d.length))
             .attr("height", (d) => scaleY(0) - scaleY(d.length))
             .transition()
             .duration(1000)
-            .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0)-1);
+            .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0) - (offset/2));
+        gXAxis.transition()
+            .duration(1000)
+            .call(d3.axisBottom(scaleX));
+        gYAxis.transition()
+            .duration(1000)
+            .call(d3.axisLeft(scaleY));
     }
 
     const plotCorrData = () => {
@@ -472,6 +479,7 @@ const TSADashboard = ({
                     return `M ${scaleX(d.x)} ${scaleY(0)} V ${scaleY(d.y_acf)}`;
                 })
                 .style('stroke-width', 2)
+                .attr('stroke-linecap', 'round')
                 .style('stroke', 'red')
                 .style('opacity', '0.6');
         
@@ -488,6 +496,7 @@ const TSADashboard = ({
             .attr('d', d => `M ${scaleX(d.x)} ${scaleY(0)} V ${scaleY(d.y_pacf)}`)
             .style('stroke-width', 5)
             .style('stroke', 'green')
+            .attr('stroke-linecap', 'round')
             .style('opacity', '0.6');
         
         // Add Confidence Interval Lines.
@@ -507,6 +516,8 @@ const TSADashboard = ({
                 .attr('class', 'line-pos')
                 .attr('d', lineCiPos(dataToPlot))
                 .style('stroke-width', 2)
+                .attr('stroke-linecap', 'round')
+                .style('opacity', 0.7)
                 .style('stroke', 'blue');
         gLinesCi.selectAll('.line-neg')
                 .data(dataToPlot)
@@ -514,6 +525,8 @@ const TSADashboard = ({
                 .attr('class', 'line-neg')
                 .attr('d', lineCiNeg(dataToPlot))
                 .style('stroke-width', 2)
+                .attr('stroke-linecap', 'round')
+                .style('opacity', 0.7)
                 .style('stroke', 'blue');
 
         // Add confidence interval legend.
@@ -533,6 +546,8 @@ const TSADashboard = ({
                 .join('path')
                 .attr('d', 'M 0 0 H 50')
                 .style('stroke', 'blue')
+                .style('opacity', 0.7)
+                .attr('stroke-linecap', 'round')
                 .style('stroke-width', '3')
                 .attr('transform', `translate(${widthPlot/2-80}, ${heightPlot+margins.bottom-23})`)
 
@@ -597,42 +612,42 @@ const TSADashboard = ({
             .call(d3.axisLeft(scaleY));
         
         gPlot.selectAll('.line')
-        .data(['g'])
-        .join('line')
-        .attr('class','line')
-        .attr("stroke","black")
-        .transition()
-        .duration(1000)
-        .attr("x1", center)
-        .attr("x2", center)
-        .attr("y1", scaleY(min))
-        .attr("y2", scaleY(max));
+            .data(['g'])
+            .join('line')
+            .attr('class','line')
+            .attr("stroke","black")
+            .transition()
+            .duration(1000)
+            .attr("x1", center)
+            .attr("x2", center)
+            .attr("y1", scaleY(min))
+            .attr("y2", scaleY(max));
 
         gPlot.selectAll(".rect")
-        .data(['g'])
-        .join('rect')
-        .attr('class','rect')
-        .attr("stroke", "black")
-        .style("fill", "green")
-        .style("opacity", 0.6)
-        .attr("width", width )
-        .transition()
-        .duration(1000)
-        .attr("x", center - width/2)
-        .attr("y", scaleY(q3) )
-        .attr("height", (scaleY(q1)-scaleY(q3)));
+            .data(['g'])
+            .join('rect')
+            .attr('class','rect')
+            .attr("stroke", "black")
+            .style("fill", "green")
+            .style("opacity", 0.6)
+            .attr("width", width )
+            .transition()
+            .duration(1000)
+            .attr("x", center - width/2)
+            .attr("y", scaleY(q3) )
+            .attr("height", (scaleY(q1)-scaleY(q3)));
 
         gPlot.selectAll(".line2")
-        .data([min, median, max])
-        .join("line")
-        .attr("class","line2")
-        .attr("stroke", "black")
-        .transition()
-        .duration(1000)
-        .attr("x1", center-width/2)
-        .attr("x2", center+width/2)
-        .attr("y1", (d) => scaleY(d))
-        .attr("y2", (d) => scaleY(d));
+            .data([min, median, max])
+            .join("line")
+            .attr("class","line2")
+            .attr("stroke", "black")
+            .transition()
+            .duration(1000)
+            .attr("x1", center-width/2)
+            .attr("x2", center+width/2)
+            .attr("y1", (d) => scaleY(d))
+            .attr("y2", (d) => scaleY(d));
 
         gPlot.selectAll(".circle")
             .data(outliers)
@@ -640,7 +655,7 @@ const TSADashboard = ({
             .attr('class','circle')
             .attr('stroke','black')
             .attr('fill','red')
-            .style('opacity', 0.6)
+            .style('opacity', 0.8)
             .transition()
             .duration(1000)
             .attr('cx', center)
