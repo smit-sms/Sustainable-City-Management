@@ -215,7 +215,6 @@ class Decomposition(View):
             request_json = json.loads(request.body.decode('utf-8'))
             data = request_json['data']
             data["data"] = np.array(data["data"]).astype('float')
-            print('DATA =', data)
             freq = request_json['freq']
             period = request_json['period']
             model_type = request_json['model_type']

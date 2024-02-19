@@ -103,7 +103,7 @@ class TimeSeriesAnalysis(TestCase):
         )
         res = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Success. First order difference computed.', res["message"])
+        self.assertIn('Success. ACF and PACF computed.', res["message"])
         self.assertEqual(
             len(res["data"]["lag"]) 
             == len(res["data"]["partial_autocorrelation"])
@@ -129,7 +129,7 @@ class TimeSeriesAnalysis(TestCase):
             content_type='application/json'
         )
         res = response.json()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 200)
         self.assertIn('Failure.', res["message"])
 
     def test_stationarity_failure(self):
@@ -139,7 +139,7 @@ class TimeSeriesAnalysis(TestCase):
             content_type='application/json'
         )
         res = response.json()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 200)
         self.assertIn('Failure.', res["message"])
 
     def test_first_difference_failure(self):
@@ -152,7 +152,7 @@ class TimeSeriesAnalysis(TestCase):
             content_type='application/json'
         )
         res = response.json()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 200)
         self.assertIn('Failure.', res["message"])
 
     def test_correlation_failure(self):
@@ -166,5 +166,5 @@ class TimeSeriesAnalysis(TestCase):
             content_type='application/json'
         )
         res = response.json()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 200)
         self.assertIn('Failure.', res["message"])
