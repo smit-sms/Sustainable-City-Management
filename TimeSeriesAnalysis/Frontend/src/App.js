@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import TSADashboard from "./components/TSADashboard";
 
-const sensorType = "laeq"
-const dataName = "laeq"
-const sensorNumber = "10.1.1.1"
+const sensorType = "pm2.5"
+const dataName = "pm2_5"
+const sensorNumber = "DCC-AQ2"
 
 const App = () => {
 
@@ -18,6 +18,9 @@ const App = () => {
                 dataFetched.data.push(dt[dataName]);
                 dataFetched.time.push(dt.datetime);
             })
+            // Adding outliers.
+            // dataFetched.data[10] = 50 
+            dataFetched.data[5] = -10;
             setData(dataFetched);
         });
     }
@@ -35,7 +38,8 @@ const App = () => {
                     data={data} 
                     frequency={"15min"}
                     period={8}
-                    lags={10} 
+                    lags={10}
+                    backend_url_root='http://127.0.0.1:8001'
                 /> : <></>
             }
         </div>

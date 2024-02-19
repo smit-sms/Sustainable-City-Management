@@ -254,7 +254,6 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
             .attr('r',1)
             .attr('stroke','black')
             .attr('fill','white')
-
     }
 
     const AddSummary = (refSvg,data) =>{

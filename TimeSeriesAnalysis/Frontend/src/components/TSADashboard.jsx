@@ -24,7 +24,7 @@ const isNumeric = (str) => {
     return !isNaN(str);
 }
 
-const TSADashboard = ({ data, frequency, period, lags, title }) => {
+const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root}) => {
     const [changedDataLine, setChangedDataLine] = useState(0);
     const [changedDataHist, setChangedDataHist] = useState(0);
     const [changedDataCorr, setChangedDataCorr] = useState(0);
@@ -33,6 +33,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
     const [numDiff, setNumDiff] = useState(0);
     const [selectedLineType, setSelectedLineType] = useState('base');
     const [statusMessage, setStatusMessage] = useState("");
+    const [checkedOutliers, setCheckedOutliers] = useState(false);
 
     const handleTextBoxChange = (id) => {
         feedback = "";
@@ -50,6 +51,10 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             if (textBoxType == 'bins') controls.bins = 10;
             textBox.attr('style', 'border: 2px solid red');
         }
+    }
+    
+    const handleChkBoxChange = (e) => {
+        setCheckedOutliers(prevVal => !prevVal);
     }
 
     const handleApply = (e) => {
@@ -75,11 +80,11 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
 
     const updateDataProcessed = async () => {
         // Base data.
-        dataProcessed.base = data.data;
+        dataProcessed.base = data.data.map(d => parseFloat(d));
         dataProcessed.time_base = data.time;
 
         // Decompose data into trend, seasonal and residual components.
-        let decomposed = await fetch('http://127.0.0.1:8001/tsa/decompose/', {
+        let decomposed = await fetch(`${backend_url_root}/tsa/decompose/`, {
             method: 'POST',
             body: JSON.stringify({"data": data, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
             headers: {'Content-Type':'application/json'}
@@ -101,7 +106,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         let diff;
         while (true) {
             // Check data stationarity.
-            stationarity = await fetch('http://127.0.0.1:8001/tsa/stationarity/', {
+            stationarity = await fetch(`${backend_url_root}/tsa/stationarity/`, {
                 method: 'POST',
                 body: JSON.stringify({"data": dataStationary.data}),
                 headers: {'Content-Type':'application/json'}
@@ -113,7 +118,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             }
             if (stationarity.data.is_stationary == 1) break; // If stationary, exit loop.
             else {  // If not stationary, make stationary by differencing.
-                diff = await fetch('http://127.0.0.1:8001/tsa/first_difference/', {
+                diff = await fetch(`${backend_url_root}/tsa/first_difference/`, {
                     method: 'POST',
                     body: JSON.stringify({"data": dataStationary, "freq": controls.freq}),
                     headers: {'Content-Type':'application/json'}
@@ -131,7 +136,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         dataProcessed.time_stationary = dataStationary.time;
 
         // Get Autocorrelation and Partial Autocorrelation information.
-        let correlations = await fetch('http://127.0.0.1:8001/tsa/correlation/', {
+        let correlations = await fetch(`${backend_url_root}/tsa/correlation/`, {
             method: 'POST',
             body: JSON.stringify({"data": data, "freq": controls.freq, "lags": controls.lags}),
             headers: {'Content-Type':'application/json'}
@@ -157,6 +162,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         setChangedDataCorr(prevVal => 1 - prevVal);
         setChangedDataNumSum(prevVal => 1 - prevVal);
         setChangedDataHist(prevVal => 1 - prevVal);
+        setChangedDataBox(prevVal => 1 - prevVal);
     }
 
     const plotLineData = () => {
@@ -371,8 +377,14 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                         .range([heightPlot, 0]);
         gXAxis.transition()
             .duration(1000)
-            .call(d3.axisBottom(scaleX))
-            .attr('transform', `translate(${0}, ${scaleY(0)})`);
+            .call(d3.axisBottom(scaleX));
+        gXAxis.attr('transform', `translate(${0}, ${scaleY(0)})`);
+            
+        gXAxis.selectAll('.tick')
+            .style('opacity', d => {
+                console.log(d);
+                return Number(d != 0);
+            })
         gYAxis.transition()
             .duration(1000)
             .call(d3.axisLeft(scaleY));
@@ -451,6 +463,116 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                 .style('stroke-width', 2)
                 .style('stroke', 'blue');
     }
+
+    const plotBoxData = () => {
+        const svg = d3.select('#svg-box');
+        const widthSvg = Number(svg.style('width').replace('px', ''));
+        const heightSvg = Number(svg.style('height').replace('px', ''));
+        const margins = {left: 50, top: 20, right: 20, bottom: 20};
+        const widthPlot = widthSvg - margins.left - margins.right;
+        const heightPlot = heightSvg - margins.top - margins.bottom;
+        const gPlot = svg.selectAll('.group-plot')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-plot')
+                            .attr('width', widthPlot)
+                            .attr('height', heightPlot)
+                            .attr('transform', `translate(${margins.left}, ${margins.top})`);
+        const gYAxis = gPlot.selectAll('.group-y-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-y-axis');
+
+        gYAxis.selectAll('.axis-label')
+            .data(['VALUE'])
+            .join('text')
+            .attr('class', 'axis-label')
+            .text(d => d)
+            .attr("x", -1*heightSvg/3)
+            .attr("y", -35)
+            .attr('fill', 'black')
+            .attr('font-style', 'italic')
+            .attr('transform', 'rotate(-90)');
+        
+        let data_sorted=dataProcessed.base.sort(d3.ascending);
+        let q1 = d3.quantile(data_sorted, .25);
+        let median = d3.quantile(data_sorted, .5);
+        let q3 = d3.quantile(data_sorted, .75);
+        let interQuantileRange = q3 - q1;
+        let min = q1 - 1.5 * interQuantileRange;
+        let max = q3 + 1.5 * interQuantileRange;
+        let outliers=[];
+        for (let i=0;i<data_sorted.length;i++){
+            if (data_sorted[i] < min || data_sorted[i] > max){
+                outliers.push(data_sorted[i]);
+            } 
+        }
+
+        const scaleY = d3.scaleLinear()
+                        .domain(
+                            checkedOutliers ? 
+                            d3.extent([min, max].concat(dataProcessed.base)) : 
+                            [min, max]
+                        ).range([heightPlot,0]);
+        
+        let center=widthPlot/2;
+        let width=widthPlot-20;
+
+        gYAxis.transition()
+            .duration(1000)
+            .call(d3.axisLeft(scaleY));
+        
+        gPlot.selectAll('.line')
+        .data(['g'])
+        .join('line')
+        .attr('class','line')
+        .attr("stroke","black")
+        .transition()
+        .duration(1000)
+        .attr("x1", center)
+        .attr("x2", center)
+        .attr("y1", scaleY(min))
+        .attr("y2", scaleY(max));
+
+        gPlot.selectAll(".rect")
+        .data(['g'])
+        .join('rect')
+        .attr('class','rect')
+        .attr("stroke", "black")
+        .style("fill", "green")
+        .style("opacity", 0.6)
+        .attr("width", width )
+        .transition()
+        .duration(1000)
+        .attr("x", center - width/2)
+        .attr("y", scaleY(q3) )
+        .attr("height", (scaleY(q1)-scaleY(q3)));
+
+        gPlot.selectAll(".line2")
+        .data([min, median, max])
+        .join("line")
+        .attr("class","line2")
+        .attr("stroke", "black")
+        .transition()
+        .duration(1000)
+        .attr("x1", center-width/2)
+        .attr("x2", center+width/2)
+        .attr("y1", (d) => scaleY(d))
+        .attr("y2", (d) => scaleY(d));
+
+        gPlot.selectAll(".circle")
+            .data(outliers)
+            .join("circle")
+            .attr('class','circle')
+            .attr('stroke','black')
+            .attr('fill','red')
+            .style('opacity', 0.6)
+            .transition()
+            .duration(1000)
+            .attr('cx', center)
+            .attr('cy',(d) => scaleY(d))
+            .attr('r', 3);
+    }
     
     useEffect(() => {
         // Set user controls.
@@ -465,13 +587,17 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
     }, [changedDataLine, selectedLineType]);
 
     useEffect(() => {
-        plotHistData()
+        plotHistData();
     }, [changedDataHist]);
 
     useEffect(() => {
-        plotCorrData()
+        plotCorrData();
     }, [changedDataCorr]);
     
+    useEffect(() => {
+        plotBoxData();
+    }, [changedDataBox, checkedOutliers]);
+
     return (
         <div>
             {/* Title. */}
@@ -509,7 +635,14 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                     <svg id='svg-hist' className='w-full h-72 bg-slate-200'></svg>
                 </div>
                 <div id='box'>
-                    Box Plot
+                    <div className='flex justify-between'>
+                        <p>Box Plot</p>
+                        <div>
+                            <input type="checkbox" id="box-outliers" name="box-outlier" value="1" onChange={handleChkBoxChange}/>
+                            <label className='ml-2'>Outliers</label>
+                        </div>
+                    </div>
+                    
                     <svg id='svg-box' className='w-full h-72 bg-slate-200'></svg>
                 </div>
                 <div id='corr' className='col-span-2'>
