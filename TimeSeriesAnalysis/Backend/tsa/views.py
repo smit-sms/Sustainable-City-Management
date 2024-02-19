@@ -320,7 +320,7 @@ class AcfPacf(View):
             lags = request_json['lags']
             df = make_dataframe(data, freq)
             self.response_data = acf_pacf(df.data, lags)
-            self.response_message = f'Success. First order difference computed.'
+            self.response_message = f'Success. ACF and PACF computed.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
         finally:

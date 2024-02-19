@@ -11,12 +11,19 @@ let controls = {
 
 let feedback = "";
 
+let dataProcessed = {
+    base:[], time_base: [], trend:[], 
+    seasonal:[], time_decomposed:[], 
+    residual:[], stationary: [], time_stationary: [],
+    acf:[], pcf:[], corr_ci:[], corr_lags:[], 
+}
+
 const TSADashboard = ({ data, frequency, period, lags, title }) => {
-    const [dataLinePlot, setDataLinePlot] = useState({
-        base:[], base_time: [], trend:[], 
-        seasonal:[], decomposed_time:[], 
-        residual:[], stationary: [], stationary_time: []
-    });
+    const [changedDataLine, setChangedDataLine] = useState(0);
+    const [changedDataHist, setChangedDataHist] = useState(0);
+    const [changedDataCorr, setChangedDataCorr] = useState(0);
+    const [changedDataBox, setChangedDataBox] = useState(0);
+    const [changedDataNumSum, setChangedDataNumSum] = useState(0);
     const [numDiff, setNumDiff] = useState(0);
     const [selectedLineType, setSelectedLineType] = useState('base');
     const [statusMessage, setStatusMessage] = useState("");
@@ -44,13 +51,13 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             d3.select(`#text-box-${tb}`).select('input').property("value", "").attr('style', 'border:none');
         });
         // Update data.
-        updateLineData();
+        updateDataProcessed();
     }
 
     const sanityCheckControls = (textBoxType, val) => {
         if (textBoxType == 'freq') return val.length > 0 && val.slice(0, 1) != 0;
         if (textBoxType == 'period') return val > 0 && val <= Math.floor(data.data.length/2);
-        if (textBoxType == 'lags') return val > 0 && val <= data.data.length;
+        if (textBoxType == 'lags') return val > 0 && val <= Math.floor(data.data.length/2);
         return false
     }
 
@@ -59,17 +66,12 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         setSelectedLineType(prevVal => value);
     }
 
-    const updateLineData = async () => {
-        let lineData = {
-            base: data.data,
-            base_time: data.time,
-            decomposed_time: [],
-            trend: [], 
-            seasonal: [], 
-            residual: [], 
-            stationary: [],
-            stationary_time: []
-        }
+    const updateDataProcessed = async () => {
+        // Base data.
+        dataProcessed.base = data.data;
+        dataProcessed.time_base = data.time;
+
+        // Decompose data into trend, seasonal and residual components.
         let decomposed = await fetch('http://127.0.0.1:8001/tsa/decompose/', {
             method: 'POST',
             body: JSON.stringify({"data": data, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
@@ -80,11 +82,13 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             feedback += decomposed.message;
         }
         decomposed = decomposed.data;
-        lineData.decomposed_time = decomposed.time;
-        lineData.trend = decomposed.trend;
-        lineData.seasonal = decomposed.seasonal;
-        lineData.residual = decomposed.residual;
+        dataProcessed.time_decomposed = decomposed.time;
+        dataProcessed.trend = decomposed.trend;
+        dataProcessed.seasonal = decomposed.seasonal;
+        dataProcessed.residual = decomposed.residual;
 
+        // Check stationarity and do decomposition (multiple times
+        // if required) to make data stationary.
         let dataStationary = data;
         let stationarity;
         let diff;
@@ -116,13 +120,36 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                 setNumDiff(prevVal => prevVal + 1);
             }
         }
-        lineData.stationary = dataStationary.data;
-        lineData.stationary_time = dataStationary.time;
+        dataProcessed.stationary = dataStationary.data;
+        dataProcessed.time_stationary = dataStationary.time;
+
+        // Get Autocorrelation and Partial Autocorrelation information.
+        let correlations = await fetch('http://127.0.0.1:8001/tsa/correlation/', {
+            method: 'POST',
+            body: JSON.stringify({"data": data, "freq": controls.freq, "lags": controls.lags}),
+            headers: {'Content-Type':'application/json'}
+        })
+        correlations = await correlations.json();
+        console.log('CORR =', correlations);
+        if (correlations.message.includes('Failure')) {
+            feedback += correlations.message;
+        }
+        correlations = correlations.data;
+        dataProcessed.acf = decomposed.autocorrelation;
+        dataProcessed.pacf = decomposed.partial_autocorrelation;
+        dataProcessed.corr_lags = decomposed.lag;
+        dataProcessed.corr_ci = decomposed.confidence_interval;
+        
+        // Reset system feedback to user.
         if (feedback.length > 0) {
             setStatusMessage(feedback);
             setTimeout(() => setStatusMessage(prevVal => ""), 5000);
         }
-        setDataLinePlot(prevVal => lineData);
+
+        // Trigger plot updates.
+        setChangedDataLine(prevVal => 1 - prevVal);
+        setChangedDataCorr(prevVal => 1 - prevVal);
+        setChangedDataNumSum(prevVal => 1 - prevVal);
     }
 
     const plotLineData = () => {
@@ -130,20 +157,20 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         let x;
         let y;
         if (selectedLineType == 'base') {
-            y = dataLinePlot.base;
-            x = dataLinePlot.base_time;
+            y = dataProcessed.base;
+            x = dataProcessed.time_base;
         } else if (selectedLineType == 'trend') {
-            y = dataLinePlot.trend;
-            x = dataLinePlot.decomposed_time;
+            y = dataProcessed.trend;
+            x = dataProcessed.time_decomposed;
         } else if (selectedLineType == 'seasonal') {
-            y = dataLinePlot.seasonal;
-            x = dataLinePlot.decomposed_time;
+            y = dataProcessed.seasonal;
+            x = dataProcessed.time_decomposed;
         } else if (selectedLineType == 'residual') {
-            y = dataLinePlot.residual;
-            x = dataLinePlot.decomposed_time;
+            y = dataProcessed.residual;
+            x = dataProcessed.time_decomposed;
         } else { // selectedLineType == 'stationary'
-            y = dataLinePlot.stationary;
-            x = dataLinePlot.stationary_time;
+            y = dataProcessed.stationary;
+            x = dataProcessed.time_stationary;
         }
         x = x.map(d => d3.isoParse(d));
 
@@ -230,7 +257,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
 
     useEffect(() => {
         plotLineData();
-    }, [dataLinePlot]);
+    }, [changedDataLine]);
 
     useEffect(() => {
         plotLineData();
