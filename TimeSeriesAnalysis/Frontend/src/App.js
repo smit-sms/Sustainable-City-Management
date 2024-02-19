@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import TSADashboard from "./components/TSADashboard";
 
-const sensorType = "pm2.5"
-const dataName = "pm2_5"
-const sensorNumber = "DCC-AQ2"
+// // Air Data
+// const dataName = "pm2_5"
+// const sensorType = "pm2.5"
+// const sensorNumber = "DCC-AQ2"
+// const title = `Air Pollution (${sensorType}) (Sensor = ${sensorNumber})`
+
+// Noise Data
+const dataName = "laeq"
+const sensorType = "laeq"
+const sensorNumber = "10.1.1.1"
+const title = `Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`
 
 const App = () => {
 
@@ -34,7 +42,7 @@ const App = () => {
             {
                 data.data.length > 0 ? 
                 <TSADashboard 
-                    title={`Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`}
+                    title={title}
                     data={data} 
                     frequency={"15min"}
                     period={8}

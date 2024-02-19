@@ -8,6 +8,7 @@ let controls = {
     period: 0,
     lags: 1,
     bins: 10,
+    outliers: false
 }
 
 let feedback = "";
@@ -16,24 +17,33 @@ let dataProcessed = {
     base:[], time_base: [], trend:[], 
     seasonal:[], time_decomposed:[], 
     residual:[], stationary: [], time_stationary: [],
-    acf:[], pacf:[], corr_ci:[], corr_lags:[], 
+    acf:[], pacf:[], corr_ci:[], corr_lags:[] 
 }
+
+let outliers = [];
 
 const isNumeric = (str) => {
     /** Returns true if the string is a number and false otherwise. */
     return !isNaN(str);
 }
 
-const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root}) => {
-    const [changedDataLine, setChangedDataLine] = useState(0);
-    const [changedDataHist, setChangedDataHist] = useState(0);
-    const [changedDataCorr, setChangedDataCorr] = useState(0);
-    const [changedDataBox, setChangedDataBox] = useState(0);
-    const [changedDataNumSum, setChangedDataNumSum] = useState(0);
+const roundToNPlaces = (num, n) => {
+    /** Rounds a given number num to n decimal places. */
+    return Math.round((num + Number.EPSILON) * (10**n)) / (10**n)
+}
+
+const TSADashboard = ({ 
+    data, frequency, period, lags, title, backend_url_root
+}) => {
     const [numDiff, setNumDiff] = useState(0);
     const [selectedLineType, setSelectedLineType] = useState('base');
     const [statusMessage, setStatusMessage] = useState("");
-    const [checkedOutliers, setCheckedOutliers] = useState(false);
+    const [stateDataProcessed, setStateDataProcessed] = useState({
+        base:[], time_base: [], trend:[], 
+        seasonal:[], time_decomposed:[], 
+        residual:[], stationary: [], time_stationary: [],
+        acf:[], pacf:[], corr_ci:[], corr_lags:[]
+    });
 
     const handleTextBoxChange = (id) => {
         feedback = "";
@@ -54,7 +64,8 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
     }
     
     const handleChkBoxChange = (e) => {
-        setCheckedOutliers(prevVal => !prevVal);
+        controls.outliers = !controls.outliers;
+        handleApply();
     }
 
     const handleApply = (e) => {
@@ -79,19 +90,50 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
     }
 
     const updateDataProcessed = async () => {
+        dataProcessed = {
+            base:[], time_base: [], trend:[], 
+            seasonal:[], time_decomposed:[], 
+            residual:[], stationary: [], time_stationary: [],
+            acf:[], pacf:[], corr_ci:[], corr_lags:[] 
+        }
+
         // Base data.
-        dataProcessed.base = data.data.map(d => parseFloat(d));
-        dataProcessed.time_base = data.time;
+        let d;
+        let t;
+        if (controls.outliers) { // Include outliers.
+            dataProcessed.base = [];
+            dataProcessed.time_base = [];
+            for (let i=0; i<data.data.length; i++) {
+                d = data.data[i];
+                t = data.time[i];
+                dataProcessed.base.push(parseFloat(d));
+                dataProcessed.time_base.push(t);
+            }
+        } else { // Exclude outliers.
+            dataProcessed.base = [];
+            dataProcessed.time_base = [];
+            for (let i=0; i<data.data.length; i++) {
+                d = data.data[i];
+                t = data.time[i];
+                if (!outliers.includes(d)) {
+                    dataProcessed.base.push(parseFloat(d));
+                    dataProcessed.time_base.push(t);
+                }   
+            }
+        }
 
         // Decompose data into trend, seasonal and residual components.
         let decomposed = await fetch(`${backend_url_root}/tsa/decompose/`, {
             method: 'POST',
-            body: JSON.stringify({"data": data, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
+            body: JSON.stringify({"data": {
+                data: dataProcessed.base,
+                time: dataProcessed.time_base
+            }, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
             headers: {'Content-Type':'application/json'}
         })
         decomposed = await decomposed.json();
         if (decomposed.message.includes('Failure')) {
-            feedback += decomposed.message;
+            feedback += " Decomposition: " + decomposed.message;
         }
         decomposed = decomposed.data;
         dataProcessed.time_decomposed = decomposed.time;
@@ -101,7 +143,10 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
 
         // Check stationarity and do decomposition (multiple times
         // if required) to make data stationary.
-        let dataStationary = data;
+        let dataStationary = {
+            data: dataProcessed.base,
+            time: dataProcessed.time_base
+        };
         let stationarity;
         let diff;
         while (true) {
@@ -113,7 +158,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
             });
             stationarity = await stationarity.json();
             if (stationarity.message.includes('Failure')) {
-                feedback += stationarity.message;
+                feedback += " Stationarity Check: " + stationarity.message;
                 break; // If there was a failure, exit loop.
             }
             if (stationarity.data.is_stationary == 1) break; // If stationary, exit loop.
@@ -125,7 +170,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
                 });
                 diff = await diff.json();
                 if (diff.message.includes('Failure')) {
-                    feedback += diff.message;
+                    feedback += " Differencing: " +diff.message;
                     break;
                 }
                 dataStationary = diff.data;
@@ -138,12 +183,15 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
         // Get Autocorrelation and Partial Autocorrelation information.
         let correlations = await fetch(`${backend_url_root}/tsa/correlation/`, {
             method: 'POST',
-            body: JSON.stringify({"data": data, "freq": controls.freq, "lags": controls.lags}),
+            body: JSON.stringify({"data": {
+                data: dataProcessed.base,
+                time: dataProcessed.time_base
+            }, "freq": controls.freq, "lags": controls.lags}),
             headers: {'Content-Type':'application/json'}
         })
         correlations = await correlations.json();
         if (correlations.message.includes('Failure')) {
-            feedback += correlations.message;
+            feedback += " ACF & PACF: " + correlations.message;
         }
         correlations = correlations.data;
         dataProcessed.acf = correlations.autocorrelation;
@@ -158,11 +206,12 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
         }
 
         // Trigger plot updates.
-        setChangedDataLine(prevVal => 1 - prevVal);
-        setChangedDataCorr(prevVal => 1 - prevVal);
-        setChangedDataNumSum(prevVal => 1 - prevVal);
-        setChangedDataHist(prevVal => 1 - prevVal);
-        setChangedDataBox(prevVal => 1 - prevVal);
+        // setChangedDataLine(prevVal => 1 - prevVal);
+        // setChangedDataCorr(prevVal => 1 - prevVal);
+        // setChangedDataNumSum(prevVal => 1 - prevVal);
+        // setChangedDataHist(prevVal => 1 - prevVal);
+        // setChangedDataBox(prevVal => 1 - prevVal);
+        setStateDataProcessed(prevVal => dataProcessed);
     }
 
     const plotLineData = () => {
@@ -298,7 +347,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
         gXAxis.call(d3.axisBottom(scaleX));
         gYAxis.call(d3.axisLeft(scaleY));
         gXAxis.selectAll('.axis-label')
-            .data([`VALUES (bin width = ${buckets[0].x1 - buckets[0].x0})`])
+            .data([`VALUES (bin width = ${roundToNPlaces(buckets[0].x1 - buckets[0].x0, 2)})`])
             .join('text')
             .attr('class', 'axis-label')
             .text(d => d)
@@ -381,10 +430,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
         gXAxis.attr('transform', `translate(${0}, ${scaleY(0)})`);
             
         gXAxis.selectAll('.tick')
-            .style('opacity', d => {
-                console.log(d);
-                return Number(d != 0);
-            })
+            .style('opacity', d => Number(d != 0));
         gYAxis.transition()
             .duration(1000)
             .call(d3.axisLeft(scaleY));
@@ -407,6 +453,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
             .attr('fill', 'black')
             .attr('font-style', 'italic')
             .attr('transform', 'rotate(-90)');
+        
         // Add ACF Line.
         const gLinesAcf = gPlot.selectAll('.lines-acf')
                             .data(['g'])
@@ -422,6 +469,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
                 .style('stroke-width', 2)
                 .style('stroke', 'red')
                 .style('opacity', '0.6');
+        
         // Add PACF Line.
         const gLinesPacf = gPlot.selectAll('.lines-pacf')
                                 .data(['g'])
@@ -436,8 +484,8 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
             .style('stroke-width', 5)
             .style('stroke', 'green')
             .style('opacity', '0.6');
-        // Add Confidence Interval Lines.
         
+        // Add Confidence Interval Lines.
         const gLinesCi = gPlot.selectAll('.lines-ci')
                             .data(['g'])
                             .join('g')
@@ -462,6 +510,27 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
                 .attr('d', lineCiNeg(dataToPlot))
                 .style('stroke-width', 2)
                 .style('stroke', 'blue');
+
+        // Add confidence interval legend.
+        const gLegendCi = gPlot.selectAll('#legend-ci')
+                            .data(['g'])
+                            .join('g')
+                            .attr('id', 'legend-ci');
+        gLegendCi.selectAll('text')
+                .data(['Confidence Interval'])
+                .join('text')
+                .text(d => d)
+                .attr('font-size', '12px')
+                .attr('fill', 'black')
+                .attr('transform', `translate(${widthPlot/2}, ${heightPlot+margins.bottom-20})`);
+        gLegendCi.selectAll('path')
+                .data(['p'])
+                .join('path')
+                .attr('d', 'M 0 0 H 50')
+                .style('stroke', 'blue')
+                .style('stroke-width', '3')
+                .attr('transform', `translate(${widthPlot/2 - 60}, ${heightPlot+margins.bottom-23})`)
+
     }
 
     const plotBoxData = () => {
@@ -510,7 +579,7 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
 
         const scaleY = d3.scaleLinear()
                         .domain(
-                            checkedOutliers ? 
+                            controls.outliers ? 
                             d3.extent([min, max].concat(dataProcessed.base)) : 
                             [min, max]
                         ).range([heightPlot,0]);
@@ -573,38 +642,50 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
             .attr('cy',(d) => scaleY(d))
             .attr('r', 3);
     }
+
+    const computeOutliers = () => {
+        const data_sorted=data.data.sort(d3.ascending);
+        const q1 = d3.quantile(data_sorted, .25);
+        const median = d3.quantile(data_sorted, .5);
+        const q3 = d3.quantile(data_sorted, .75);
+        const interQuantileRange = q3 - q1;
+        const min = q1 - 1.5 * interQuantileRange;
+        const max = q3 + 1.5 * interQuantileRange;
+        outliers=[]; // Global variable.
+        for (let i=0;i<data_sorted.length;i++){
+            if (data_sorted[i] < min || data_sorted[i] > max){
+                outliers.push(data_sorted[i]);
+            } 
+        }
+    }
     
     useEffect(() => {
         // Set user controls.
         controls.freq = frequency;
         controls.period = period;
         controls.lags = lags;
+        computeOutliers();
         handleApply();
     }, []);
 
     useEffect(() => {
         plotLineData();
-    }, [changedDataLine, selectedLineType]);
-
-    useEffect(() => {
         plotHistData();
-    }, [changedDataHist]);
+        plotCorrData();
+        plotBoxData();
+    }, [stateDataProcessed]);
 
     useEffect(() => {
-        plotCorrData();
-    }, [changedDataCorr]);
-    
-    useEffect(() => {
-        plotBoxData();
-    }, [changedDataBox, checkedOutliers]);
+        plotLineData();
+    }, [selectedLineType]);
 
     return (
         <div>
             {/* Title. */}
             <div className='text-3xl p-5 text-center'>{title}</div>
-            <div className='grid grid-rows-3 grid-cols-3 p-5 gap-5'>
+            <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
                 <div id='controls'>
-                    <div className='text-center flex justify-center gap-5'> {/* Apply button. */}
+                    <div className='text-center grid grid-cols-2 gap-5 mb-5'> {/* Apply button. */}
                         <div className='font-bold min-h-full flex flex-row items-center'>CONTROLS</div>
                         <button className='py-2 px-5 text-center rounded-full text-sm font-bold bg-blue-500 text-white hover:bg-blue-600' onClick={handleApply}>
                             APPLY
@@ -614,6 +695,12 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
                     <TextBox label={'Period'} placeholder={controls.period} id="text-box-period" onChange={() => handleTextBoxChange('text-box-period')} isEditable={true} />
                     <TextBox label={'Lags'} placeholder={controls.lags} id="text-box-lags" onChange={() => handleTextBoxChange('text-box-lags')} isEditable={true} />   
                     <TextBox label={'Bins'} placeholder={controls.bins} id="text-box-bins" onChange={() => handleTextBoxChange('text-box-bins')} isEditable={true} />    
+                    <div className='grid gap-5 grid-cols-2 mt-2'>
+                        <label>Outliers</label>
+                        <span>
+                            <input className='pl-0' type="checkbox" id="box-outliers" name="box-outlier" value="1" onChange={handleChkBoxChange}/>
+                        </span>
+                    </div>
                     <div className={statusMessage.includes('Success') ? 'text-green-600' : 'text-red-600'}>{statusMessage}</div>
                 </div>
                 <div id='line' className='col-span-2'>
@@ -637,10 +724,6 @@ const TSADashboard = ({ data, frequency, period, lags, title, backend_url_root})
                 <div id='box'>
                     <div className='flex justify-between'>
                         <p>Box Plot</p>
-                        <div>
-                            <input type="checkbox" id="box-outliers" name="box-outlier" value="1" onChange={handleChkBoxChange}/>
-                            <label className='ml-2'>Outliers</label>
-                        </div>
                     </div>
                     
                     <svg id='svg-box' className='w-full h-72 bg-slate-200'></svg>

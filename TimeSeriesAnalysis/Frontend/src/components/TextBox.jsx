@@ -6,7 +6,7 @@ const TextBox = ({label, placeholder, id, onChange, isEditable}) => {
         <label>{label}</label>
         {
             isEditable ? 
-            <input type='text' placeholder={placeholder} onChange={onChange}/> :
+            <input className='rounded-sm hover:outline hover:outline-slate-200 outline-rounded-lg' type='text' placeholder={placeholder} onChange={onChange}/> :
             <input type='text' placeholder={placeholder} onChange={onChange} disabled/>
         }
         

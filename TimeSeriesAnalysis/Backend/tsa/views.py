@@ -214,6 +214,8 @@ class Decomposition(View):
         try:
             request_json = json.loads(request.body.decode('utf-8'))
             data = request_json['data']
+            data["data"] = np.array(data["data"]).astype('float')
+            print('DATA =', data)
             freq = request_json['freq']
             period = request_json['period']
             model_type = request_json['model_type']
@@ -253,6 +255,7 @@ class AdfStationarityCheck(View):
         try:
             request_json = json.loads(request.body.decode('utf-8'))
             data = request_json['data'] # [<float>, ...]
+            data = list(np.array(data).astype('float'))
             validate_data_form_list(data)
             self.response_data = adf_stationarity_check(data)
             self.response_message = f'Success. Augmented Dickey Fuller test complete.'
@@ -281,6 +284,7 @@ class FirstDifference(View):
         try:
             request_json = json.loads(request.body.decode('utf-8'))
             data = request_json['data']
+            data["data"] = np.array(data["data"]).astype('float')
             freq = request_json['freq']
             df = make_dataframe(data, freq)
             self.response_data['data'] = compute_first_difference(df)
@@ -316,6 +320,7 @@ class AcfPacf(View):
         try:
             request_json = json.loads(request.body.decode('utf-8'))
             data = request_json['data']
+            data["data"] = np.array(data["data"]).astype('float')
             freq = request_json['freq']
             lags = request_json['lags']
             df = make_dataframe(data, freq)
