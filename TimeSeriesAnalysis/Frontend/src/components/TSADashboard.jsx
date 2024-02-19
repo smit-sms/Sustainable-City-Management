@@ -6,7 +6,8 @@ import RadioButton from './RadioButton'
 let controls = {
     freq: 'None',
     period: 0,
-    lags: 1
+    lags: 1,
+    bins: 10,
 }
 
 let feedback = "";
@@ -15,7 +16,12 @@ let dataProcessed = {
     base:[], time_base: [], trend:[], 
     seasonal:[], time_decomposed:[], 
     residual:[], stationary: [], time_stationary: [],
-    acf:[], pcf:[], corr_ci:[], corr_lags:[], 
+    acf:[], pacf:[], corr_ci:[], corr_lags:[], 
+}
+
+const isNumeric = (str) => {
+    /** Returns true if the string is a number and false otherwise. */
+    return !isNaN(str);
 }
 
 const TSADashboard = ({ data, frequency, period, lags, title }) => {
@@ -35,19 +41,20 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         const val = textBox.property("value");
         if (sanityCheckControls(textBoxType, val)) {
             if (textBoxType == 'freq') controls[textBoxType] = val;
-            if (textBoxType == 'period' || textBoxType == 'lags') controls[textBoxType] = parseInt(val);  
+            if (textBoxType == 'period' || textBoxType == 'lags' || textBoxType == 'bins') controls[textBoxType] = parseInt(val);  
             textBox.attr('style', 'border: 2px solid green');
         } else {
             if (textBoxType == 'freq') controls.freq = frequency;
             if (textBoxType == 'period') controls.period = period;
             if (textBoxType == 'lags') controls.lags = lags;
+            if (textBoxType == 'bins') controls.bins = 10;
             textBox.attr('style', 'border: 2px solid red');
         }
     }
 
     const handleApply = (e) => {
         feedback = "";
-        ['freq', 'period', 'lags'].forEach(tb => {
+        ['freq', 'period', 'lags', 'bins'].forEach(tb => {
             d3.select(`#text-box-${tb}`).select('input').property("value", "").attr('style', 'border:none');
         });
         // Update data.
@@ -55,9 +62,9 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
     }
 
     const sanityCheckControls = (textBoxType, val) => {
-        if (textBoxType == 'freq') return val.length > 0 && val.slice(0, 1) != 0;
-        if (textBoxType == 'period') return val > 0 && val <= Math.floor(data.data.length/2);
-        if (textBoxType == 'lags') return val > 0 && val <= Math.floor(data.data.length/2);
+        if (textBoxType == 'freq') return typeof val == String && val.length > 0 && val.slice(0, 1) != 0;
+        if (textBoxType == 'period' || textBoxType == 'lags') return isNumeric(val) && val > 0 && val <= Math.floor(data.data.length/2);
+        if (textBoxType == 'bins') return isNumeric(val) && val
         return false
     }
 
@@ -130,15 +137,14 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             headers: {'Content-Type':'application/json'}
         })
         correlations = await correlations.json();
-        console.log('CORR =', correlations);
         if (correlations.message.includes('Failure')) {
             feedback += correlations.message;
         }
         correlations = correlations.data;
-        dataProcessed.acf = decomposed.autocorrelation;
-        dataProcessed.pacf = decomposed.partial_autocorrelation;
-        dataProcessed.corr_lags = decomposed.lag;
-        dataProcessed.corr_ci = decomposed.confidence_interval;
+        dataProcessed.acf = correlations.autocorrelation;
+        dataProcessed.pacf = correlations.partial_autocorrelation;
+        dataProcessed.corr_lags = correlations.lag;
+        dataProcessed.corr_ci = correlations.confidence_interval;
         
         // Reset system feedback to user.
         if (feedback.length > 0) {
@@ -150,6 +156,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         setChangedDataLine(prevVal => 1 - prevVal);
         setChangedDataCorr(prevVal => 1 - prevVal);
         setChangedDataNumSum(prevVal => 1 - prevVal);
+        setChangedDataHist(prevVal => 1 - prevVal);
     }
 
     const plotLineData = () => {
@@ -180,7 +187,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
         for (let i = 0; i < x.length; i++) dataToPlot.push({'x': x[i], 'y': y[i]});
         const widthSvg = Number(svg.style('width').replace('px', ''));
         const heightSvg = Number(svg.style('height').replace('px', ''));
-        const margins = {left: 65, top: 5, right: 5, bottom: 65};
+        const margins = {left: 65, top: 20, right: 20, bottom: 65};
         const widthPlot = widthSvg - margins.left - margins.right;
         const heightPlot = heightSvg - margins.top - margins.bottom;
         const gPlot = svg.selectAll('.group-plot')
@@ -246,6 +253,204 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
             .duration(1000)
             .attr("d", d => d);
     }
+
+    const plotHistData = () => {
+        // Adding data to histogram.
+        const bin = d3.bin()
+                    .thresholds(controls.bins)
+                    .value(d => d);
+        const buckets = bin(dataProcessed.base);
+        // Setting up axes.
+        const svg = d3.select('#svg-hist')
+        const widthSvg = Number(svg.style('width').replace('px', ''));
+        const heightSvg = Number(svg.style('height').replace('px', ''));
+        const margins = {left: 50, top: 20, right: 20, bottom: 50};
+        const widthPlot = widthSvg - margins.left - margins.right;
+        const heightPlot = heightSvg - margins.top - margins.bottom;
+        const gPlot = svg.selectAll('.group-plot')
+                        .data(['g'])
+                        .join('g')
+                        .attr('class', 'group-plot')
+                        .attr('width', widthPlot)
+                        .attr('height', heightPlot)
+                        .attr('transform', `translate(${margins.left}, ${margins.top})`);
+        const gXAxis = gPlot.selectAll('.group-x-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-x-axis')
+                            .attr('transform', `translate(${0}, ${heightPlot})`);;
+        const gYAxis = gPlot.selectAll('.group-y-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-y-axis');
+        const scaleX = d3.scaleLinear()
+                        .domain([buckets[0].x0, buckets[buckets.length - 1].x1])
+                        .range([0, widthPlot]);
+        const scaleY = d3.scaleLinear()
+                        .domain([0, d3.max(buckets, (d) => d.length)])
+                        .range([heightPlot,0]);
+        gXAxis.call(d3.axisBottom(scaleX));
+        gYAxis.call(d3.axisLeft(scaleY));
+        gXAxis.selectAll('.axis-label')
+            .data([`VALUES (bin width = ${buckets[0].x1 - buckets[0].x0})`])
+            .join('text')
+            .attr('class', 'axis-label')
+            .text(d => d)
+            .attr("x", widthSvg/2-38)
+            .attr("y", 40)
+            .attr('fill', 'black')
+            .attr('font-style', 'italic');
+        gYAxis.selectAll('.axis-label')
+            .data(['FREQUENCY'])
+            .join('text')
+            .attr('class', 'axis-label')
+            .text(d => d)
+            .attr("x", -1*heightSvg/3)
+            .attr("y", -35)
+            .attr('fill', 'black')
+            .attr('font-style', 'italic')
+            .attr('transform', 'rotate(-90)');
+        // Adding bars.
+        gPlot.selectAll('.bar')
+            .data(buckets)
+            .join("rect")
+            .attr('class', 'bar')
+            .attr('fill', 'blue')
+            .attr("x", (d) => scaleX(d.x0)+1)
+            .attr("y", (d) => scaleY(d.length))
+            .attr("height", (d) => scaleY(0) - scaleY(d.length))
+            .transition()
+            .duration(1000)
+            .attr("width", (d) => scaleX(d.x1) - scaleX(d.x0)-1);
+    }
+
+    const plotCorrData = () => {
+        // Prepare data.
+        let dataToPlot = [];
+        for (let i = 0; i < dataProcessed.acf.length; i++) dataToPlot.push({
+            'x': dataProcessed.corr_lags[i], 
+            'y_acf': dataProcessed.acf[i],
+            'y_pacf': dataProcessed.pacf[i],
+            'ci_pos': dataProcessed.corr_ci[i],
+            'ci_neg': -1*dataProcessed.corr_ci[i]
+        });
+
+        // Set up plot elements.
+        const svg = d3.select('#svg-corr');
+        const widthSvg = Number(svg.style('width').replace('px', ''));
+        const heightSvg = Number(svg.style('height').replace('px', ''));
+        const margins = {left: 50, top: 20, right: 20, bottom: 50};
+        const widthPlot = widthSvg - margins.left - margins.right;
+        const heightPlot = heightSvg - margins.top - margins.bottom;
+        const gPlot = svg.selectAll('.group-plot')
+                        .data(['g'])
+                        .join('g')
+                        .attr('class', 'group-plot')
+                        .attr('width', widthPlot)
+                        .attr('height', heightPlot)
+                        .attr('transform', `translate(${margins.left}, ${margins.top})`);
+        const gXAxis = gPlot.selectAll('.group-x-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-x-axis')
+                            .attr('transform', `translate(${0}, ${heightPlot})`);
+        const gYAxis = gPlot.selectAll('.group-y-axis')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'group-y-axis');
+        const scaleX = d3.scaleLinear()
+                        .domain([0, d3.max(dataProcessed.corr_lags)])
+                        .range([0, widthPlot]);
+        const scaleY = d3.scaleLinear()
+                        .domain(d3.extent(
+                            dataProcessed.acf
+                            .concat(dataProcessed.pacf)
+                            .concat(dataProcessed.corr_ci)
+                            .concat(dataProcessed.corr_ci.map(d => -1*d))
+                        ))
+                        .range([heightPlot, 0]);
+        gXAxis.transition()
+            .duration(1000)
+            .call(d3.axisBottom(scaleX))
+            .attr('transform', `translate(${0}, ${scaleY(0)})`);
+        gYAxis.transition()
+            .duration(1000)
+            .call(d3.axisLeft(scaleY));
+        gXAxis.selectAll('.axis-label')
+            .data(["LAG"])
+            .join('text')
+            .attr('class', 'axis-label')
+            .text(d => d)
+            .attr("x", widthSvg/2-38)
+            .attr("y", 40)
+            .attr('fill', 'black')
+            .attr('font-style', 'italic');
+        gYAxis.selectAll('.axis-label')
+            .data(['CORRELATION'])
+            .join('text')
+            .attr('class', 'axis-label')
+            .text(d => d)
+            .attr("x", -1*heightSvg/3)
+            .attr("y", -35)
+            .attr('fill', 'black')
+            .attr('font-style', 'italic')
+            .attr('transform', 'rotate(-90)');
+        // Add ACF Line.
+        const gLinesAcf = gPlot.selectAll('.lines-acf')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'lines-acf');
+        gLinesAcf.selectAll('.line')
+                .data(dataToPlot)
+                .join('path')
+                .attr('class', 'line')
+                .attr('d', d => {
+                    return `M ${scaleX(d.x)} ${scaleY(0)} V ${scaleY(d.y_acf)}`;
+                })
+                .style('stroke-width', 2)
+                .style('stroke', 'red')
+                .style('opacity', '0.6');
+        // Add PACF Line.
+        const gLinesPacf = gPlot.selectAll('.lines-pacf')
+                                .data(['g'])
+                                .join('g')
+                                .attr('class', 'lines-pacf');
+
+        gLinesPacf.selectAll('.line')
+            .data(dataToPlot)
+            .join('path')
+            .attr('class', 'line')
+            .attr('d', d => `M ${scaleX(d.x)} ${scaleY(0)} V ${scaleY(d.y_pacf)}`)
+            .style('stroke-width', 5)
+            .style('stroke', 'green')
+            .style('opacity', '0.6');
+        // Add Confidence Interval Lines.
+        
+        const gLinesCi = gPlot.selectAll('.lines-ci')
+                            .data(['g'])
+                            .join('g')
+                            .attr('class', 'lines-ci');
+        const lineCiPos = d3.line()
+                        .x((d) => scaleX(d.x))
+                        .y((d) => scaleY(d.ci_pos));
+        const lineCiNeg = d3.line()
+                        .x((d) => scaleX(d.x))
+                        .y((d) => scaleY(d.ci_neg));
+        gLinesCi.selectAll('.line-pos')
+                .data(dataToPlot)
+                .join('path')
+                .attr('class', 'line-pos')
+                .attr('d', lineCiPos(dataToPlot))
+                .style('stroke-width', 2)
+                .style('stroke', 'blue');
+        gLinesCi.selectAll('.line-neg')
+                .data(dataToPlot)
+                .join('path')
+                .attr('class', 'line-neg')
+                .attr('d', lineCiNeg(dataToPlot))
+                .style('stroke-width', 2)
+                .style('stroke', 'blue');
+    }
     
     useEffect(() => {
         // Set user controls.
@@ -257,11 +462,15 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
 
     useEffect(() => {
         plotLineData();
-    }, [changedDataLine]);
+    }, [changedDataLine, selectedLineType]);
 
     useEffect(() => {
-        plotLineData();
-    }, [selectedLineType])
+        plotHistData()
+    }, [changedDataHist]);
+
+    useEffect(() => {
+        plotCorrData()
+    }, [changedDataCorr]);
     
     return (
         <div>
@@ -275,9 +484,10 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                             APPLY
                         </button>
                     </div>
-                    <TextBox label={'Frequency'} placeholder={controls.freq} id="text-box-freq" onChange={() => handleTextBoxChange('text-box-freq')} />
-                    <TextBox label={'Period'} placeholder={controls.period} id="text-box-period" onChange={() => handleTextBoxChange('text-box-period')} />
-                    <TextBox label={'Lags'} placeholder={controls.lags} id="text-box-lags" onChange={() => handleTextBoxChange('text-box-lags')} />       
+                    <TextBox label={'Frequency'} placeholder={controls.freq} id="text-box-freq" onChange={() => handleTextBoxChange('text-box-freq')} isEditable={false} />
+                    <TextBox label={'Period'} placeholder={controls.period} id="text-box-period" onChange={() => handleTextBoxChange('text-box-period')} isEditable={true} />
+                    <TextBox label={'Lags'} placeholder={controls.lags} id="text-box-lags" onChange={() => handleTextBoxChange('text-box-lags')} isEditable={true} />   
+                    <TextBox label={'Bins'} placeholder={controls.bins} id="text-box-bins" onChange={() => handleTextBoxChange('text-box-bins')} isEditable={true} />    
                     <div className={statusMessage.includes('Success') ? 'text-green-600' : 'text-red-600'}>{statusMessage}</div>
                 </div>
                 <div id='line' className='col-span-2'>
@@ -303,7 +513,7 @@ const TSADashboard = ({ data, frequency, period, lags, title }) => {
                     <svg id='svg-box' className='w-full h-72 bg-slate-200'></svg>
                 </div>
                 <div id='corr' className='col-span-2'>
-                    ACF & PACF Plot
+                    <font color='red'>ACF</font> & <font color='green'>PACF</font> Plot
                     <svg id='svg-corr' className='w-full h-72 bg-slate-200'></svg>
                 </div>
             </div>

@@ -341,8 +341,6 @@ function TimeSeriesDashboard({ data, seasonalityPeriod, movingAvgWindowSize}) {
             
     }
 
-
-
     const decomposeTimeSeries = (series, seasonalityPeriod, movingAvgWindowSize) => {
         /** This function decomposes a given time series to extract
          *  underlying trend, seasonality and residual components. */

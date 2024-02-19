@@ -33,7 +33,7 @@ const App = () => {
                 <TSADashboard 
                     title={`Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`}
                     data={data} 
-                    frequency={"5min"}
+                    frequency={"15min"}
                     period={8}
                     lags={10} 
                 /> : <></>
