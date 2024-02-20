@@ -6,4 +6,4 @@ class SA_energy_consumption(models.Model):
     Energy_use=models.IntegerField()
     Energy_cost=models.IntegerField()
     Total_Floor_Area=models.IntegerField()
-    Small_Area_Name=models.CharField(max_length=50)
+    Small_Area_Name=models.CharField(max_length=50)    

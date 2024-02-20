@@ -2,7 +2,7 @@ import csv
 from energy_usage.models import SA_energy_consumption
 
 def run():
-    fhand = open('energy_usage/data/Dublin_energy_use_poly.csv')
+    fhand = open('energy_usage/data/Dublin_Energy_dataset.csv')
     reader = csv.reader(fhand)
     next(reader) # skip the 1st row
 
