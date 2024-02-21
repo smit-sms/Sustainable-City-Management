@@ -21,6 +21,7 @@ const App = () => {
         fetch(`http://127.0.0.1:8000/sensors/${sensorType}/?sensor_serial_number=${sensorNumber}&time_start=2024-02-01 00:00:00&time_end=2024-02-02 00:00:00`)
         .then(response => response.json())
         .then(response => {
+            console.log()
             let dataFetched = {data: [], time: []}
             response['data'].forEach(dt => {
                 dataFetched.data.push(dt[dataName]);
@@ -48,7 +49,7 @@ const App = () => {
                     period={8}
                     lags={10}
                     backend_url_root='http://127.0.0.1:8001'
-                /> : <></>
+                /> : <>Time Series Dashboard</>
             }
         </div>
     );
