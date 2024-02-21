@@ -1,4 +1,6 @@
 import React from 'react';
+import dummyData from '../DummyData/air';
+import TimeSeriesDashboard from './TimeSeriesDashboard';
 
 function HomePage() {
 
@@ -8,7 +10,7 @@ function HomePage() {
       
       {/* Time Series Dashboard */}
       <div>
-        {/* TO DO ...*/}
+        {/** TO DO ... */}
       </div>
     </div>
   );
