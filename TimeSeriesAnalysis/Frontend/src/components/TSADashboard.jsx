@@ -44,11 +44,6 @@ const TSADashboard = ({
         residual:[], stationary: [], time_stationary: [],
         acf:[], pacf:[], corr_ci:[], corr_lags:[]
     });
-    const [numSum, setNumSum] = useState({
-        'mean': 0, 'median': 0, 'iqr': 0,
-        'q1': 0, 'q3': 0, 'num_outliers':0,
-        'num_diff':0, 'max': 0, 'min': 0
-    })
 
     const handleTextBoxChange = (id) => {
         feedback = "";
@@ -677,25 +672,11 @@ const TSADashboard = ({
         const min = q1 - 1.5 * interQuantileRange;
         const max = q3 + 1.5 * interQuantileRange;
         outliers=[]; // Global variable.
-        let sum = 0;
         for (let i=0;i<data_sorted.length;i++){
             if (data_sorted[i] < min || data_sorted[i] > max){
                 outliers.push(data_sorted[i]);
             } 
-            sum += data_sorted[i];
         }
-        setNumSum(prevVal => {
-            prevVal.mean = roundToNPlaces(sum/data.data.length, 2);
-            prevVal.min = roundToNPlaces(min, 2);
-            prevVal.max = roundToNPlaces(max, 2);
-            prevVal.median = roundToNPlaces(median, 2);
-            prevVal.q1 = roundToNPlaces(q1, 2);
-            prevVal.q3 = roundToNPlaces(q3, 2);
-            prevVal.num_outliers = roundToNPlaces(outliers.length, 2);
-            prevVal.num_diff = roundToNPlaces(numDiff, 2);
-            prevVal.iqr = roundToNPlaces(interQuantileRange, 2);
-            return prevVal;
-        })
     }
     
     useEffect(() => {
@@ -753,52 +734,8 @@ const TSADashboard = ({
                         <RadioButton label={'Stationary'} id="radio-stationary" name="linetype" value="stationary" selected={selectedLineType == "stationary"} uponClick={handleLineTypeSelection} />
                     </div>
                 </div>
-                <div id='num_sum' className='mt-10 sm:mt-0 text-left'>
+                <div id='num_sum' className='mt-10 sm:mt-0'>
                     <b>Number Summary</b>
-                    <div className='bg-slate-200'>
-                        <table>
-                            <tr>
-                                <th>Metric</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Mean</td>
-                                <td>{numSum.mean}</td>
-                            </tr>
-                            <tr>
-                                <td>Median</td>
-                                <td>{numSum.median}</td>
-                            </tr>
-                            <tr>
-                                <td>Q1</td>
-                                <td>{numSum.q1}</td>
-                            </tr>
-                            <tr>
-                                <td>Q3</td>
-                                <td>{numSum.q3}</td>
-                            </tr>
-                            <tr>
-                                <td>IQR</td>
-                                <td>{numSum.iqr}</td>
-                            </tr>
-                            <tr>
-                                <td>Min</td>
-                                <td>{numSum.min}</td>
-                            </tr>
-                            <tr>
-                                <td>Max</td>
-                                <td>{numSum.max}</td>
-                            </tr>
-                            <tr>
-                                <td>Differencing Count</td>
-                                <td>{numSum.num_diff}</td>
-                            </tr>
-                            <tr>
-                                <td>No. of Outliers</td>
-                                <td>{numSum.num_outliers}</td>
-                            </tr>
-                        </table>
-                    </div> 
                 </div>
                 <div id='hist' className='col-span-2 mt-10 sm:mt-0'>
                     <b>Histogram Plot</b>
