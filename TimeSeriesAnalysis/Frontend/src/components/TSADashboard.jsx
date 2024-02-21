@@ -753,7 +753,7 @@ const TSADashboard = ({
                         <RadioButton label={'Stationary'} id="radio-stationary" name="linetype" value="stationary" selected={selectedLineType == "stationary"} uponClick={handleLineTypeSelection} />
                     </div>
                 </div>
-                <div id='num_sum' className='mt-10 sm:mt-0 text-left'>
+                <div id='num_sum' className='mt-10 sm:mt-0 text-left '>
                     <b>Number Summary</b>
                     <div className='bg-slate-200'>
                         <table>

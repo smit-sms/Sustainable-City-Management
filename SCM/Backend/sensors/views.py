@@ -42,8 +42,6 @@ class AirView(View):
     
         # Return response.
         response = JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
-        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'  # Replace with your React app's origin
-        response['Access-Control-Allow-Methods'] = 'GET'
         return response
         
     def post(self, request):
