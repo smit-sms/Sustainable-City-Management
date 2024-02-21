@@ -30,9 +30,23 @@ SECRET_KEY = "django-insecure-$7z!5(9-iym3&qu^3^dmz_sc1xx02mrd4iog6gy@soja=d9qls
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'http://localhost:3000']
 
-CORS_ORIGIN_ALLOW_ALL  = True
+CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# TODO: Remove this
+CORS_ALLOW_HEADERS = default_headers + (
+    'ngrok-skip-browser-warning',
+)
+
+# TODO: Modify
+CSRF_TRUSTED_ORIGINS = ['https://cce2-2a02-8084-2561-8e80-2c1c-d52d-f7ef-da30.ngrok-free.app/']
+
+# CSRF_COOKIE_SECURE = False
 
 # Application definition
 
@@ -57,7 +71,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    'django.middleware.csrf.CsrfViewMiddleware',
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
