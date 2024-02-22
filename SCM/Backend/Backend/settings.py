@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-from corsheaders.defaults import default_headers
+# from corsheaders.defaults import default_headers
 import os
 
 load_dotenv()
@@ -35,10 +35,10 @@ ALLOWED_HOSTS = ['*', 'http://localhost:3000']
 # CORS settings.
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ORIGIN_ALLOW_ALL = True
-# TO DO: Remove this
-CORS_ALLOW_HEADERS = default_headers + (
-    'ngrok-skip-browser-warning',
-)
+# # TO DO: Remove this
+# CORS_ALLOW_HEADERS = default_headers + (
+#     'ngrok-skip-browser-warning',
+# )
 
 # CSRF settings.
 CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
