@@ -1,4 +1,4 @@
-import json
+import json, math
 import pandas as pd
 import numpy as np
 import requests
@@ -94,6 +94,7 @@ def merge_dfs_on_stations(df1, df2):
 def predict(request):
     df_query, df_return = prepare_query_for_model()
     prediction = dublinBikesModel.get_model().predict(df_query)
-    df_return['prediction'] = prediction
+    prediction = np.rint(prediction)
+    df_return['available_bikes'] = prediction
     positions = dublinBikesModel.get_df_positions()
     return JsonResponse({'prediction': json.loads(df_return.to_json(orient='records')), 'positions': json.loads(positions.to_json(orient='records'))}, safe=False)
