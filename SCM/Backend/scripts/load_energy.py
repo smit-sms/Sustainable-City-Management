@@ -1,8 +1,8 @@
 import csv
-from energy_usage.models import SA_energy_consumption
+from cityservices.models import SA_energy_consumption
 
 def run():
-    fhand = open('energy_usage/data/Dublin_Energy_dataset.csv')
+    fhand = open('cityservices/data/Dublin_Energy_dataset.csv')
     reader = csv.reader(fhand)
     next(reader) # skip the 1st row
 

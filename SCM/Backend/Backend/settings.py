@@ -63,7 +63,6 @@ INSTALLED_APPS = [
 
     "authentication",
     "sensors",
-    "energy_usage",
     "cityservices",
 ]
 
