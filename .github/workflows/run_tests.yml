@@ -38,12 +38,11 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     - name: Install Dependencies
       run: |
-        cd Backend
+        cd SCM/Backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
       env:
         DJANGO_SETTINGS_MODULE: Backend.backend.settings
     - name: Running Tests
       run: |
-        cd Backend
         python manage.py test -v 2
