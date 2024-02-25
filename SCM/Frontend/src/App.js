@@ -5,6 +5,7 @@ import RegisterPage from './Components/RegisterPage';
 import HomePage from './Components/HomePage';
 import EnergyUsageMap from './Components/EnergyUsageMap'
 
+
 function App() {
   return (
     <Router>
@@ -13,6 +14,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/energy" element={<EnergyUsageMap />} />
+
       </Routes>
     </Router>
   );
