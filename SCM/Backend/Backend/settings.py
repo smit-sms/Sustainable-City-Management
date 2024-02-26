@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-from corsheaders.defaults import default_headers
+# from corsheaders.defaults import default_headers
 import os
 
 load_dotenv()
@@ -32,24 +32,22 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*', 'http://localhost:3000']
 
-CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
-
-CORS_ORIGIN_ALLOW_ALL = True
-
+# CORS settings.
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+# # TO DO: Remove this
+# CORS_ALLOW_HEADERS = default_headers + (
+#     'ngrok-skip-browser-warning',
+# )
 
-# TODO: Remove this
-CORS_ALLOW_HEADERS = default_headers + (
-    'ngrok-skip-browser-warning',
-)
-
-# TODO: Modify
-CSRF_TRUSTED_ORIGINS = ['https://cce2-2a02-8084-2561-8e80-2c1c-d52d-f7ef-da30.ngrok-free.app/']
-
-# CSRF_COOKIE_SECURE = False
+# CSRF settings.
+CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
+# TO DO: Modify
+CSRF_TRUSTED_ORIGINS = [
+    'https://cce2-2a02-8084-2561-8e80-2c1c-d52d-f7ef-da30.ngrok-free.app/'
+]
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -60,7 +58,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_extensions",
-
     "authentication",
     "sensors",
     "cityservices",
