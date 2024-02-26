@@ -59,11 +59,17 @@
   .signup-link span:hover {
     color: #583e90;
   }
-
+  
   .error {
-    color: red;
-    font-size: 0.8rem;
-    margin-top: 0.5rem;
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    padding: 15px;
+    margin: 20px 0; /* Adjusted margin for spacing */
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-align: center;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   }
   
   

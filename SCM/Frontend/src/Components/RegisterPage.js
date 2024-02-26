@@ -1,84 +1,92 @@
-// import React, { useState } from 'react';
-// import '../assets/styles/style.css'; // Make sure to create a LoginPage.css file with the styles
-// import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import '../assets/styles/style.css';
+import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../services/api';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// const RegisterPage = () => {
-//   let navigate = useNavigate();
-  
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [confirmPassword, setConfirmPassword] = useState('');
-//   const [errors, setErrors] = useState({});
+const RegisterPage = () => {
+  let navigate = useNavigate();
 
-//   const handleRegister = (e) => {
-//     e.preventDefault();
-//     if (password !== confirmPassword) {
-//       return;
-//     }
-//     // Proceed with the registration logic
-//   };
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-//   const validate = () => {
-//     let tempErrors = {};
-//     tempErrors.email = email ? "" : "Email is required";
-//     tempErrors.password = password ? "" : "Password is required";
-//     tempErrors.confirmPassword = confirmPassword ? "" : "Confirm password is required";
-    
-//     if (email && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
-//       tempErrors.email = "Email is not valid";
-//     }
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
 
-//     if (password && password !== confirmPassword) {
-//       tempErrors.confirmPassword = "Passwords do not match";
-//     }
+    try {
+      const response = await fetch(`${BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-//     setErrors(tempErrors);
-//     return Object.values(tempErrors).every(x => x === "");
-//   };
+      const data = await response.json();
 
-//   return (
-//     <div className="login-container">
-//       <div className="login-form-container">
-//         <h1>Register</h1>
-//         <form onSubmit={handleRegister}>
-//           <input
-//             type="email"
-//             placeholder="email address"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             required
-//           />
-//           <input
-//             type="password"
-//             placeholder="password"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//             required
-//           />
-//           <input
-//             type="password"
-//             placeholder="confirm password"
-//             value={confirmPassword}
-//             onChange={(e) => setConfirmPassword(e.target.value)}
-//             required
-//           />
-//           {errors.password && <p className="error">{errors.password}</p>}
-//           <input
-//             type="password"
-//             placeholder="confirm password"
-//             value={confirmPassword}
-//             onChange={(e) => setConfirmPassword(e.target.value)}
-//             required
-//           />
-//           {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
-//           <button onClick={() => navigate('/home')}>REGISTER</button>
-//         </form>
-//         <button className="signup-link" onClick={() => navigate('/')}>
-//           Already have an account? Login
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
+      if (response.status === 201) {
+        navigate('/home');
+      } else if (response.status === 400) {
+        toast.error(data.message || 'Already existing user');
+      } else if (response.status === 401) {
+        toast.error(data.message || 'User not authorized, please contact your administrator for access.');
+      } else {
+        toast.error('Some Error occurred. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Network error, please try again.');
+    }
+  };
 
-// export default RegisterPage;
+  return (
+    <div className="login-container">
+      <div className="login-form-container">
+        <h1>Register</h1>
+        <form onSubmit={handleRegister}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Register</button>
+        </form>
+        <button className="signup-link" onClick={() => navigate('/')}>
+          Already have an account? Click here to Login
+        </button>
+      </div>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored"  pauseOnFocusLoss draggable pauseOnHover />
+    </div>
+  );
+};
+
+export default RegisterPage;
