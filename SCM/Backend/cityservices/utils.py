@@ -1,5 +1,7 @@
 import os
 import openrouteservice
+import requests
+import pandas as pd
 
 
 def get_openroute_geojson(coordinates: list[list], optimize: bool = False):
@@ -17,3 +19,16 @@ def get_openroute_geojson(coordinates: list[list], optimize: bool = False):
     route = client.directions(coords, profile='driving-car', format='geojson', optimize_waypoints=optimize)
 
     return route
+
+
+# APIKEY_OPENWEATHER = 'eef810c9a22776cce17d0de14d316137'
+# APIKEY_METEOSOURCE = 'wkz9f0gm7xust1d45patrd9uqugwm2qjrtctorxx'
+
+def get_weather_forecast():
+    APIKEY_METEOSOURCE = 'wkz9f0gm7xust1d45patrd9uqugwm2qjrtctorxx'
+    # APIKEY_METEOSOURCE = os.getenv('APIKEY_METEOSOURCE')
+    parameters = {'key': APIKEY_METEOSOURCE,
+                  'place_id': 'dublin'}
+    url = "https://www.meteosource.com/api/v1/free/point"
+    data = requests.get(url, parameters).json()
+    return data

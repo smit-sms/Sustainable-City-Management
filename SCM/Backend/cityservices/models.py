@@ -15,3 +15,10 @@ class BusStop(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     direction = models.IntegerField()
+
+class DublinBikeStation(models.Model):
+    station_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    bike_stands = models.CharField(max_length=50)
+    latitude = models.FloatField()
+    longitude = models.FloatField()

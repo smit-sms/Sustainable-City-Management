@@ -13,7 +13,6 @@ const icon = L.icon({
 	iconAnchor: [13, 13],
 	popupAnchor: [0, -13],
 	iconUrl: bikeImage,
-	// shadowUrl: "https://unpkg.com/leaflet@1.6/dist/images/marker-shadow.png",
 });
 
 const BikeMap = ({ currSetTime }) => {
@@ -39,26 +38,31 @@ const BikeMap = ({ currSetTime }) => {
 				});
 				setAvailabilityPrediction(filteredData);
 				console.log("initial values set", filteredData);
+			})
+			.catch((error) => {
+				// get current time
+				// get predictions from backend for this current time
+				// display as predictions and not as real data
+				console.log(error);
 			});
 	}
 
 	useEffect(() => {
 		get_data_from_dublinbikes();
 
-		fetch("http://127.0.0.1:8000/dublin-bikes-prediction/predict/")
+		fetch("http://127.0.0.1:8000/city_services/dublin-bikes-predictions/")
 			// fetch("/bike_stands_dublin_pred.json")
 			.then((response) => response.json())
 			.then((data) => {
 				// Filter logic based on selected time
-				setPredictions(data.prediction);
-				setBikeStands(data.positions);
+				setPredictions(data.data.prediction);
+				setBikeStands(data.data.positions);
 				console.log("predictions set");
 			});
 	}, []);
 
 	useEffect(() => {
 		if (predictions.length != 0 && predictions != undefined) {
-			console.log("predictions", predictions);
 			const filteredData = predictions.filter(
 				(entry) => entry.TIME == currSetTime.getTime()
 			);
@@ -80,21 +84,21 @@ const BikeMap = ({ currSetTime }) => {
 
 			{availabilityPrediction.map((stand) => {
 				let entry = bikeStands.filter(
-					(entry) => entry["STATION ID"] == stand["STATION ID"]
+					(entry) => entry["station_id"] == stand["STATION ID"]
 				)[0];
 				if (entry != undefined)
 					try {
 						return (
 							<Marker
 								key={stand["STATION ID"]}
-								position={[entry["LATITUDE"] ?? "", entry["LONGITUDE"] ?? ""]}
+								position={[entry["latitude"] ?? "", entry["longitude"] ?? ""]}
 								// position={[53.3409, -6.2625]}
 								icon={icon}
 							>
 								<Popup>
 									<div>
 										<h3>
-											{entry["NAME"]} ({stand["STATION ID"]})
+											{entry["name"]} ({stand["STATION ID"]})
 										</h3>
 										<p>Bike Stands: {stand["BIKE STANDS"]}</p>
 										<p>
