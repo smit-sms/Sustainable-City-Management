@@ -78,7 +78,10 @@ def make_dataframe(data, freq):
     validate_data_form_dict(data)
     data["time"] = pd.to_datetime(data["time"])
     df = pd.DataFrame(data)
+    df = df.groupby('time').mean()
+    df.reset_index(inplace=True)
     df.set_index("time", inplace=True, drop=False)
+    df.index.name = None
     df = df.asfreq(freq)
     df = df.ffill().bfill()
     return df
@@ -287,7 +290,7 @@ class FirstDifference(View):
             freq = request_json['freq']
             df = make_dataframe(data, freq)
             self.response_data['data'] = compute_first_difference(df)
-            self.response_data['time'] = df.time[1:].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
+            self.response_data['time'] = df.time.iloc[1:].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
             self.response_message = f'Success. First order difference computed.'
         except Exception as e:
             self.response_message = f"Failure. {e}"
