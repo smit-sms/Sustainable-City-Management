@@ -22,3 +22,6 @@ backend:
         4. python manage.py migrate
     > python manage.py runscript <name of file in scripts folder>
     > python manage.py test 'app name'
+
+ReactJS testing:
+    > npm test --testPathPattern=<path to file containing steps>
