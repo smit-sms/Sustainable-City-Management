@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
-import TSADashboard from "./components/TSADashboard";
+import { TSADashboard } from "tsa-dashboard";
+// import TSADashboard from "./components/TSADashboard";
 
-// // Air Data
-// const dataName = "pm2_5"
-// const sensorType = "pm2.5"
-// const sensorNumber = "DCC-AQ2"
-// const title = `Air Pollution (${sensorType}) (Sensor = ${sensorNumber})`
+// Air Data
+const dataName = "pm2_5"
+const sensorType = "pm2.5"
+const sensorNumber = "DCC-AQ2"
+const title = `Air Pollution (${sensorType}) (Sensor = ${sensorNumber})`
 
-// Noise Data
-const dataName = "laeq"
-const sensorType = "laeq"
-const sensorNumber = "10.1.1.1"
-const title = `Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`
+// // Noise Data
+// const dataName = "laeq"
+// const sensorType = "laeq"
+// const sensorNumber = "10.1.1.1"
+// const title = `Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`
 
 const App = () => {
 
