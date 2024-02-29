@@ -4,8 +4,9 @@
 
 
 .leaflet-container {
-    height: 70vh;
-    width: 100vh;
+   
+    height: 80vh;
+    width: 160vh;
 }
 
 .total-energy-use {
@@ -14,4 +15,24 @@
     color: #333; 
     margin-bottom: 5px; 
 }
-  
+
+.map-and-list-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.power-plants-statistics {
+  flex: 1;
+  padding-top: 20px; /* Adjust as needed */
+  margin: 0;
+  list-style-type: none;
+}
+
+/* Optional: Add some padding and margins for better spacing */
+.map-container {
+  flex: 1;
+  padding: 10px; /* Adjust as needed */
+  margin: 0;
+  list-style-type: none;  
+}
+

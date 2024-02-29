@@ -5,8 +5,8 @@
       "type": "Feature",
       "properties": {
         "Name": "ESB Dublin Bay Power Plant",
-        "Total Capacity (MW)": 416.7,
-        "Active Production": 330
+        "Total Capacity (MW)": 4160.7,
+        "Active Production": 3700
       },
       "geometry": {
         "type": "Point",
@@ -20,8 +20,8 @@
       "type": "Feature",
       "properties": {
         "Name": "Huntstown Power Station",
-        "Total Capacity (MW)": 744,
-        "Active Production": 688
+        "Total Capacity (MW)": 5440,
+        "Active Production": 2880
       },
       "geometry": {
         "type": "Point",
@@ -35,8 +35,8 @@
       "type": "Feature",
       "properties": {
         "Name": "Hydroelectric power plant",
-        "Total Capacity (MW)": 216,
-        "Active Production": 198
+        "Total Capacity (MW)": 2160,
+        "Active Production": 1280
       },
       "geometry": {
         "type": "Point",
@@ -49,9 +49,9 @@
     {
       "type": "Feature",
       "properties": {
-        "Name": "Poolbeg Powerstation (Decommissioned)",
-        "Total Capacity (MW)": 470,
-        "Active Production": 412
+        "Name": "Wind Farm",
+        "Total Capacity (MW)": 4700,
+        "Active Production": 2200
       },
       "geometry": {
         "type": "Point",
@@ -64,9 +64,9 @@
     {
       "type": "Feature",
       "properties": {
-        "Name": "North Quays 110K Power Substation",
-        "Total Capacity (MW)": 112,
-        "Active Production": 87
+        "Name": "North Quays",
+        "Total Capacity (MW)": 3120,
+        "Active Production": 2070
       },
       "geometry": {
         "type": "Point",
