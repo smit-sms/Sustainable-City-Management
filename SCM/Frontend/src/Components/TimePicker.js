@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import BikeMap from "./BikeMap";
-import addHours from "date-fns/addHours";
+// import addHours from "date-fns/addHours";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const BikeAvailabilityPicker = () => {
 	const [startDate, setStartDate] = useState(new Date());
@@ -12,7 +14,7 @@ const BikeAvailabilityPicker = () => {
 	tomorrow.setDate(tomorrow.getDate() + 1);
 	const [minTime, setMinTime] = useState(new Date());
 	const [maxTime, setMaxTime] = useState(new Date());
-	
+
 	useEffect(() => {
 		setMaxTime(
 			new Date(
@@ -68,7 +70,7 @@ const BikeAvailabilityPicker = () => {
 	}, [startDate]);
 
 	return (
-		<>
+		<div>
 			<div className="date-picker-container">
 				<DatePicker
 					selected={startDate}
@@ -88,9 +90,53 @@ const BikeAvailabilityPicker = () => {
 					// dateFormat="MMMM d, yyyy h:mm aa"
 				/>
 			</div>
-			<BikeMap currSetTime={startDate} />
-		</>
+			<ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
+			<BikeMap currSetTime={startDate} toast={toast} />
+		</div>
 	);
+
+	// return (
+	// 	<Flex direction="column" bg={"#242b2c"}>
+	// 		<Wrap
+	// 			align="stretch"
+	// 			justify="stretch"
+	// 			alignContent="stretch"
+	// 			spacing={0}
+	// 			w="full"
+	// 		>
+	// 			<HStack
+	// 				borderRadius="sm"
+	// 				h={""}
+	// 				p={"2"}
+	// 				alignItems="center"
+	// 				justify="center"
+	// 			>
+	// 				<VStack spacing={0}>
+	// 					<DatePicker
+	// 						selected={startDate}
+	// 						onChange={(date) => {
+	// 							setStartDate(date);
+	// 							// onTimeChange(date); // Call the passed callback function
+	// 						}}
+	// 						showTimeSelect
+	// 						dateFormat="MMMM d, yyyy h:mm aa"
+	// 						// minDate={new Date()}
+	// 						// maxDate={addHours(new Date(), 24)} // 1 year from now
+	// 						timeIntervals={60}
+	// 						minDate={today}
+	// 						maxDate={tomorrow}
+	// 						minTime={minTime}
+	// 						maxTime={maxTime}
+	// 						// dateFormat="MMMM d, yyyy h:mm aa"
+	// 					/>
+	// 				</VStack>
+	// 			</HStack>
+	// 		</Wrap>
+	// 		<Box zIndex={1}>
+	// 			<BikeMap currSetTime={startDate} />
+	// 		</Box>
+	// 	</Flex>
+	// );
 };
 
 export default BikeAvailabilityPicker;

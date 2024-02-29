@@ -15,7 +15,7 @@ const icon = L.icon({
 	iconUrl: bikeImage,
 });
 
-const BikeMap = ({ currSetTime }) => {
+const BikeMap = ({ currSetTime, toast }) => {
 	// console.log("GOT TIME", currSetTime.getTime());
 	const [bikeStands, setBikeStands] = useState([]);
 	const [availabilityPrediction, setAvailabilityPrediction] = useState([]);
@@ -26,7 +26,10 @@ const BikeMap = ({ currSetTime }) => {
 		fetch(
 			"https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
 		)
-			.then((response) => response.json())
+			.then((response) => {
+				if (response.status == 200) return response.json();
+				else throw new Error("Error in fetching live data");
+			})
 			.then((data) => {
 				// Filter logic based on selected time
 				const filteredData = data.filter((entry) => {
@@ -38,12 +41,14 @@ const BikeMap = ({ currSetTime }) => {
 				});
 				setAvailabilityPrediction(filteredData);
 				console.log("initial values set", filteredData);
+				// toast.dark("Showing Dublin Bikes live data.");
 			})
 			.catch((error) => {
 				// get current time
 				// get predictions from backend for this current time
 				// display as predictions and not as real data
 				console.log(error);
+				toast.error(error);
 			});
 	}
 
@@ -51,13 +56,19 @@ const BikeMap = ({ currSetTime }) => {
 		get_data_from_dublinbikes();
 
 		fetch("http://127.0.0.1:8000/city_services/dublin-bikes-predictions/")
-			// fetch("/bike_stands_dublin_pred.json")
-			.then((response) => response.json())
+			.then((response) => {
+				if (response.status == 200) return response.json();
+				else throw new Error("Fetching dublin bikes prediction data failed!");
+			})
 			.then((data) => {
 				// Filter logic based on selected time
 				setPredictions(data.data.prediction);
 				setBikeStands(data.data.positions);
 				console.log("predictions set");
+			})
+			.catch((error) => {
+				toast.dark(error.toString());
+				console.log(error);
 			});
 	}, []);
 
