@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "properties": {
-        "Name": "ESB Dublin Bay Power Plant",
+        "Name": "ESB Dublin Bay Power Plant (Non Renewable)",
         "Total Capacity (MW)": 4160.7,
         "Active Production": 3700
       },
@@ -64,7 +64,7 @@
     {
       "type": "Feature",
       "properties": {
-        "Name": "North Quays",
+        "Name": "Solar Plant",
         "Total Capacity (MW)": 3120,
         "Active Production": 2070
       },

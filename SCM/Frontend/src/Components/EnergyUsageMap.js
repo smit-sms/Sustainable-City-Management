@@ -61,71 +61,9 @@ function updateActiveProduction(powerPlants, plantName, windSpeed) {
 
 function EnergyUsageMap() {
   const [totalEnergyUse, setTotalEnergyUse] = useState(0);
-  const [totalPowerPlantEnergy, setPowerPlantEnergy] = useState(0);
-  const [previousPowerOutputs] = useState(powerPlants);
-  const [totalSurplus,setSurplus]=useState(0);
   const [powerPlantsData, setPowerPlantsData] = useState(powerPlants);
-
-
-  // State to keep track of the slider values corresponding to power plants power production
-  const [sliderValues, setSliderValues] = useState(
-    powerPlants.features.reduce((acc, feature) => {
-      acc[feature.properties.Name] = feature.properties['Active Production'];
-      return acc;
-    }, {})
-  );
-
-  // Function to calculate the current surplus
-  const calculateSurplus = () => {
-    const totalModifiedProduction = Object.values(sliderValues).reduce((total, current) => total + current, 0);
-    const CurrentEnergyProduction = totalPowerPlantEnergy;
-    // console.log(CurrentEnergyProduction - totalModifiedProduction)
-    return CurrentEnergyProduction - totalModifiedProduction;
-  };
-
-  const handleSliderChange = (event, plantName) => {
-  const newProductionValue = parseFloat(event.target.value);
-  let newSliderValues = { ...sliderValues, [plantName]: newProductionValue };
-  const totalCapacity = powerPlantsData.features.reduce((total, feature) => total + feature.properties['Total Capacity (MW)'], 0);
-  
-  // Calculate what the new total energy use would be with the updated slider values
-  const updatedTotalEnergyUse = Object.values(newSliderValues).reduce((total, current) => total + current, 0);
-
-  // Calculate the surplus with the updated values
-  const updatedSurplus = totalCapacity - updatedTotalEnergyUse;
-  
-  if (updatedSurplus >= 0) {
-    // If the surplus is positive, update the slider values and total energy use
-    setSliderValues(newSliderValues);
-    setSurplus(updatedTotalEnergyUse);
-    setPowerPlantEnergy(updatedTotalEnergyUse); // Assuming this should also be updated
-
-    // Update the main state with the new values
-    const updatedFeatures = powerPlantsData.features.map(feature => {
-      const updatedProduction = newSliderValues[feature.properties.Name];
-      return {
-        ...feature,
-        properties: {
-          ...feature.properties,
-          'Active Production': updatedProduction
-        }
-      };
-    });
-  
-    setPowerPlantsData({ ...powerPlantsData, features: updatedFeatures });
-  } else {
-    // If the surplus is negative, prevent the slider from moving
-    alert('Unable to adjust production as it would result in a negative energy surplus.');
-  }
-};
-
-  
-  const customIcon = new Icon({
-    iconUrl: customIconImage,
-    iconSize: [20, 20]
-  })
-
   const [weatherData, setWeatherData] = useState(null);
+  
   // Function to fetch weather data
   const fetchWeatherData = async () => {
     try {
@@ -137,20 +75,84 @@ function EnergyUsageMap() {
       const latestWindSpeed = data[data.length - 1].windSpeed;
       const updatedPowerPlants = updateActiveProduction(powerPlants, 'Wind Farm', latestWindSpeed);
       setPowerPlantsData({ ...powerPlantsData, features: updatedPowerPlants });
-      // updatePowerPlantsData(powerPlantsData);
-
+      
     } catch (error) {
       console.error("Failed to fetch weather data", error);
     }
+    
   };
 
    // Effect hook to fetch weather data at component mount and every hour
-   useEffect(() => {
+  useEffect(() => {
     fetchWeatherData(); // Fetch immediately on mount
     const intervalId = setInterval(fetchWeatherData, 3600000); // Refresh every hour (3600000 ms)
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
+
+  useEffect(() => {
+    // This will run whenever powerPlantsData changes, including after fetchWeatherData and updates the slider values
+    setSliderValues(
+      powerPlantsData.features.reduce((acc, feature) => {
+        acc[feature.properties.Name] = feature.properties['Active Production'];
+        return acc;
+      }, {})
+    );
+  }, [powerPlantsData]); // The effect depends on powerPlantsData
+  
+  
+  // State to keep track of the slider values corresponding to power plants power production
+  const [sliderValues, setSliderValues] = useState(
+    powerPlantsData.features.reduce((acc, feature) => {
+      acc[feature.properties.Name] = feature.properties['Active Production'];
+      return acc;
+    }, {})
+  );
+
+  const handleSliderChange = (event, plantName) => {
+    const newProductionValue = parseFloat(event.target.value);
+    let newSliderValues = { ...sliderValues, [plantName]: newProductionValue };
+  
+    // Calculate the total required energy, ensuring that each value is a number.
+    const totalEnergyReq = powerPlants.features.reduce((total, feature) => {
+      const production = parseFloat(feature.properties['Active Production']);
+      return total + (isNaN(production) ? 0 : production);
+    }, 0);
+  
+    // Calculate the new total energy use from the slider values.
+    const newTotalEnergyUse = Object.values(newSliderValues).reduce((total, current) => {
+      const currentValue = parseFloat(current);
+      return total + (isNaN(currentValue) ? 0 : currentValue);
+    }, 0);
+  
+    const newSurplus = newTotalEnergyUse - totalEnergyReq;
+
+    if (newSurplus >= 0) {
+      setSliderValues(newSliderValues);
+      const updatedFeatures = powerPlantsData.features.map(feature => {
+        if (feature.properties.Name === plantName) {
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              'Active Production': newProductionValue
+            }
+          };
+        }
+        return feature;
+      });
+
+      setPowerPlantsData({ ...powerPlantsData, features: updatedFeatures });
+    } else {
+      // If the surplus is negative, prevent the slider from moving and alert the user
+      alert('Unable to adjust production as it would result in a negative energy surplus.');
+    }
+  };
+  
+  const customIcon = new Icon({
+    iconUrl: customIconImage,
+    iconSize: [20, 20]
+  })
 
   function onEachCountry(totalEnergyUse, setTotalEnergyUse) {
     return function(countries, layer) {
@@ -190,75 +192,74 @@ function EnergyUsageMap() {
   }
 
   return (
-    <div className="map-and-list-container">
-      <div className='map-container'>
-        {/* Displaying weather data */}
-      {weatherData && weatherData.length > 0 && (
-          <div className="weatherData">
-            <h3>Latest weather statistics:</h3>
-            <p> <b>Weather Description:</b> {weatherData[weatherData.length - 1].weatherDescription}  <b>Wind Speed:</b> {weatherData[weatherData.length - 1].windSpeed} <b>Rainfall:</b>  {weatherData[weatherData.length - 1].rainfall}</p>
-          </div>
-        )}
-      <MapContainer center={[53.35442, -6.24896]} zoom={12}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <GeoJSON
-          style={Style}
-          data={countries.features}
-          onEachFeature={onEachCountry(totalEnergyUse, setTotalEnergyUse)}
-        />
-      {powerPlantsData.features.map((feature, index) => (
-        <Marker
-          key={index}
-          position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
-          icon={customIcon}
-        >
-          <Popup>
-              <div>
-              {feature.properties.Name}
-              <br/>
-              Total Capacity (MW): {feature.properties['Total Capacity (MW)']}
-              <br/>
-              Active Production: {feature.properties['Active Production']}
-              </div>
-          </Popup>
-        </Marker>
-      ))}
-      </MapContainer>
-      </div>
-      <div className="power-plants-statistics">
-        <div className="total-energy-use">Total energy usage in selected regions: {totalEnergyUse} kWh</div>
-          <div>{powerPlantsData.features.map((feature, index) => {
-                const currentOutput = parseFloat(feature.properties['Active Production']);
-                const previousFeature = previousPowerOutputs.features.find(prevFeature => prevFeature.properties.Name === feature.properties.Name);
-                const previousOutput = previousFeature ? parseFloat(previousFeature.properties['Active Production']) : 0;
-
-                const change = currentOutput - previousOutput;
-                
-
-                return (
-                  <div key={index}>
-                    <h4>{feature.properties.Name}</h4>
-                    <input
-                      type="range"
-                      min="0"
-                      max={feature.properties['Total Capacity (MW)']}
-                      value={sliderValues[feature.properties.Name]}
-                      onChange={(event) => handleSliderChange(event, feature.properties.Name)}
-                    />
-                    <div>
-                      Current running capacity: {((currentOutput / feature.properties['Total Capacity (MW)']) * 100).toFixed(2)} %  
-                      <br/> 
-                      Surplus: {change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2)} MWh
-                    </div>
-                  </div>
-                );
-              })}
+     <div>
+          {/* Displaying weather data */}
+           {weatherData && weatherData.length > 0 && (
+            <div >
+              <h3 className='weatherData'>Latest weather statistics:</h3>
+              <p> <b>Weather Description:</b> {weatherData[weatherData.length - 1].weatherDescription}  <b>Wind Speed:</b> {weatherData[weatherData.length - 1].windSpeed} <b>Rainfall:</b>  {weatherData[weatherData.length - 1].rainfall}</p>
             </div>
-      </div>
-    </div>  
+          )}
+        <div className="total-energy-use">Total energy usage in selected regions: {totalEnergyUse} kWh</div>
+          <div className="map-and-list-container">
+            <div className='map-container'>
+            <MapContainer center={[53.35442, -6.24896]} zoom={12}>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <GeoJSON
+                style={Style}
+                data={countries.features}
+                onEachFeature={onEachCountry(totalEnergyUse, setTotalEnergyUse)}
+              />
+            {powerPlantsData.features.map((feature, index) => (
+              <Marker
+                key={index}
+                position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+                icon={customIcon}
+              >
+                <Popup>
+                    <div>
+                    {feature.properties.Name}
+                    <br/>
+                    Total Capacity (MW): {feature.properties['Total Capacity (MW)']}
+                    <br/>
+                    Active Production: {feature.properties['Active Production']}
+                    </div>
+                </Popup>
+              </Marker>
+            ))}
+            </MapContainer>
+            </div>
+            <div className="power-plants-statistics">
+                <div>{powerPlantsData.features.map((feature, index) => {
+                      const currentOutput = parseFloat(feature.properties['Active Production']);
+                      const previousFeature = powerPlants.features.find(prevFeature => prevFeature.properties.Name === feature.properties.Name);
+                      const previousOutput = previousFeature ? parseFloat(previousFeature.properties['Active Production']) : 0;                
+                      const change = currentOutput - previousOutput;
+                      return (
+                        <div key={index}>
+                          <h4><b>{feature.properties.Name}</b></h4>
+                          <input
+                            type="range"
+                            min="0"
+                            max={feature.properties['Total Capacity (MW)']}
+                            value={feature.properties['Active Production']}
+                            onChange={(event) => handleSliderChange(event, feature.properties.Name)}
+                          />
+                          <div>
+                            Current running capacity: {((currentOutput / feature.properties['Total Capacity (MW)']) * 100).toFixed(2)} %  
+                            <br/> 
+                            Surplus: {change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2)} MWh
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+            </div>
+          </div>
+     </div>  
   );
 }
 
