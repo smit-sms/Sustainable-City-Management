@@ -1,0 +1,582 @@
+[
+    {
+        "route_id": "3793_59521",
+        "name": "Sandymount - O'Connell Street - Santry",
+        "bus_name": "1"
+    },
+    {
+        "route_id": "3793_59522",
+        "name": "Monkstown Avenue - Harristown",
+        "bus_name": "4"
+    },
+    {
+        "route_id": "3793_59523",
+        "name": "Howth Dart Stn - Lower Abbey Street",
+        "bus_name": "6"
+    },
+    {
+        "route_id": "3793_59524",
+        "name": "Brides Glen Luas - Mountjoy Square",
+        "bus_name": "7"
+    },
+    {
+        "route_id": "3793_59525",
+        "name": "Loughlinstown - Mountjoy Sq",
+        "bus_name": "7A"
+    },
+    {
+        "route_id": "3793_59526",
+        "name": "Shankhill - Mountjoy Square",
+        "bus_name": "7B"
+    },
+    {
+        "route_id": "3793_59527",
+        "name": "Dalkey - Mountjoy Square",
+        "bus_name": "7D"
+    },
+    {
+        "route_id": "3793_59528",
+        "name": "Mountjoy Square - Dalkey",
+        "bus_name": "7E"
+    },
+    {
+        "route_id": "3793_59529",
+        "name": "Limekiln Avenue - Charlestown",
+        "bus_name": "9"
+    },
+    {
+        "route_id": "3793_59530",
+        "name": "Sandyford Ind Estate - Wadelai Pk",
+        "bus_name": "11"
+    },
+    {
+        "route_id": "3793_59531",
+        "name": "Grange Castle - Harristown",
+        "bus_name": "13"
+    },
+    {
+        "route_id": "3793_59532",
+        "name": "Dundrum Luas Stn - Ardlea Rd (Beaumont)",
+        "bus_name": "14"
+    },
+    {
+        "route_id": "3793_59533",
+        "name": "Ballycullen Road - Clongriffin",
+        "bus_name": "15"
+    },
+    {
+        "route_id": "3793_59534",
+        "name": "Ballinteer - Dublin Airport",
+        "bus_name": "16"
+    },
+    {
+        "route_id": "3793_59535",
+        "name": "Airport - Beaumont Village - Ballinteer not",
+        "bus_name": "16D"
+    },
+    {
+        "route_id": "3793_59536",
+        "name": "Liffey Valley - Adamstown Stn",
+        "bus_name": "L53"
+    },
+    {
+        "route_id": "3793_59537",
+        "name": "Fonthill Rd (Liffey Valley) - Merrion Square",
+        "bus_name": "26"
+    },
+    {
+        "route_id": "3793_59538",
+        "name": "Jobstown - Clare Hall",
+        "bus_name": "27"
+    },
+    {
+        "route_id": "3793_59539",
+        "name": "Clare Hall - UCD Belfield",
+        "bus_name": "27X"
+    },
+    {
+        "route_id": "3793_59540",
+        "name": "Citywest – UCD Belfield",
+        "bus_name": "77X"
+    },
+    {
+        "route_id": "3793_59541",
+        "name": "UCD Belfield - Malahide",
+        "bus_name": "32X"
+    },
+    {
+        "route_id": "3793_59542",
+        "name": "Balbriggan - Lower Abbey St",
+        "bus_name": "33"
+    },
+    {
+        "route_id": "3793_59543",
+        "name": "Skerries - Custom House Quay / St Stephen Green",
+        "bus_name": "33X"
+    },
+    {
+        "route_id": "3793_59544",
+        "name": "Portrane - St Stephens Green",
+        "bus_name": "33D"
+    },
+    {
+        "route_id": "3793_59545",
+        "name": "Lwr Abbey St - Portrane - Skerries",
+        "bus_name": "33E"
+    },
+    {
+        "route_id": "3793_59546",
+        "name": "Blanchardstown Shopping Centre - Wilton Terrace",
+        "bus_name": "37"
+    },
+    {
+        "route_id": "3793_59547",
+        "name": "Damastown - Burlington Road",
+        "bus_name": "38"
+    },
+    {
+        "route_id": "3793_59548",
+        "name": "Damastown via Navan Rd - Burlington Rd",
+        "bus_name": "38A"
+    },
+    {
+        "route_id": "3793_59549",
+        "name": "Damastown via Ballycoolin Ind Est - Burlington Rd",
+        "bus_name": "38B"
+    },
+    {
+        "route_id": "3793_59550",
+        "name": "Dunboyne - Burlington Rd",
+        "bus_name": "70"
+    },
+    {
+        "route_id": "3793_59551",
+        "name": "IBM Damastown via N3 - Burlington Rd",
+        "bus_name": "38D"
+    },
+    {
+        "route_id": "3793_59552",
+        "name": "Dunboyne - DCU",
+        "bus_name": "70D"
+    },
+    {
+        "route_id": "3793_59553",
+        "name": "Ongar - Burlington Road",
+        "bus_name": "39X"
+    },
+    {
+        "route_id": "3793_59554",
+        "name": "Ongar - Burlington Rd",
+        "bus_name": "39"
+    },
+    {
+        "route_id": "3793_59555",
+        "name": "Ongar - UCD Belfield",
+        "bus_name": "39A"
+    },
+    {
+        "route_id": "3793_59556",
+        "name": "Charlestown Shopping Centre - Earlsfort Terrace",
+        "bus_name": "40"
+    },
+    {
+        "route_id": "3793_59557",
+        "name": "Toberburr - Parnel Street",
+        "bus_name": "40B"
+    },
+    {
+        "route_id": "3793_59558",
+        "name": "Broombridge Luas - Tyrrelstown",
+        "bus_name": "40E"
+    },
+    {
+        "route_id": "3793_59559",
+        "name": "Tyrrelstown - Parnell Street",
+        "bus_name": "40D"
+    },
+    {
+        "route_id": "3793_59560",
+        "name": "Swords Manor - Lower Abbey Street",
+        "bus_name": "41"
+    },
+    {
+        "route_id": "3793_59561",
+        "name": "Swords Business Park - Lwr Abbey St",
+        "bus_name": "41D"
+    },
+    {
+        "route_id": "3793_59562",
+        "name": "Rolestown - Lower Abbey Street",
+        "bus_name": "41B"
+    },
+    {
+        "route_id": "3793_59563",
+        "name": "Swords Manor Via River Valley - Lower Abbey St",
+        "bus_name": "41C"
+    },
+    {
+        "route_id": "3793_59564",
+        "name": "Swords - UCD Belfield",
+        "bus_name": "41X"
+    },
+    {
+        "route_id": "3793_59565",
+        "name": "Sand's Hotel Portmarnock - Eden Quay",
+        "bus_name": "42"
+    },
+    {
+        "route_id": "3793_59566",
+        "name": "Talbot Street – Swords Business Park",
+        "bus_name": "43"
+    },
+    {
+        "route_id": "3793_59567",
+        "name": "Dundrum - OCS",
+        "bus_name": "44D"
+    },
+    {
+        "route_id": "3793_59568",
+        "name": "Enniskerry - DCU",
+        "bus_name": "44"
+    },
+    {
+        "route_id": "3793_59569",
+        "name": "Glencullen - Dundrum Luas",
+        "bus_name": "44B"
+    },
+    {
+        "route_id": "3793_59570",
+        "name": "Dun Laoghaire - Phoenix Park",
+        "bus_name": "46A"
+    },
+    {
+        "route_id": "3793_59571",
+        "name": "Mountjoy Square - Blackrock Station",
+        "bus_name": "46E"
+    },
+    {
+        "route_id": "3793_59572",
+        "name": "Poolbeg Street – Belarmine",
+        "bus_name": "47"
+    },
+    {
+        "route_id": "3793_59573",
+        "name": "Tallaght (The Square) - Pearse St",
+        "bus_name": "49"
+    },
+    {
+        "route_id": "3793_59574",
+        "name": "Aston Quay – Clondalkin",
+        "bus_name": "51D"
+    },
+    {
+        "route_id": "3793_59575",
+        "name": "Intel - Ringsend",
+        "bus_name": "52"
+    },
+    {
+        "route_id": "3793_59576",
+        "name": "Blunden Drive - Eden Quay",
+        "bus_name": "27A"
+    },
+    {
+        "route_id": "3793_59577",
+        "name": "Dublin Ferryport - Talbot St",
+        "bus_name": "53"
+    },
+    {
+        "route_id": "3793_59578",
+        "name": "Ellensborough - Pearse St",
+        "bus_name": "54A"
+    },
+    {
+        "route_id": "3793_59579",
+        "name": "Tallaght - Ringsend Rd",
+        "bus_name": "56A"
+    },
+    {
+        "route_id": "3793_59580",
+        "name": "Forbes Street - Tallaght",
+        "bus_name": "60"
+    },
+    {
+        "route_id": "3793_59581",
+        "name": "Poolbeg Street – Citywest",
+        "bus_name": "65B"
+    },
+    {
+        "route_id": "3793_59582",
+        "name": "Poolbeg Street – Blessington/Ballymore",
+        "bus_name": "65"
+    },
+    {
+        "route_id": "3793_59583",
+        "name": "Rathcoole - Hawkins St",
+        "bus_name": "69"
+    },
+    {
+        "route_id": "3793_59584",
+        "name": "Rathcoole - Hawkins St",
+        "bus_name": "69X"
+    },
+    {
+        "route_id": "3793_59585",
+        "name": "Newcastle / Greenogue Business Pk - Hawkins St",
+        "bus_name": "68"
+    },
+    {
+        "route_id": "3793_59586",
+        "name": "Hawkins Street – Bulfin Road",
+        "bus_name": "68A"
+    },
+    {
+        "route_id": "3793_59587",
+        "name": "Dundrum Luas - Eden Quay",
+        "bus_name": "74"
+    },
+    {
+        "route_id": "3793_59588",
+        "name": "Citywest - Ringsend",
+        "bus_name": "77A"
+    },
+    {
+        "route_id": "3793_59589",
+        "name": "Kimmage - Harristown",
+        "bus_name": "83"
+    },
+    {
+        "route_id": "3793_59590",
+        "name": "Stannaway Ave - Harristown Bus Garage",
+        "bus_name": "83A"
+    },
+    {
+        "route_id": "3793_59591",
+        "name": "Bray Rail Station - Blackrock",
+        "bus_name": "84A"
+    },
+    {
+        "route_id": "3793_59592",
+        "name": "Newcastle - Blackrock",
+        "bus_name": "84"
+    },
+    {
+        "route_id": "3793_59593",
+        "name": "Phoenix Park - Phoenix Park",
+        "bus_name": "99"
+    },
+    {
+        "route_id": "3793_59594",
+        "name": "Whitechurch - Parnell Square",
+        "bus_name": "116"
+    },
+    {
+        "route_id": "3793_59595",
+        "name": "Kilternan – Eden Quay",
+        "bus_name": "118"
+    },
+    {
+        "route_id": "3793_59596",
+        "name": "Ashtown Station - Parnell St",
+        "bus_name": "120"
+    },
+    {
+        "route_id": "3793_59597",
+        "name": "Drimnagh - Ashington",
+        "bus_name": "122"
+    },
+    {
+        "route_id": "3793_59598",
+        "name": "Marino - Walinstown (Kilnamanagh Rd)",
+        "bus_name": "123"
+    },
+    {
+        "route_id": "3793_59599",
+        "name": "Talbot Street – Castle Avenue",
+        "bus_name": "130"
+    },
+    {
+        "route_id": "3793_59600",
+        "name": "Palmerstown Park – Ballymun (Ikea)",
+        "bus_name": "140"
+    },
+    {
+        "route_id": "3793_59601",
+        "name": "Portmarnock - UCD (Belfield)",
+        "bus_name": "142"
+    },
+    {
+        "route_id": "3793_59602",
+        "name": "Hawkins Street – Newcastle / Kilcoole",
+        "bus_name": "84X"
+    },
+    {
+        "route_id": "3793_59603",
+        "name": "Heuston Rail Station - Ballywaltrim",
+        "bus_name": "145"
+    },
+    {
+        "route_id": "3793_59604",
+        "name": "Rossmore - Hawkins Street",
+        "bus_name": "150"
+    },
+    {
+        "route_id": "3793_59605",
+        "name": "Foxborough (Balgaddy Rd) - Docklands (East Rd)",
+        "bus_name": "151"
+    },
+    {
+        "route_id": "3793_59606",
+        "name": "Bray - IKEA Ballymun",
+        "bus_name": "155"
+    },
+    {
+        "route_id": "3793_59607",
+        "name": "Adamstown Stn - Ringsend",
+        "bus_name": "P29"
+    },
+    {
+        "route_id": "3793_59608",
+        "name": "Maynooth - Easton Rd - UCD",
+        "bus_name": "X25"
+    },
+    {
+        "route_id": "3793_59609",
+        "name": "Maynooth – Louisa Bridge – Leeson Street Lower",
+        "bus_name": "X26"
+    },
+    {
+        "route_id": "3793_59610",
+        "name": "Salesian College - Aghards Rd - UCD",
+        "bus_name": "X27"
+    },
+    {
+        "route_id": "3793_59611",
+        "name": "Salesian College - Celbridge Main St - UCD",
+        "bus_name": "X28"
+    },
+    {
+        "route_id": "3793_59612",
+        "name": "Dodsboro - UCD",
+        "bus_name": "X30"
+    },
+    {
+        "route_id": "3793_59613",
+        "name": "River Forest - Earlsfort Terrace",
+        "bus_name": "X31"
+    },
+    {
+        "route_id": "3793_59614",
+        "name": "Leixlip - Earlsfort Terrace",
+        "bus_name": "X32"
+    },
+    {
+        "route_id": "3793_59615",
+        "name": "Adamstown Stn - Sandymount",
+        "bus_name": "C1"
+    },
+    {
+        "route_id": "3793_59616",
+        "name": "Adamstown Stn - Sandymount",
+        "bus_name": "C2"
+    },
+    {
+        "route_id": "3793_59617",
+        "name": "Maynooth - Ringsend",
+        "bus_name": "C3"
+    },
+    {
+        "route_id": "3793_59618",
+        "name": "Maynooth - Ringsend",
+        "bus_name": "C4"
+    },
+    {
+        "route_id": "3793_59619",
+        "name": "Maynooth - Celbridge - Ringsend Night Service",
+        "bus_name": "C6"
+    },
+    {
+        "route_id": "3793_59620",
+        "name": "Maynooth - Ringsend Night Service",
+        "bus_name": "C5"
+    },
+    {
+        "route_id": "3793_59621",
+        "name": "Red Cow LUAS - Spencer Dock",
+        "bus_name": "G1"
+    },
+    {
+        "route_id": "3793_59622",
+        "name": "Liffey Valley SC - Spencer Dock",
+        "bus_name": "G2"
+    },
+    {
+        "route_id": "3793_59623",
+        "name": "Baldoyle - Lower Abbey Street",
+        "bus_name": "H1"
+    },
+    {
+        "route_id": "3793_59624",
+        "name": "Malahide - Lower Abbey Street",
+        "bus_name": "H2"
+    },
+    {
+        "route_id": "3793_59625",
+        "name": "Howth Summit - Lower Abbey Street",
+        "bus_name": "H3"
+    },
+    {
+        "route_id": "3793_59626",
+        "name": "Blanchardstown - Point Village",
+        "bus_name": "N4"
+    },
+    {
+        "route_id": "3793_59627",
+        "name": "Sean Moore Road - Heuston Station",
+        "bus_name": "S2"
+    },
+    {
+        "route_id": "3793_59628",
+        "name": "Merrion Square – Stocking Avenue",
+        "bus_name": "15B"
+    },
+    {
+        "route_id": "3793_59629",
+        "name": "Merrion Square - Whitechurch",
+        "bus_name": "15D"
+    },
+    {
+        "route_id": "3793_59630",
+        "name": "Merrion Square – Limekiln Avenue",
+        "bus_name": "15A"
+    },
+    {
+        "route_id": "3793_59631",
+        "name": "Eden Quay – Harristown",
+        "bus_name": "27B"
+    },
+    {
+        "route_id": "3793_59632",
+        "name": "Portmarnock - DCU",
+        "bus_name": "42D"
+    },
+    {
+        "route_id": "3793_59633",
+        "name": "Dun Laoghaire - Dundrum Town Centre",
+        "bus_name": "L25"
+    },
+    {
+        "route_id": "3793_59634",
+        "name": "River Forest - Red Cow Luas",
+        "bus_name": "L54"
+    },
+    {
+        "route_id": "3793_59635",
+        "name": "River Forest - Castletown - Hazelhatch Stn",
+        "bus_name": "L58"
+    },
+    {
+        "route_id": "3793_59636",
+        "name": "River Forest - Celbridge - Hazelhatch",
+        "bus_name": "L59"
+    }
+]
