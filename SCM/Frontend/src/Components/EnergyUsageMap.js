@@ -29,33 +29,50 @@ function getColor(d) {
 
 
 // Function to update the Active Production of a power plant based on wind speed
-function updateActiveProduction(powerPlants, plantName, windSpeed) {
-  // Determine the increase factor based on wind speed
-  let increaseFactor;
-  if (windSpeed > 20) {
-    increaseFactor = 1.2; // Increase production by 20% for wind speeds over 20
-  } else if (windSpeed > 10) {
-    increaseFactor = 1.1; // Increase production by 10% for wind speeds over 10
-  } else {
-    increaseFactor = 1.05; // Increase production by 5% for wind speeds 10 or below
-  }
-
-  // Update the Active Production of the specified power plant
-  const updatedPowerPlants = powerPlants?.features.map((feature) => {
-    if (feature.properties.Name === plantName) {
-      const currentProduction = parseFloat(feature.properties['Active Production']);
-      const updatedProduction = currentProduction * increaseFactor;
+function updateActiveProduction(powerPlants, weatherData) {
+  const windSpeed = weatherData.windSpeed;
+  const weatherDescription = weatherData.weatherDescription;
+  const rainfall = weatherData.rainfall;
+  
+  
+    // Assuming the 'Type' property is available in your powerPlants.features data
+    return powerPlants.features.map((feature) => {
+      let newProduction = feature.properties['Active Production'];
+  
+      // Adjust production for wind farms based on wind speed
+      if (feature.properties.Name === 'Wind Farm') {
+        let increaseFactor = 1;
+        if (windSpeed > 20) {
+          increaseFactor = 1.2;
+        } else if (windSpeed > 10) {
+          increaseFactor = 1.1;
+        } else {
+          increaseFactor = 1.05;
+        }
+        newProduction *= increaseFactor;
+      }
+  
+      // Adjust production for solar plants based on clear skies
+      if (feature.properties.Name === 'Solar Plant' && weatherDescription.includes('Sun / Clear sky')) {
+        newProduction *= 1.1; // An Estimated increase factor for clear skies (Dummy for project)
+      }
+  
+      // Adjust production for hydroelectric plants based on rainfall
+      if (feature.properties.Name === 'Hydroelectric power plant' && rainfall > 5) { 
+        newProduction *= 1.1; //An Estimated increase factor for heavy rainfall (Dummy for project)
+      }
+  
+      // Make sure not to exceed the total capacity
+      newProduction = Math.min(newProduction, feature.properties['Total Capacity (MW)']);
+  
       return {
         ...feature,
         properties: {
           ...feature.properties,
-          'Active Production': updatedProduction.toFixed(2) // Keep two decimal places
+          'Active Production': newProduction.toFixed(2)
         }
-      };
-    }
-    return feature;
-  });
-  return updatedPowerPlants; // Return the updated power plants data
+      }; // Return the updated power plants data
+});
 }
 
 
@@ -72,8 +89,8 @@ function EnergyUsageMap() {
       setWeatherData(data);
 
       //based on the weather changes estimate the changes in power output
-      const latestWindSpeed = data[data.length - 1].windSpeed;
-      const updatedPowerPlants = updateActiveProduction(powerPlants, 'Wind Farm', latestWindSpeed);
+      const latestWeatherData = data[data.length - 1];
+      const updatedPowerPlants = updateActiveProduction(powerPlants, latestWeatherData);
       setPowerPlantsData({ ...powerPlantsData, features: updatedPowerPlants });
       
     } catch (error) {
@@ -87,7 +104,7 @@ function EnergyUsageMap() {
     fetchWeatherData(); // Fetch immediately on mount
     const intervalId = setInterval(fetchWeatherData, 3600000); // Refresh every hour (3600000 ms)
 
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+    return () => clearInterval(intervalId); 
   }, []);
 
   useEffect(() => {
