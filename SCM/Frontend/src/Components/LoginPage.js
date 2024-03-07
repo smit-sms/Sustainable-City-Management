@@ -50,7 +50,7 @@ const LoginPage = () => {
         const data = await response.json();
         console.log(response.status);
         if (response.status === 200) {
-          navigate('/home');
+          navigate('/bus');
         } else if (response.status === 401) {
           toast.error(data.message || 'Invalid credentials, please check and try again');
         } else {
