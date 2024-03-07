@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import BusMap from './BusMap';
+import BusMap from '../Components/BusMap/BusMap';
 
 jest.mock('react-leaflet', () => ({
   MapContainer: () => <div>MapContainer Mock</div>,

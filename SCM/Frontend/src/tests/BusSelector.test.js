@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import BusSelector from './BusSelector';
+import BusSelector from '../Components/BusSelector/BusSelector';
 
 beforeAll(() => {
   global.fetch = jest.fn();

@@ -1,24 +1,22 @@
-// ToggleSwitch.jsx
-
 import React from 'react';
-import './ToggleSwitch.css'; // This will contain the CSS for the toggle switch
 
 const ToggleSwitch = ({ isOn, handleToggle }) => {
   return (
-    <div className="toggle-container">
-      <span className="toggle-label-text">Edit Mode</span>
-      <div className="toggle-switch">
+    <div className="flex items-center justify-end">
+      <span className="text-sm text-gray-700 mr-2 font-bold">Edit Mode</span>
+      <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
         <input
-          id="edit-mode-toggle"
           type="checkbox"
-          className="toggle-checkbox"
+          name="toggle"
+          id="edit-mode-toggle"
           checked={isOn}
           onChange={handleToggle}
+          className={`${isOn ? 'right-0 border-green-400' : 'border-gray-300'} toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer`}
         />
-        <label className="toggle-label" htmlFor="edit-mode-toggle">
-          <span className="toggle-inner" />
-          <span className="toggle-switch" />
-        </label>
+        <label
+          htmlFor="edit-mode-toggle"
+          className={`toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer ${isOn ? 'bg-green-400' : 'bg-gray-300'}`}
+        ></label>
       </div>
     </div>
   );

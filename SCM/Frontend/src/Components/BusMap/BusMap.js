@@ -3,7 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import './BusMap.css'; // Assuming this is in the same directory as your component
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../../assets/styles/BusMap.css'
+import { BASE_URL } from '../../services/api';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,43 +16,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-function AddMarkerOnClick({ onAdd, enabled, customMarkers }) {
-  useMapEvents({
-    click(e) {
-      if (enabled && customMarkers.length < 2) { // Limit to 2 markers
-        const { lat, lng } = e.latlng;
-        onAdd({ lat, lng });
-      }
-    },
-  });
-  return null;
-}
-
 const BusMap = ({ selectedBusRoute, selectedBus }) => {
   const [customMarkers, setCustomMarkers] = useState([]);
-  const [mapKey, setMapKey] = useState(0); // Initial key
+  const [mapKey, setMapKey] = useState(0);
   const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
   const [selectedStartingPoint, setSelectedStartingPoint] = useState(null);
   const [selectedEndPoint, setSelectedEndPoint] = useState(null);
-  const [updatedRoute, setRouteData] = useState(null); // This will hold the route data
-
-
-  console.log(selectedBus)
+  const [updatedRoute, setRouteData] = useState(null);
 
   useEffect(() => {
     if (customMarkers.length === 2) {
-      // Prompt user to select a starting point once two markers are added
-      alert('Please select a starting point from the existing bus stops.');
-
+      toast.info('Please select a starting point from the existing bus stops.');
     }
   }, [customMarkers]);
   useEffect(() => {
-    setMapKey(prevKey => prevKey + 1); // Change this line to trigger on specific updates
-  }, [selectedBus, updatedRoute]); // Dependencies array, change this based on your needs
-
+    setMapKey(prevKey => prevKey + 1);
+  }, [selectedBus, updatedRoute]);
 
   if (!selectedBusRoute || !selectedBusRoute.data) {
-    return <div>Loading...</div>;
+    // Default empty map rendering
+    return (
+      <div>
+        <MapContainer center={[53.345123, -6.26526]} zoom={13} className="h-full z-0" 
+        style={{ height: 'calc(100vh - 155px)' }}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        </MapContainer>
+      </div>
+    );
   }
   function AddMarkerOnClick({ onAdd, enabled, customMarkers }) {
     useMapEvents({
@@ -65,25 +58,23 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
 
   const resetMap = () => {
     setCustomMarkers([]);
-    setRouteData(null); // Now this call to setUpdatedRoute will work
+    setRouteData(null);
     setIsEditModeEnabled(false);
-    // Reset any other relevant state here
   };
   const sendDataToBackend = async () => {
-    // Construct payload
+    console.log(customMarkers);
     const payload = {
-      bus_name: selectedBus, // Assuming this is how you pass the selected bus name
+      bus_name: selectedBus,
       coordinates: [
         [selectedStartingPoint.lng, selectedStartingPoint.lat, selectedStartingPoint.name], // Starting point
-        ...customMarkers.map(marker => [marker.lng, marker.lat, "stop1"]), // Custom markers (additional stops)
+        ...customMarkers.map((marker, index) => [marker.lng, marker.lat, `Custom Stop ${index + 1}`]), // Custom markers (additional stops)
         [selectedEndPoint.lng, selectedEndPoint.lat, selectedStartingPoint.name] // Ending point
       ]
     };
-    console.log(payload)
-    console.log(selectedStartingPoint["Stop Name"])
+    console.log(payload);
     try {
       // Send POST request to the backend
-      const response = await fetch('https://bb45-134-226-214-245.ngrok-free.app/city_services/bus-routes/', {
+      const response = await fetch(`${BASE_URL}/city_services/bus-routes/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,32 +86,17 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
         throw new Error('Network response was not ok');
       }
 
-    //   // Handle response data
       const updatedRouteResponse = await response.json();
-      console.log('Updated route:', updatedRouteResponse.data);
       setRouteData(updatedRouteResponse);
-      // Update your state or map based on the response
     } catch (error) {
-      console.error('Failed to send data to backend:', error);
+      toast.error('Failed to send data to backend:', error);
     }
-
-    //   // Handle response data
-    //   const geoJsonData = await response.json();
-    //   console.log('Updated route:', geoJsonData.data);
-    //   setRouteData(geoJsonData);
-    //   // Update your state or map based on the response
-    // } catch (error) {
-    //   console.error('Failed to send data to backend:', error);
-    // }
   };
 
-
-  const mapStyle = { height: "500px", width: "100%" };
   const geoJsonData = selectedBusRoute.data;
   const lineStyle = (feature) => {
     return feature.properties.style || { color: "blue", weight: 5, opacity: 0.65 };
   }
-  // const lineStyle = ;
   const bounds = L.geoJSON(geoJsonData).getBounds();
 
   const handleStopClick = (coordinates) => {
@@ -130,15 +106,13 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
   
       if (!selectedStartingPoint) {
         setSelectedStartingPoint(coordinates);
-        alert('Starting point selected. Now select an ending point.');
+        toast.info('Starting point selected. Now select an ending point.');
       } else if (!selectedEndPoint && coordinatesStr !== selectedStartingPointStr) {
         setSelectedEndPoint(coordinates);
-        alert('Ending point selected.');
+        toast.info('Ending point selected.');
       }
 
     }
-    console.log(selectedStartingPoint);
-    console.log(selectedEndPoint);
   };
   
   const busStopMarkers = geoJsonData.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
@@ -150,13 +124,12 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
       }}
     >
       <Popup>
-        {feature.properties['Stop Name']}<br /> {/* Display the actual stop name */}
+        {feature.properties['Stop Name']}<br />
         Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
       </Popup>
     </Marker>
   ));
   
-
   const toggleEditMode = () => {
     setIsEditModeEnabled(!isEditModeEnabled);
     // Reset selections when toggling edit mode
@@ -165,110 +138,103 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
       setSelectedStartingPoint(null);
       setSelectedEndPoint(null);
     }
-   
   };
 
-  return (
-    <>
-    <div className="map-top-right-controls">
-        <ToggleSwitch isOn={isEditModeEnabled} handleToggle={toggleEditMode} />
-        {isEditModeEnabled && (
-          <div className="update-route-button-container">
-            <button onClick={sendDataToBackend} className="update-route-button">Update Route</button>
-          </div>
-        )}
-        {isEditModeEnabled && (
-          <button onClick={resetMap} className="reset-map-button">Reset Map</button>
-        )}
-
-      </div>
-      {/* <button onClick={toggleEditMode} className="toggle-edit-mode-button">
-        {isEditModeEnabled ? 'Disable Edit Mode' : 'Enable Edit Mode'}
-      </button>
-      <button onClick={sendDataToBackend} className="send-route-data">Send Route Data</button> */}
-       <div className={`route-info-box ${!isEditModeEnabled ? 'hidden' : ''}`}>
-        <div className="route-info-title">Route Information</div>
-        <div className="route-info">
-        <p>Starting point: {selectedStartingPoint ? `${selectedStartingPoint.name} (${selectedStartingPoint.lat}, ${selectedStartingPoint.lng})` : 'Not selected'}</p>
-            <p>Ending point: {selectedEndPoint ? `${selectedEndPoint.name} (${selectedEndPoint.lat}, ${selectedEndPoint.lng})` : 'Not selected'}</p>
-            {customMarkers.map((marker, index) => (
-              <p key={index}>Stop {index + 1}: {marker.name ? `${marker.name} ` : ''}({marker.lat}, {marker.lng})</p>
+return (
+  <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - 155px)' }}>
+    <MapContainer
+      key={mapKey}
+      center={[53.345123, -6.26526]}
+      zoom={13}
+      className="h-full z-0"
+    >
+      {updatedRoute ? (
+        // If updatedRoute is not null, render the updated route
+        <>
+          <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - 155px)' }}>
+            <MapContainer key={mapKey} center={[53.345123, -6.26526]} zoom={13} className="h-full z-0" bounds={bounds}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <GeoJSON data={updatedRoute.data} style={lineStyle} />
+            {updatedRoute.data.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
+              <Marker
+                key={index}
+                position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+                eventHandlers={{
+                  click: () => handleStopClick({
+                    lat: feature.geometry.coordinates[1],
+                    lng: feature.geometry.coordinates[0],
+                    name: feature.properties['Stop Name'] // Assuming the name is stored here
+                  }),
+                }}>
+                <Popup>
+                  {feature.properties['Stop Name']}<br />
+                  Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
+                </Popup>
+              </Marker>
             ))}
-        </div>
-      </div>
-
-      {/* {isEditModeEnabled && customMarkers.length >= 2 && !selectedStartingPoint && (
-        <div>Please select a starting point from the existing bus stops.</div>
+            </MapContainer>
+          </div></>
+      ) : (
+        <>
+        {/* Otherwise, render the initial route data */}
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <GeoJSON data={geoJsonData} style={{ color: "blue", weight: 5, opacity: 0.65 }} />
+        {geoJsonData.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
+          <Marker
+            key={index}
+            position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
+            eventHandlers={{
+              click: () => handleStopClick({
+                lat: feature.geometry.coordinates[1],
+                lng: feature.geometry.coordinates[0],
+                name: feature.properties['Stop Name']
+              }),
+            }}
+          >
+            <Popup>
+              {feature.properties['Stop Name']}<br />
+              Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
+            </Popup>
+          </Marker>
+        ))}
+        {customMarkers.map((marker, index) => (
+          <Marker key={index} position={[marker.lat, marker.lng]}>
+            <Popup>Custom Marker<br />Position: {marker.lat}, {marker.lng}</Popup>
+          </Marker>
+        ))}
+        {isEditModeEnabled && (
+          <AddMarkerOnClick onAdd={(marker) => setCustomMarkers([...customMarkers, marker])} enabled={isEditModeEnabled} customMarkers={customMarkers} />
+        )}</>
       )}
-       */}
-
-<MapContainer key={mapKey} center={[53.345123, -6.26526]} zoom={13} style={mapStyle} bounds={bounds}>
-<TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-{/* <GeoJSON data={updatedRoute || geoJsonData} style={lineStyle} /> */}
-{updatedRoute ? (
-    // If updatedRoute is not null, render the updated route
-    <MapContainer key={mapKey} center={[53.345123, -6.26526]} zoom={13} style={mapStyle} bounds={bounds}>
-    
-    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <GeoJSON data={updatedRoute.data} style={lineStyle} />
-      {updatedRoute.data.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
-
-      <Marker
-    key={index}
-    position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
-    eventHandlers={{
-      click: () => handleStopClick({
-        lat: feature.geometry.coordinates[1],
-        lng: feature.geometry.coordinates[0],
-        name: feature.properties['Stop Name'] // Assuming the name is stored here
-      }),
-    }}
-  >
-    <Popup>
-      {feature.properties['Stop Name']}<br /> {/* Display the actual stop name */}
-      Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
-    </Popup>
-  </Marker>
-      ))}
     </MapContainer>
-  
-    
-  ) : (
-    // Otherwise, render the initial route data
-    <GeoJSON data={geoJsonData} style={{ color: "blue", weight: 5, opacity: 0.65 }} />
-  )}
- {/* <GeoJSON data={ updatedRoute || geoJsonData} style={lineStyle} />  */}
-{geoJsonData.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
-  <Marker
-    key={index}
-    position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
-    eventHandlers={{
-      click: () => handleStopClick({
-        lat: feature.geometry.coordinates[1],
-        lng: feature.geometry.coordinates[0],
-        name: feature.properties['Stop Name'] // Assuming the name is stored here
-      }),
-    }}
-  >
-    <Popup>
-      {feature.properties['Stop Name']}<br /> {/* Display the actual stop name */}
-      Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
-    </Popup>
-  </Marker>
-))}
-{customMarkers.map((marker, index) => (
-  <Marker key={index} position={[marker.lat, marker.lng]}>
-    <Popup>Custom Marker<br />Position: {marker.lat}, {marker.lng}</Popup>
-  </Marker>
-))}
-{isEditModeEnabled && (
-  <AddMarkerOnClick onAdd={(marker) => setCustomMarkers([...customMarkers, marker])} enabled={isEditModeEnabled} customMarkers={customMarkers} />
-)}
-</MapContainer>
 
-
-    </>
-  );
+    <div className="absolute top-1 right-1 z-10 p-5 rounded-lg bg-gray-100 text-dark shadow-lg justify-items-center">
+      <ToggleSwitch isOn={isEditModeEnabled} handleToggle={toggleEditMode}/>
+      {isEditModeEnabled && (
+          <><div className="font-bold text-md mt-2">Route Information:</div>
+          <p className="text-sm">
+            Starting point: {selectedStartingPoint ? `${selectedStartingPoint.name} (${selectedStartingPoint.lat.toFixed(3)}, ${selectedStartingPoint.lng.toFixed(3)})` : 'Not selected'}
+          </p>
+          <p className="text-sm">
+            Ending point: {selectedEndPoint ? `${selectedEndPoint.name} (${selectedEndPoint.lat.toFixed(3)}, ${selectedEndPoint.lng.toFixed(3)})` : 'Not selected'}
+          </p>
+          {customMarkers.map((marker, index) => (
+            <p className="text-sm" key={index}>Custom Stop {index + 1}: ({marker.lat.toFixed(3)}, {marker.lng.toFixed(3)})</p>
+          ))}
+          <div className="mt-2 grid grid-cols-2 gap-1">
+            <button onClick={sendDataToBackend} className="bg-blue-500 text-white py-2 px-2 text-sm rounded-md cursor-pointer hover:bg-blue-700">
+              Update Route
+            </button>
+            <button onClick={resetMap} className="bg-red-500 text-white py-2 px-2 text-sm rounded-md cursor-pointer hover:bg-red-700">
+              Reset Map
+            </button>
+          </div>
+          </>
+      )}
+    </div>
+    <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
+  </div>
+);
 };
 
 export default BusMap;
