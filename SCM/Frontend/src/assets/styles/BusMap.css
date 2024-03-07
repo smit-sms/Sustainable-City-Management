@@ -1,0 +1,186 @@
+/* src/components/BusMap/BusMap.css */
+
+.map-container {
+  height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  border: 1px solid #ddd;
+  overflow: hidden;
+}
+/* BusMap.css */
+.toggle-edit-mode-button {
+  background-color: #007bff; /* Primary button color */
+  color: white; /* Text color */
+  border: none;
+  padding: 10px 20px; /* Padding around text */
+  border-radius: 5px; /* Rounded corners */
+  font-size: 16px; /* Text size */
+  cursor: pointer; /* Cursor to pointer to indicate it's clickable */
+  transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+  outline: none; /* Remove outline to make it look cleaner */
+}
+
+.toggle-edit-mode-button:hover {
+  background-color: #0056b3; /* Darker shade for hover state */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow for depth */
+}
+
+.toggle-edit-mode-button:active {
+  background-color: #004099; /* Even darker for active state */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); /* Inner shadow for pressed effect */
+}
+
+/* BusSelector.css */
+.bus-selector-container {
+  font-family: 'Arial', sans-serif;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.react-select__control {
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  height: 38px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.react-select__control--is-focused {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.react-select__menu {
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.react-select__option--is-focused {
+  background-color: #f8f9fa;
+}
+
+.react-select__option--is-selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.react-select__single-value {
+  color: #495057;
+}
+
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+.edit-mode-control {
+  display: flex;
+  align-items: center;
+}
+
+.edit-mode-text {
+  margin-left: 8px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.update-route-button-container {
+  margin-top: 10px;
+}
+
+.update-route-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.update-route-button:hover {
+  background-color: #0056b3;
+}
+
+
+
+/* BusMap.css */
+:root {
+  --primary-color: #4a90e2; /* Primary color for the box */
+  --text-color: #ffffff; /* Color of the text */
+  --background-color: #669BBC; /* Semi-transparent background */
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Example fancy font */
+  --border-radius: 8px; /* Border radius for rounded corners */
+  --box-padding: 20px; /* Padding inside the box */
+  --box-shadow: 0 4px 8px #003049; /* Shadow for 3D effect */
+}
+
+.route-info-box {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  padding: var(--box-padding);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 1000;
+  width: 300px; /* Adjust width as necessary */
+}
+
+.route-info-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+  color: var(#FDF0D5);
+}
+
+.route-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.hidden {
+  display: none;
+}
+
+
+.map-controls {
+  display: flex;
+  flex-direction: column; /* Stack the buttons vertically */
+  align-items: start; /* Align buttons to the start (left) */
+  padding: 10px; /* Add some padding around the controls */
+}
+
+.toggle-edit-mode-button {
+  margin: 5px 0; /* Add some space between the buttons */
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #007bff; /* Example color */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.route-info-box.hidden {
+  display: none;
+}
+
+.route-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Additional styles for the map and other elements can go here */
+
+
