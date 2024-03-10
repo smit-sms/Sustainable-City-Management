@@ -115,21 +115,6 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
     }
   };
   
-  const busStopMarkers = geoJsonData.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
-    <Marker
-      key={index}
-      position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}
-      eventHandlers={{
-        click: () => handleStopClick({lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0]}),
-      }}
-    >
-      <Popup>
-        {feature.properties['Stop Name']}<br />
-        Position: {feature.geometry.coordinates[1]}, {feature.geometry.coordinates[0]}
-      </Popup>
-    </Marker>
-  ));
-  
   const toggleEditMode = () => {
     setIsEditModeEnabled(!isEditModeEnabled);
     // Reset selections when toggling edit mode
