@@ -1,9 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable eqeqeq */
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 // import BikeAvailabilityPicker from './TimePicker';
 import "leaflet/dist/leaflet.css";
 import moment from "moment";
 import bikeImage from "../assets/bike.png";
+import L from 'leaflet';
 
 // Move map center and zoom level outside of the component
 const MAP_CENTER = [53.3498, -6.2603];
@@ -27,7 +30,7 @@ const BikeMap = ({ currSetTime, toast }) => {
 			"https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
 		)
 			.then((response) => {
-				if (response.status == 200) return response.json();
+				if (response.status === 200) return response.json();
 				else throw new Error("Error in fetching live data");
 			})
 			.then((data) => {
@@ -57,7 +60,7 @@ const BikeMap = ({ currSetTime, toast }) => {
 
 		fetch("http://127.0.0.1:8000/city_services/dublin-bikes-predictions/")
 			.then((response) => {
-				if (response.status == 200) return response.json();
+				if (response.status === 200) return response.json();
 				else throw new Error("Fetching dublin bikes prediction data failed!");
 			})
 			.then((data) => {
