@@ -92,7 +92,7 @@ const BikeAvailabilityPicker = () => {
 			</div>
 			<ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
 			<div className="relative z-10">
-				<BikeMap currSetTime={startDate} toast={toast} className="h-full z-10" />
+				<BikeMap currSetTime={startDate.getTime()} toast={toast} className="h-full z-10" />
 			</div>
 		</div>
 	);

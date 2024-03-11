@@ -6,7 +6,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import moment from "moment";
 import bikeImage from "../assets/bike.png";
-import L from 'leaflet';
+import L from "leaflet";
 
 // Move map center and zoom level outside of the component
 const MAP_CENTER = [53.3498, -6.2603];
@@ -25,9 +25,9 @@ const BikeMap = ({ currSetTime, toast }) => {
 	const [predictions, setPredictions] = useState([]);
 	const [isRealOrPred, setIsRealOrPred] = useState("real");
 
-	function get_data_from_dublinbikes() {
+	function get_data_from_dublinbikes(pred_data) {
 		fetch(
-			"https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
+			"ahttps://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
 		)
 			.then((response) => {
 				if (response.status === 200) return response.json();
@@ -47,6 +47,27 @@ const BikeMap = ({ currSetTime, toast }) => {
 				// toast.dark("Showing Dublin Bikes live data.");
 			})
 			.catch((error) => {
+				toast.error(
+					"Failed to fetch live data. Showing next available prediction."
+				);
+
+				console.log(pred_data);
+				if (pred_data.length != 0 && pred_data != undefined) {
+					// Get the start time of the next hour
+					const now = new Date();
+					const nextHour = new Date(now);
+					nextHour.setMinutes(0);
+					nextHour.setSeconds(0);
+					nextHour.setMilliseconds(0);
+					nextHour.setHours(now.getHours() + 1);
+
+					const filteredData = pred_data.filter(
+						(entry) => entry.TIME == nextHour.getTime()
+					);
+					setAvailabilityPrediction(filteredData);
+					setIsRealOrPred("pred");
+				}
+
 				// get current time
 				// get predictions from backend for this current time
 				// display as predictions and not as real data
@@ -56,8 +77,6 @@ const BikeMap = ({ currSetTime, toast }) => {
 	}
 
 	useEffect(() => {
-		get_data_from_dublinbikes();
-
 		fetch("http://127.0.0.1:8000/city_services/dublin-bikes-predictions/")
 			.then((response) => {
 				if (response.status === 200) return response.json();
@@ -65,9 +84,11 @@ const BikeMap = ({ currSetTime, toast }) => {
 			})
 			.then((data) => {
 				// Filter logic based on selected time
-				setPredictions(data.data.prediction);
+				let data_pred = data.data.prediction;
+				setPredictions(data_pred);
 				setBikeStands(data.data.positions);
 				console.log("predictions set");
+				get_data_from_dublinbikes(data_pred);
 			})
 			.catch((error) => {
 				toast.dark(error.toString());
@@ -76,9 +97,10 @@ const BikeMap = ({ currSetTime, toast }) => {
 	}, []);
 
 	useEffect(() => {
+		console.log(currSetTime);
 		if (predictions.length != 0 && predictions != undefined) {
 			const filteredData = predictions.filter(
-				(entry) => entry.TIME == currSetTime.getTime()
+				(entry) => entry.TIME == currSetTime
 			);
 			setAvailabilityPrediction(filteredData);
 			setIsRealOrPred("pred");
