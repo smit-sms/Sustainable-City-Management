@@ -32,7 +32,7 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (response.status === 201) {
-        navigate('/home');
+        navigate('/bus');
       } else if (response.status === 400) {
         toast.error(data.message || 'Already existing user');
       } else if (response.status === 401) {

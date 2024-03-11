@@ -27,7 +27,7 @@ const BikeMap = ({ currSetTime, toast }) => {
 
 	function get_data_from_dublinbikes(pred_data) {
 		fetch(
-			"ahttps://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
+			"https://api.jcdecaux.com/vls/v1/stations?contract=dublin&apiKey=8a8241e24f9e3ee686043dc6714379821333d62e"
 		)
 			.then((response) => {
 				if (response.status === 200) return response.json();
