@@ -1,5 +1,5 @@
 # This file contains functions that can receive 
-# functions from users that allow from periodic
+# functions from users that allow for periodic
 # loading or saving of data from their choice of
 # data source and destination.
 
@@ -9,8 +9,9 @@ from typing import Callable
 from fastapi import FastAPI, BackgroundTasks
 
 # All tasks.
-tasks = {0: {'name': 'test', 'desc': 'test'}} # Sample dictionary mimicking database within which tasks are to be stored.
-available_ids = [1] #List of task ids that are currently available for registration.
+# A dictionary mimics a database within which tasks are to be stored.
+tasks = {0: {'name': 'test', 'desc': 'test'}} 
+available_ids = [1] # List of task ids that are currently available for registration.
 
 # Define FastAPI app.
 app = FastAPI()
@@ -58,20 +59,30 @@ async def get_tasks(id:int=None, name:str=None):
              {"id": -1, "name": "", "desc": ""}.
     """
     task_list = []
-    # If id has been give and a task with the given
+
+    # If id has been given and a task with that id exists,
+    # then add it to the list of tasks to return.
     if not id is None:
         if __is_task_exists_by_id(id=id):
             t = tasks[id]
             task_list.append({'id': id, 'name': t['name'], 'desc': t['desc']})
+
+    # Else if a name has been given and a task with that name
+    # exists, then add this task to the list of tasks to return.
     elif not name is None:
         task_exists = __is_task_exists_by_name(name=name)
         if task_exists[0]:
             id = task_exists[1]
             t = tasks[id]
             task_list.append({'id': id, 'name': t['name'], 'desc': t['desc']})
+
+    # Else if neither a name nor an id is given, add all
+    # existing tasks to the list of tasks to be returned.
     else:
         for k, v in tasks.items():
             task_list.append({"id": k, "name": v["name"], "desc":v["desc"]})
+            
+    # Return list of tasks that is to be returned.
     return task_list
             
 @app.post('/register_task')
