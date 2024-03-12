@@ -4,6 +4,7 @@ import LoginPage from './Components/LoginPage';
 import RegisterPage from './Components/RegisterPage';
 // import HomePage from './Components/HomePage';
 import BusPage from './Components/BusPage';
+import EnergyUsageMap from './Components/EnergyUsageMap'
 
 function Sidebar() {
   const location = useLocation();
@@ -11,6 +12,10 @@ function Sidebar() {
 
   return (
     <div className="bg-gray-800 text-white w-64 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out flex flex-col justify-between">
+      <div className="mb-5">
+        <img src="/logo.png" alt="Dashboard Logo" className="h-16 w-16 mx-auto"/>
+        <h1 className="text-center text-4xl mt-2 mb-4">EcoCity</h1>
+      </div>
       <nav className="flex flex-col">
         <Link to="/bus"
           className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bus') ? 'bg-gray-700' : ''}`}>
@@ -25,6 +30,21 @@ function Sidebar() {
         <Link to="/bin" 
         className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bin') ? 'bg-gray-700' : ''}`}>
           Bin Trucks
+        </Link>
+        <hr className="border-gray-700" />
+        <Link to="/air"
+          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/air') ? 'bg-gray-700' : ''}`}>
+          Air
+        </Link>
+        <hr className="border-gray-700" />
+        <Link to="/noise"
+          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/noise') ? 'bg-gray-700' : ''}`}>
+          Noise
+        </Link>
+        <hr className="border-gray-700" />
+        <Link to="/energy" 
+        className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/energy') ? 'bg-gray-700' : ''}`}>
+          Renewable Energy
         </Link>
       </nav>
 
@@ -60,6 +80,7 @@ function App() {
 
           <Route element={<LayoutWithSidebar />}>
             <Route path="/bus" element={<BusPage />} />
+            <Route path="/energy" element={<EnergyUsageMap />} />
           </Route>
         </Routes>
       </Router>

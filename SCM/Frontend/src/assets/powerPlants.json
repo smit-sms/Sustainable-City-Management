@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "ESB Dublin Bay Power Plant (Non Renewable)",
+        "Total Capacity (MW)": 4160.7,
+        "Active Production": 3700
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.209117,
+          53.339361
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Huntstown Power Station",
+        "Total Capacity (MW)": 5440,
+        "Active Production": 2880
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.271611,
+          53.355759
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Hydroelectric power plant",
+        "Total Capacity (MW)": 2160,
+        "Active Production": 1280
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.360435856,
+          53.35915357
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Wind Farm",
+        "Total Capacity (MW)": 4700,
+        "Active Production": 2200
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.211278,
+          53.331944
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Solar Plant",
+        "Total Capacity (MW)": 3120,
+        "Active Production": 2070
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -6.2425,
+          53.3535
+        ]
+      }
+    }
+  ]
+}
