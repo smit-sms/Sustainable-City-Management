@@ -109,7 +109,7 @@ function EnergyUsageMap() {
     const intervalId = setInterval(fetchWeatherData, 3600000); // Refresh every hour (3600000 ms)
 
     return () => clearInterval(intervalId); 
-  });
+  }, []);
 
   useEffect(() => {
     // This will run whenever powerPlantsData changes, including after fetchWeatherData and updates the slider values
