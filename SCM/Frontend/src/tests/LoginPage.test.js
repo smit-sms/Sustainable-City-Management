@@ -12,6 +12,7 @@ jest.mock('react-router-dom', () => ({
 
 describe('LoginPage', () => {
   beforeEach(() => {
+
     mockedNavigate.mockReset();
     // eslint-disable-next-line testing-library/no-render-in-setup
     render(<LoginPage />, { wrapper: MemoryRouter });
@@ -35,6 +36,7 @@ describe('LoginPage', () => {
     expect(passwordInput.value).toBe('password123');
   });
 
+
   test('displays error when the email is invalid', () => {
     const emailInput = screen.getByPlaceholderText('Email address');
     fireEvent.change(emailInput, { target: { value: 'invalidmail' } });
@@ -52,6 +54,7 @@ describe('LoginPage', () => {
   });
 
   test('displays error when the password is too short', () => {
+
     const passwordInput = screen.getByPlaceholderText('Password');
     fireEvent.change(passwordInput, { target: { value: '123' } });
     fireEvent.submit(screen.getByRole('button', { name: 'Login' }));

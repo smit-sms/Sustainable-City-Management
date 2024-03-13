@@ -22,3 +22,17 @@ class DublinBikeStation(models.Model):
     bike_stands = models.CharField(max_length=50)
     latitude = models.FloatField()
     longitude = models.FloatField()
+
+class DublinBikeStation(models.Model):
+    station_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    bike_stands = models.CharField(max_length=50)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+class SA_energy_consumption(models.Model):
+    SA_code = models.IntegerField()
+    Energy_use=models.IntegerField()
+    Energy_cost=models.IntegerField()
+    Total_Floor_Area=models.IntegerField()
+    Small_Area_Name=models.CharField(max_length=50)   

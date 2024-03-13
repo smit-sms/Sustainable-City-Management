@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import '../assets/styles/style.css';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../services/api';
@@ -20,6 +21,7 @@ const LoginPage = () => {
     if(email && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)){
       tempErrors.email = "Email is not valid.";
     }
+
 
     if(password && password.length < password_length){
       tempErrors.password = `Password must be at least ${password_length} characters long.`;

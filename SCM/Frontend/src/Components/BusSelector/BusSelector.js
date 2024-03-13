@@ -6,7 +6,6 @@ import { BASE_URL } from '../../services/api';
 
 const BusSelector = (props) => {
   const [buses, setBuses] = useState([]);
-  const [selectedBusDetails, setSelectedBusDetails] = useState(null);
 
   const fetchBuses = async () => {
     try {
@@ -69,7 +68,6 @@ const BusSelector = (props) => {
         throw new Error(`Network response was not ok: ${response.status}`);
       }
       const data = await response.json();
-      setSelectedBusDetails(data.data);
       props.onBusSelect(busName,data.data); 
     } catch (error) {
       toast.error('Some error occurred while fetching bus details. Please try again.');
@@ -78,7 +76,7 @@ const BusSelector = (props) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-3xl font-bold text-center mb-2">Dublin Bus</h1>
+      <h1 className="text-3xl font-bold text-center mb-2">DUBLIN BUS</h1>
       <hr className="border-t-2 border-gray-200 mb-2" />
       <select onChange={handleChange} defaultValue="" className="bus-selector">
         <option value="" disabled>Select a Bus </option>
