@@ -46,7 +46,6 @@ const BikeMap = () => {
   const [isRealOrPred, setIsRealOrPred] = useState("real");
 
   function get_data_from_dublinbikes(pred_data) {
-    console.log(`${process.env.REACT_APP_DUBLIN_BIKE_API_KEY}`);
     fetch(`${DUBLIN_BIKE_API_URL}`)
     .then((response) => {
         if (response.status === 200) return response.json();
