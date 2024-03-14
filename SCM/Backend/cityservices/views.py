@@ -4,8 +4,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 import logging
 import pickle
 import geojson
@@ -110,22 +108,20 @@ class BusRouteView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 class SA_energy(APIView):
-
     '''
     Class for all the operations related to the Energy Consumption for small areas.
     '''
-
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
         self.logger = logging.getLogger(__name__)
+        self.response_message = ''
+        self.response_status = status.HTTP_200_OK
+        self.response_data = []
 
     def get(self, request, *args, **kwargs):
         """
         GET request handler to retrieve energy consumption data from the database
         """
-        response_message = ''
-        response_status = 200
-        response_data = []
 
         try:
             small_area_code = request.query_params.get('small_area_code', None)
@@ -133,14 +129,15 @@ class SA_energy(APIView):
             if (SA_db_obj != None):
                 self.response_data = list(SA_energy_consumption.objects.filter(id=SA_db_obj.id).values()) # return data of requested Small_area only
                 self.response_message = f'Success. Data fetched from the DB for the small_area {small_area_code}.'
-                self.response_status = 200
+                self.response_status = status.HTTP_200_OK
             else:
                 self.response_data = []
-                self.response_status = 400
+                self.response_status = status.HTTP_400_BAD_REQUEST
                 self.response_message = f'Failure. Invalid small_area {small_area_code}.'
         except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
             self.response_message= f'Failure. Could not fetch data from the DB for the small_area {small_area_code}.'
-            self.response_status = 400
+            self.response_status = status.HTTP_400_BAD_REQUEST
 
         #Return response.
         return JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)  

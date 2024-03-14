@@ -22,14 +22,12 @@ def get_openroute_geojson(coordinates: list[list], optimize: bool = False):
     return route
 
 
-# TODO: Refactor this and add this to env
-# APIKEY_OPENWEATHER = 'eef810c9a22776cce17d0de14d316137'
-# APIKEY_METEOSOURCE = 'wkz9f0gm7xust1d45patrd9uqugwm2qjrtctorxx'
-
 def get_weather_forecast():
+    '''
+    Function to return the weather forecast for 24hrs
+    '''
     try:
-        APIKEY_METEOSOURCE = 'wkz9f0gm7xust1d45patrd9uqugwm2qjrtctorxx'
-        # APIKEY_METEOSOURCE = os.getenv('APIKEY_METEOSOURCE')
+        APIKEY_METEOSOURCE = os.getenv('APIKEY_METEOSOURCE')
         parameters = {'key': APIKEY_METEOSOURCE,
                     'place_id': 'dublin'}
         url = "https://www.meteosource.com/api/v1/free/point"
