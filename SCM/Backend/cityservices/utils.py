@@ -1,5 +1,8 @@
+import logging
 import os
 import openrouteservice
+import requests
+import pandas as pd
 
 
 def get_openroute_geojson(coordinates: list[list], optimize: bool = False):
@@ -17,3 +20,19 @@ def get_openroute_geojson(coordinates: list[list], optimize: bool = False):
     route = client.directions(coords, profile='driving-car', format='geojson', optimize_waypoints=optimize)
 
     return route
+
+
+def get_weather_forecast():
+    '''
+    Function to return the weather forecast for 24hrs
+    '''
+    try:
+        APIKEY_METEOSOURCE = os.getenv('APIKEY_METEOSOURCE')
+        parameters = {'key': APIKEY_METEOSOURCE,
+                    'place_id': 'dublin'}
+        url = "https://www.meteosource.com/api/v1/free/point"
+        data = requests.get(url, parameters).json()
+        return data
+    except Exception as e:
+        logging.getLogger(__name__).exception(f'Some unexpected exception occured: {e}')
+        raise f"Error in Weather API {e}"
