@@ -46,6 +46,7 @@ const BikeMap = () => {
   const [isRealOrPred, setIsRealOrPred] = useState("real");
 
   function get_data_from_dublinbikes(pred_data) {
+    console.log(`${process.env.REACT_APP_DUBLIN_BIKE_API_KEY}`);
     fetch(`${DUBLIN_BIKE_API_URL}`)
     .then((response) => {
         if (response.status === 200) return response.json();
@@ -182,7 +183,7 @@ const BikeMap = () => {
           className="h-full z-0"
           style={{ height: "calc(100vh - 95px)" }}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png" />
           {availabilityPrediction.map((stand) => {
             let entry = bikeStands.filter(
               (entry) => entry["station_id"] == stand["STATION ID"]

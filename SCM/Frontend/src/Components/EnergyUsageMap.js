@@ -280,7 +280,7 @@ function EnergyUsageMap() {
     </div>
     <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - 255px)' }}>
       <MapContainer center={[53.345123, -6.26526]} zoom={12} className="h-full z-0">
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png" />
         <GeoJSON data={countries.features} style={Style} onEachFeature={onEachCountry(totalEnergyUse, setTotalEnergyUse)} />
         {powerPlantsData.features.map((feature, index) => (
             <Marker

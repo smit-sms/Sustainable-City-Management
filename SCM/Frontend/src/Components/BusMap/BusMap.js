@@ -39,7 +39,7 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
       <div>
         <MapContainer center={[53.345123, -6.26526]} zoom={13} className="h-full z-0" 
         style={{ height: 'calc(100vh - 155px)' }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png" />
         </MapContainer>
       </div>
     );
@@ -138,7 +138,7 @@ return (
         <>
           <div className="relative w-full overflow-hidden" style={{ height: 'calc(100vh - 155px)' }}>
             <MapContainer key={mapKey} center={[53.345123, -6.26526]} zoom={13} className="h-full z-0" bounds={bounds}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png" />
             <GeoJSON data={updatedRoute.data} style={lineStyle} />
             {updatedRoute.data.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
               <Marker
@@ -162,7 +162,7 @@ return (
       ) : (
         <>
         {/* Otherwise, render the initial route data */}
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png" />
         <GeoJSON data={geoJsonData} style={{ color: "blue", weight: 5, opacity: 0.65 }} />
         {geoJsonData.features.filter(feature => feature.geometry.type === "Point").map((feature, index) => (
           <Marker
