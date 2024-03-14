@@ -8,6 +8,7 @@ import BusPage from './Components/BusPage';
 import EnergyUsageMap from './Components/EnergyUsageMap';
 import { FaBars, FaBus, FaVolumeUp, FaWind, FaTruck } from 'react-icons/fa';
 import { MdDirectionsBike, MdEnergySavingsLeaf, MdLogout } from "react-icons/md";
+import BinLocations from './Components/BinLocations';
 
 function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
@@ -30,9 +31,9 @@ function Sidebar({ isOpen, toggleSidebar }) {
           <MdDirectionsBike className='mr-2'/>Dublin Bikes
         </Link>
         <hr className="border-gray-700" />
-        <Link to="/bin" 
+        <Link to="/bins" 
         className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bin') ? 'bg-gray-700' : ''}`}>
-          <FaTruck className='mr-2'/>Bin Trucks
+          <FaTruck className='mr-2'/>Bins
         </Link>
         <hr className="border-gray-700" />
         <Link to="/air"
@@ -94,6 +95,7 @@ function App() {
             <Route path="/bus" element={<BusPage />} />
             <Route path="/energy" element={<EnergyUsageMap />} />
             <Route path="/bike" element={<BikeMap />} />
+            <Route path="/bins" element={<BinLocations />} />
           </Route>
         </Routes>
       </Router>

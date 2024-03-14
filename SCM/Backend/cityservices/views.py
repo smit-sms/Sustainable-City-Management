@@ -107,6 +107,7 @@ class BusRouteView(APIView):
             return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
+
 class SA_energy(APIView):
     '''
     Class for all the operations related to the Energy Consumption for small areas.
@@ -125,9 +126,11 @@ class SA_energy(APIView):
 
         try:
             small_area_code = request.query_params.get('small_area_code', None)
-            SA_db_obj = SA_energy_consumption.objects.filter(SA_code=small_area_code).first()
+            SA_db_obj = SA_energy_consumption.objects.filter(
+                SA_code=small_area_code).first()
             if (SA_db_obj != None):
-                self.response_data = list(SA_energy_consumption.objects.filter(id=SA_db_obj.id).values()) # return data of requested Small_area only
+                self.response_data = list(SA_energy_consumption.objects.filter(
+                    id=SA_db_obj.id).values())  # return data of requested Small_area only
                 self.response_message = f'Success. Data fetched from the DB for the small_area {small_area_code}.'
                 self.response_status = status.HTTP_200_OK
             else:
@@ -139,8 +142,8 @@ class SA_energy(APIView):
             self.response_message= f'Failure. Could not fetch data from the DB for the small_area {small_area_code}.'
             self.response_status = status.HTTP_400_BAD_REQUEST
 
-        #Return response.
-        return JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)  
+        # Return response.
+        return JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
 
 
 class DublinBikesView(APIView):
@@ -154,7 +157,8 @@ class DublinBikesView(APIView):
         self.logger = logging.getLogger(__name__)
 
         # self.df_stations = pd.read_csv('cityservices/data/STATION ID - BIKE STANDS.csv')
-        self.model = pickle.load(open("cityservices/data/RFmodel_lr.pkl", 'rb'))
+        self.model = pickle.load(
+            open("cityservices/data/RFmodel_lr.pkl", 'rb'))
 
     def prepare_query_for_model(self, weather_forecast=None):
         if (weather_forecast == None):
@@ -171,14 +175,14 @@ class DublinBikesView(APIView):
         res['minute'] = res['TIME'].dt.minute
         res['day'] = res['TIME'].dt.day
         res['dayofweek'] = res['TIME'].dt.dayofweek
-        
+
         queryset = DublinBikeStation.objects.all().values('station_id',
                                                           'bike_stands')
         # Convert the QuerySet to a DataFrame
         df_stations = pd.DataFrame.from_records(queryset)
         df_stations.rename(columns={'station_id': 'STATION ID',
-                            'bike_stands': 'BIKE STANDS'}, inplace=True)
-        
+                                    'bike_stands': 'BIKE STANDS'}, inplace=True)
+
         df_stations['dummy'] = 1
         res['dummy'] = 1
         res = pd.merge(df_stations, res, on='dummy')
@@ -205,6 +209,27 @@ class DublinBikesView(APIView):
                 'prediction': json.loads(df_return.to_json(orient='records')),
                 'positions': result}
             }, status=status.HTTP_200_OK)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class BinLocationsView(APIView):
+    '''
+    Class for all the operations related to the Bin Locations.
+    '''
+    # permission_classes = [IsAuthenticated]
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Defining logger here to get the name for the class
+        self.logger = logging.getLogger(__name__)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            with open('cityservices/data/dcc_public_bins_locations.json', 'r') as j:
+                return Response({"message": "Successfully fetched the required data", "data": json.load(j)
+                                 }, status=status.HTTP_200_OK)
         except Exception as e:
             self.logger.exception(f'Some unexpected exception occured: {e}')
             return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
