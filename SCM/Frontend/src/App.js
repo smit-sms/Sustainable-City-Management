@@ -1,59 +1,62 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Outlet, useLocation } from 'react-router-dom';
 import LoginPage from './Components/LoginPage';
 import RegisterPage from './Components/RegisterPage';
-import HomePageBikeAvailabilityPicker from './Components/TimePicker';
+import BikeMap from './Components/BikeMap';
 // import HomePage from './Components/HomePage';
 import BusPage from './Components/BusPage';
-import EnergyUsageMap from './Components/EnergyUsageMap'
+import EnergyUsageMap from './Components/EnergyUsageMap';
+import { FaBars, FaBus, FaVolumeUp, FaWind, FaTruck } from 'react-icons/fa';
+import { MdDirectionsBike, MdEnergySavingsLeaf, MdLogout } from "react-icons/md";
 
-function Sidebar() {
+function Sidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
   const isActive = (pathname) => location.pathname === pathname;
 
   return (
-    <div className="bg-gray-800 text-white w-64 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out flex flex-col justify-between">
+    <div className={`bg-gray-800 text-white w-64 py-7 px-2 absolute inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition duration-300 ease-in-out flex flex-col justify-between z-20`}>
       <div className="mb-5">
         <img src="/logo.png" alt="Dashboard Logo" className="h-16 w-16 mx-auto"/>
         <h1 className="text-center text-4xl mt-2 mb-4">EcoCity</h1>
       </div>
       <nav className="flex flex-col">
         <Link to="/bus"
-          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bus') ? 'bg-gray-700' : ''}`}>
-          Bus
+          className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bus') ? 'bg-gray-700' : ''}`}>
+          <FaBus className='mr-2'/>Bus
         </Link>
         <hr className="border-gray-700" />
         <Link to="/bike" 
-          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bike') ? 'bg-gray-700' : ''}`}>
-          Dublin Bikes
+          className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bike') ? 'bg-gray-700' : ''}`}>
+          <MdDirectionsBike className='mr-2'/>Dublin Bikes
         </Link>
         <hr className="border-gray-700" />
         <Link to="/bin" 
-        className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bin') ? 'bg-gray-700' : ''}`}>
-          Bin Trucks
+        className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/bin') ? 'bg-gray-700' : ''}`}>
+          <FaTruck className='mr-2'/>Bin Trucks
         </Link>
         <hr className="border-gray-700" />
         <Link to="/air"
-          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/air') ? 'bg-gray-700' : ''}`}>
-          Air
+          className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/air') ? 'bg-gray-700' : ''}`}>
+          <FaWind className='mr-2'/>Air
         </Link>
         <hr className="border-gray-700" />
         <Link to="/noise"
-          className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/noise') ? 'bg-gray-700' : ''}`}>
-          Noise
+          className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/noise') ? 'bg-gray-700' : ''}`}>
+          <FaVolumeUp className='mr-2'/>Noise
         </Link>
         <hr className="border-gray-700" />
         <Link to="/energy" 
-        className={`block py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/energy') ? 'bg-gray-700' : ''}`}>
-          Renewable Energy
+        className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${isActive('/energy') ? 'bg-gray-700' : ''}`}>
+          <MdEnergySavingsLeaf className='mr-2'/>Renewable Energy
         </Link>
       </nav>
 
       <div className="mt-auto">
         <button
           // onClick={handleLogout}
-          className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition duration-200 mt-4">
-          Logout
+          className="flex justify-center items-center w-full py-2 px-4 border border-green-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 mt-4 space-x-2">
+          <MdLogout className="inline-block" size={20}/>
+          <span>Logout</span>
         </button>
       </div>
     </div>
@@ -61,9 +64,18 @@ function Sidebar() {
 }
 
 function LayoutWithSidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="flex">
-      <Sidebar />
+      <button onClick={toggleSidebar} className={`text-dark md:hidden z-30 fixed top-0 left-0 p-4 ${isOpen ? 'text-white' : 'text-dark'}`}>
+        <FaBars />
+      </button>
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
       <div className="flex-1 min-h-screen">
         <Outlet />
       </div>
@@ -81,7 +93,7 @@ function App() {
           <Route element={<LayoutWithSidebar />}>
             <Route path="/bus" element={<BusPage />} />
             <Route path="/energy" element={<EnergyUsageMap />} />
-            <Route path="/bike" element={<HomePageBikeAvailabilityPicker />} />
+            <Route path="/bike" element={<BikeMap />} />
           </Route>
         </Routes>
       </Router>

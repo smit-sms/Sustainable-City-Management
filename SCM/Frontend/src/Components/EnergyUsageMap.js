@@ -240,11 +240,10 @@ function EnergyUsageMap() {
       <h1 className="text-3xl font-bold text-center mb-2">RENEWABLE ENERGY</h1>
       <hr className="border-t-2 border-gray-200 mb-2" />
       <div className="text-md font-bold mb-2">Power Plant Controls
-        <p className='float-right text-sm font-medium'>
-          {/* Displaying weather data */}
+        <p className='float-none text-sm font-medium md:float-right'>
           {weatherData && weatherData.length > 0 && (
             <>
-            <b>&emsp;Weather Description: </b> {weatherData[weatherData.length - 1].weatherDescription}  
+            <b>Weather Description: </b> {weatherData[weatherData.length - 1].weatherDescription}  
             <b>&emsp;Wind Speed: </b> {weatherData[weatherData.length - 1].windSpeed} 
             <b>&emsp;Rainfall:  </b>{weatherData[weatherData.length - 1].rainfall}
             </>
