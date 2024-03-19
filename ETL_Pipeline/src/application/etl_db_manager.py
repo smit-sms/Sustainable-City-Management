@@ -3,8 +3,7 @@ import base64
 import sqlite3
 from etl_task import ETLTask
 from datetime import datetime
-from typing import Callable, List
-from utility import base64decode_obj
+from typing import List
 
 def process_value_for_db(value):
     """
@@ -42,7 +41,12 @@ def process_value_from_db(t:tuple, fields=List[str]):
             'num_runs', 'status'
         ]:
             to_return[field] = value
-        elif field in ['fun_data_load', 'fun_data_save', 'config']: # Stored as BLOB.
+        elif field in [
+            'fun_data_load', 
+            'fun_data_transform', 
+            'fun_data_save', 
+            'config'
+        ]: # Stored as BLOB.
             to_return[field] = base64.b64encode(value).decode('utf-8')
         elif field in [ # Stored as datetime iso string.
             'time_run_last_start', 'time_run_last_end'
@@ -82,6 +86,7 @@ class ETLDataBaseManager:
             self.query(q='''CREATE TABLE IF NOT EXISTS etl_tasks (
                 name TEXT PRIMARY KEY,
                 fun_data_load BLOB NOT NULL,
+                fun_data_transform BLOB,
                 fun_data_save BLOB NOT NULL,
                 repeat_time_unit TINYTEXT NOT NULL,
                 repeat_interval INTEGER NOT NULL,
@@ -136,6 +141,7 @@ class ETLDataBaseManager:
             INSERT INTO etl_tasks (
                 name, 
                 fun_data_load, 
+                fun_data_transform,
                 fun_data_save, 
                 repeat_time_unit,
                 repeat_interval,
@@ -143,10 +149,11 @@ class ETLDataBaseManager:
                 config,
                 num_runs
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?); 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); 
         """, params=[
             process_value_for_db(task.name),
             process_value_for_db(task.fun_data_load),
+            process_value_for_db(task.fun_data_transform),
             process_value_for_db(task.fun_data_save),
             process_value_for_db(task.repeat_time_unit),
             process_value_for_db(task.repeat_interval),
@@ -156,8 +163,8 @@ class ETLDataBaseManager:
         ])
 
     def read_task(self, name:str, fields:List[str]=[
-        "name", "fun_data_load", "fun_data_save",
-        "repeat_time_unit", "repeat_interval", 
+        "name", "fun_data_load", "fun_data_transform", 
+        "fun_data_save", "repeat_time_unit", "repeat_interval", 
         "time_run_last_start", "time_run_last_end", 
         "num_runs", "status", "config"
     ]):
@@ -168,8 +175,14 @@ class ETLDataBaseManager:
                        By default, this is all fields from the table.
         @return: List of tasks in the DB.
         """
-        task_details = self.query(f"SELECT {','.join(fields)} FROM etl_tasks WHERE name='{name}';", is_get=True)[0]
-        task_details = process_value_from_db(t=task_details, fields=fields) if len(task_details) > 0 else {}
+        task_details = self.query(
+            f"SELECT {','.join(fields)} FROM etl_tasks WHERE name='{name}';", 
+            is_get=True
+        )[0]
+        task_details = process_value_from_db(
+            t=task_details, 
+            fields=fields
+        ) if len(task_details) > 0 else {}
         return task_details
     
     def update_task(self, new_values={}, name=None):
@@ -231,13 +244,14 @@ class ETLDataBaseManager:
             tasks.append(ETLTask(
                 name=td[0],
                 fun_data_load=dill.loads(td[1]),
-                fun_data_save=dill.loads(td[2]),
-                repeat_time_unit=td[3],
-                repeat_interval=td[4],
-                time_run_last_start=td[5],
-                time_run_last_end=td[6],
-                num_runs=td[7],
-                status=td[8],
-                config=td[9]
+                fun_data_transform=dill.loads(td[2]),
+                fun_data_save=dill.loads(td[3]),
+                repeat_time_unit=td[4],
+                repeat_interval=td[5],
+                time_run_last_start=td[6],
+                time_run_last_end=td[7],
+                num_runs=td[8],
+                status=td[9],
+                config=td[10]
             ))
         return tasks

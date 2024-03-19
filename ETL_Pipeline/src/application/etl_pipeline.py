@@ -5,6 +5,7 @@ import sqlite3
 import schedule
 import argparse
 import threading
+import importlib.util
 from typing import List
 from etl_task import ETLTask
 from datetime import datetime, timedelta
@@ -31,15 +32,15 @@ def start_tasks():
     Restarts periodic running of all saved tasks
     whose repeat time is overdue.
     """
+    global SCHEDULER_RUNNING
     global SCHEDULED_JOBS
     global HOST
     global PORT
     print('Started existing scheduled tasks.')
+    if SCHEDULER_RUNNING == False:
+        start_scheduler()
     for task in DB_MANAGER.load_tasks(filters={'status':'scheduled'}):
-        # if not task.name in SCHEDULED_JOBS:
         task.schedule(schedule=schedule, host=HOST, port=PORT)
-            # job = task.schedule(schedule=schedule, host=HOST, port=PORT)
-            # SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
 
 # Initialize FastAPI app.
 app = FastAPI()
@@ -162,7 +163,7 @@ def update_task(task_name: str, new_values: dict):
     response["message"] = f"Success. Status of task {task_name} updated with new values {new_values}."
     return response
 
-@app.put("/task/stop")
+@app.put("/task/stop/")
 def stop_task(task_name: str):
     """
     Stops a currently scheduled task.
@@ -184,7 +185,7 @@ def stop_task(task_name: str):
     response["message"] = f"Success. Task {task_name} has been stopped."
     return response
 
-@app.get("/start_scheduler")
+@app.get("/start_scheduler/")
 def start_scheduler():
     """ Start the task scheduler thread. """
     global SCHEDULER_RUNNING
@@ -206,7 +207,7 @@ def start_scheduler():
         response["message"] = f"Scheduler could not be started. {e}"
     return response
 
-@app.get("/stop_scheduler")
+@app.get("/stop_scheduler/")
 def stop_scheduler():
     """ Stop the task scheduler. """
     global SCHEDULER_RUNNING
@@ -224,6 +225,31 @@ def stop_scheduler():
     except Exception as e:
         response["status"] = 400
         response["message"] = f"Scheduler could not be stopped. {e}"
+    return response
+
+@app.put("/task/start")
+def start_task(task_name:str):
+    """ 
+    Pass in names of modules that need to be imported. 
+    @param modules: List of strings of module names.
+    """
+    global SCHEDULED_JOBS
+    global HOST
+    global PORT
+    response = {"status": 200, "message": ""}
+    try:
+        print('Started existing scheduled tasks.')
+        if SCHEDULER_RUNNING == False:
+            start_scheduler()
+        for task in DB_MANAGER.load_tasks(filters={'name':task_name}):
+            if task.status == 'stopped':
+                task.schedule(schedule=schedule, host=HOST, port=PORT)
+                response["message"] += f"Started task '{task_name}'. "
+                print(f'Started task "{task_name}".')
+        response['status'] = 200
+    except Exception as e:
+        response['status'] = 400
+        response["message"] = f"Failed to start task '{task_name}' due to {e}."
     return response
 
 if __name__ == "__main__":

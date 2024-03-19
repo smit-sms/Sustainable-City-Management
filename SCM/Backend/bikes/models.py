@@ -8,8 +8,8 @@ class Station(models.Model):
 
 class Snapshot(models.Model):
     station_id = models.IntegerField()
-    available_bike_stands = models.IntegerField()
     bike_stands = models.IntegerField()
     available_bikes = models.IntegerField()
+    usage_percent = models.FloatField()
     last_update = models.DateTimeField()
     status = models.CharField(max_length=20)

@@ -65,7 +65,7 @@ class ViewSnapshot(View):
                 )
                 snapshot_db, created = Snapshot.objects.update_or_create(
                     station_id=station_data['station_id'], 
-                    available_bike_stands=station_data['available_bike_stands'], 
+                    usage_percent=station_data['usage_percent'], 
                     bike_stands=station_data['bike_stands'],
                     available_bikes=station_data['available_bikes'],
                     last_update=station_data['last_update'],

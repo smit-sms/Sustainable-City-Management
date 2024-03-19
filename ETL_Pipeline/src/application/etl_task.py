@@ -28,6 +28,7 @@ class ETLTask:
         name:str, 
         fun_data_load:Callable,
         fun_data_save:Callable,
+        fun_data_transform:Callable,
         repeat_time_unit:str,
         repeat_interval:int,
         num_runs:int=0,
@@ -59,6 +60,7 @@ class ETLTask:
         self.status = status
         self.fun_data_load = fun_data_load
         self.fun_data_save = fun_data_save
+        self.fun_data_transform = fun_data_transform
         self.config = config
 
     def run(self, url:str):
@@ -83,7 +85,7 @@ class ETLTask:
         data = self.fun_data_load()
 
         # Apply transformations as per data config.
-        # Transforming data ... TO DO ...
+        data = self.fun_data_transform(data)
             
         # Run the save data function.
         self.fun_data_save(data)
