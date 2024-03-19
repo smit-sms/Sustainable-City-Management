@@ -114,7 +114,7 @@ class ETLTask:
         @port: Port where the ETL application is running.
         """
         url = f"http://{host}:{port}/task"
-        # self.run(url) # Run once immediately, then every scheduled time.
+        self.run(url) # Run once immediately, then every scheduled time.
         if self.repeat_time_unit == "seconds":
             job = schedule.every(self.repeat_interval).seconds.do(lambda: self.run(url))
         elif self.repeat_time_unit == "minutes":

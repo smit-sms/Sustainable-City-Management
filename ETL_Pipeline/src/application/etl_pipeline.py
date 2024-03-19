@@ -23,7 +23,6 @@ SCHEDULED_JOBS = {}
 def run_scheduler():
     """ Runs the task scheduler on a separate thread than main. """
     while SCHEDULER_RUNNING == True:
-        print("[DEBUG]")
         schedule.run_pending()
         time.sleep(1)  # Sleep time = 1 second.
 
@@ -78,10 +77,12 @@ def delete_task(task_name: str):
     global SCHEDULED_JOBS
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
-        if task_name in SCHEDULED_JOBS:
-            stop_task(task_name)
-            DB_MANAGER.delete_task(name=task_name)
-            del(SCHEDULED_JOBS[task_name])
+        stop_task(task_name)
+        DB_MANAGER.delete_task(name=task_name)
+        del(SCHEDULED_JOBS[task_name])
+        print(f"Task {task_name} deleted.")
+        response['status'] = 200
+        response['message'] = f"Success. Task {task_name} deleted."
     except Exception as e:
         response['status'] = 400
         response['message'] = f"Failure. Could not delete task {task_name}. {e}"
