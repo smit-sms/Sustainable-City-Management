@@ -16,42 +16,34 @@ from utility import base64encode_obj, base64decode_obj
 DB_MANAGER = None
 HOST = None
 PORT = None
-SCHEDULER_RUNNING = None
+SCHEDULER_RUNNING = False
+SCHEDULED_JOBS = {}
 
 # Utility functions.
 def run_scheduler():
     """ Runs the task scheduler on a separate thread than main. """
-    while SCHEDULER_RUNNING:
+    while SCHEDULER_RUNNING == True:
+        print("[DEBUG]")
         schedule.run_pending()
         time.sleep(1)  # Sleep time = 1 second.
 
-def restart_tasks():
+def start_tasks():
     """
     Restarts periodic running of all saved tasks
     whose repeat time is overdue.
     """
-    print('Restarted existing scheduled tasks.')
+    global SCHEDULED_JOBS
+    global HOST
+    global PORT
+    print('Started existing scheduled tasks.')
     for task in DB_MANAGER.load_tasks(filters={'status':'scheduled'}):
+        # if not task.name in SCHEDULED_JOBS:
         task.schedule(schedule=schedule, host=HOST, port=PORT)
+            # job = task.schedule(schedule=schedule, host=HOST, port=PORT)
+            # SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
 
 # Initialize FastAPI app.
 app = FastAPI()
-
-# @app.post("/test/", summary="Test.", description="Test post request. Echos received string.")
-# def test_post(test_string:str):
-#     """
-#     Tests a post request. Echos received string.
-#     @param test_string: Any string.
-#     """
-#     return {'status': 200, 'message': 'Success. All good.', 'data':[{'echo': test_string}]}
-
-# @app.get("/test/", summary="Test.", description="Test get request. Echos received string.")
-# def test_get(test_string:str):
-#     """
-#     Tests a get request. Echos received string.
-#     @param test_string: Any string.
-#     """
-#     return {'status': 200, 'message': 'Success. All good.', 'data':[{'echo': test_string}]}
 
 # Create a task.
 @app.post("/task/", summary="Create new ETL task.", description="Create a new ETL task, add it to the DB and schedule it.")
@@ -63,9 +55,13 @@ def create_task(task_str:str):
     """
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
+        if SCHEDULER_RUNNING == False:
+            start_scheduler()
         task = base64decode_obj(task_str) # Get ETL Task from base64 encoded string.
         DB_MANAGER.create_task(task) # Add task into DB.
-        task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
+        # task.schedule(schedule=schedule, host=HOST, port=PORT)
+        job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
+        SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
         response['status'] = 400
@@ -78,9 +74,14 @@ def delete_task(task_name: str):
     Deletes a task with given name if it exists.
     @param task_name: Name of task to delete.
     """
+    global DB_MANAGER
+    global SCHEDULED_JOBS
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
-        DB_MANAGER.delete_task(name=task_name)
+        if task_name in SCHEDULED_JOBS:
+            stop_task(task_name)
+            DB_MANAGER.delete_task(name=task_name)
+            del(SCHEDULED_JOBS[task_name])
     except Exception as e:
         response['status'] = 400
         response['message'] = f"Failure. Could not delete task {task_name}. {e}"
@@ -115,6 +116,31 @@ def read_task(task_name:str, fields:str=''):
         response['message'] = f"Failure. Could not get task {task_name}. {e}"
     return response
 
+@app.get("/task/all/")
+def read_all_tasks():
+    """
+    Get all tasks (name, status) currently in the DB.
+    @return: Response to request.
+    """
+    response = {'status': 200, 'message': f'', 'data':[]}
+    try:
+        response["data"] = []
+        for task in DB_MANAGER.load_tasks():
+            response["data"].append({
+                'name': task.name,
+                'status': task.status,
+                'num_runs': task.num_runs,
+                'repeat_time_unit': task.repeat_time_unit,
+                'repeat_interval': task.repeat_interval,
+                'time_run_last_start': str(task.time_run_last_start),
+                'time_run_last_end': str(task.time_run_last_end)
+            })
+        response["message"] = f"Success. Retrieved tasks."
+    except Exception as e:
+        response['status'] = 400
+        response['message'] = f"Failure. Could not get tasks. {e}"
+    return response
+
 @app.put("/task/")
 def update_task(task_name: str, new_values: dict):
     """
@@ -135,18 +161,45 @@ def update_task(task_name: str, new_values: dict):
     response["message"] = f"Success. Status of task {task_name} updated with new values {new_values}."
     return response
 
+@app.put("/task/stop")
+def stop_task(task_name: str):
+    """
+    Stops a currently scheduled task.
+    @param task_name: Name of task to stop.
+    @return: Response to request.
+    """
+    global SCHEDULED_JOBS
+    response = {'status': 200, 'message': f'', 'data':[]}
+    try:
+        if task_name in SCHEDULED_JOBS:
+            schedule.cancel_job(job=SCHEDULED_JOBS[task_name])
+            DB_MANAGER.update_task(name=task_name, new_values={'status': 'stopped'})
+            print(f"Task {task_name} stopped.")
+            response['message'] = 'Success. Task has been stopped.'
+    except Exception as e:
+        response['status'] = 400
+        print(f"Task {task_name} could not be stopped.")
+        response['message'] = f"Failure. Could not stop task {task_name}. {e}"
+    response["message"] = f"Success. Task {task_name} has been stopped."
+    return response
+
 @app.get("/start_scheduler")
 def start_scheduler():
     """ Start the task scheduler thread. """
     global SCHEDULER_RUNNING
-    response = {"status": 200, "message": "Scheduler started.", "data":[]}
+    response = {"status": 200, "message": "", "data":[]}
     try: # Start the scheduler in a separate thread.
-        SCHEDULER_RUNNING = True
-        threading.Thread(target=run_scheduler).start()
-        restart_tasks()
-        response["status"] = 200
-        response["message"] = f"Scheduler started."
-        print('Scheduler started.')
+        if SCHEDULER_RUNNING == True: 
+            response["status"] = 200
+            print('Scheduler is already running.')
+            response['message'] = 'Scheduler is already running.'
+        else:
+            SCHEDULER_RUNNING = True
+            threading.Thread(target=run_scheduler).start()
+            start_tasks()
+            print('Scheduler started.')
+            response["status"] = 200
+            response["message"] = f"Scheduler started."
     except Exception as e:
         response["status"] = 400
         response["message"] = f"Scheduler could not be started. {e}"
@@ -156,11 +209,17 @@ def start_scheduler():
 def stop_scheduler():
     """ Stop the task scheduler. """
     global SCHEDULER_RUNNING
-    response = {"status": 200, "message": "Scheduler stopped.", "data":[]}
+    response = {"status": 200, "message": "", "data":[]}
     try: # Start the scheduler in a separate thread.
-        SCHEDULER_RUNNING = False
-        # schedule.clear() # Clear schedule.
-        print('Scheduler stopped.')
+        if SCHEDULER_RUNNING == False:
+            response["status"] = 200
+            print("Scheduler is not running.")
+            response["message"] = "Scheduler is not running."
+        else:
+            SCHEDULER_RUNNING = False
+            response["status"] = 200
+            print("Scheduler stopped.")
+            response["message"] = "Scheduler stopped."
     except Exception as e:
         response["status"] = 400
         response["message"] = f"Scheduler could not be stopped. {e}"

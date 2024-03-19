@@ -225,7 +225,6 @@ class ETLDataBaseManager:
             conditions.append(f"{k}={'\''+ v +'\''if type(v)==str else v}")
         if len(conditions) > 0:
             q = q + " WHERE " + " AND ".join(conditions)
-        print('[DEBUG] q =', q)
         task_details = self.query(q=q, is_get=True)
         tasks = []
         for td in task_details:
@@ -235,9 +234,9 @@ class ETLDataBaseManager:
                 fun_data_save=dill.loads(td[2]),
                 repeat_time_unit=td[3],
                 repeat_interval=td[4],
-                num_runs=td[5],
-                time_run_last_start=td[6],
-                time_run_last_end=td[7],
+                time_run_last_start=td[5],
+                time_run_last_end=td[6],
+                num_runs=td[7],
                 status=td[8],
                 config=td[9]
             ))
