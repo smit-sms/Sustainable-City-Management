@@ -1,10 +1,13 @@
+import os
 import dill
 import time
+import atexit
 import uvicorn
 import sqlite3
 import schedule
 import argparse
 import threading
+import logging.config
 import importlib.util
 from typing import List
 from etl_task import ETLTask
@@ -19,6 +22,68 @@ HOST = None
 PORT = None
 SCHEDULER_RUNNING = False
 SCHEDULED_JOBS = {}
+
+# Logger
+logger = logging.getLogger("etl_pipeline")
+def configure_logger(logs_dir):
+    """ 
+    Sets up the logger. 
+    @param logs_dir: Path to directory within 
+                          which logs are to be stored.
+    """
+    # Create logging directory if it does not already exist.
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+
+    # Configure logger.
+    logging.config.dictConfig({
+        "version": 1,
+        "disable_existing_loggers": False, 
+        "formatters": {
+            "simple": {
+                "format": "[%(asctime)s] %(levelname)s: %(message)s"
+            },
+            "detailed": {
+                "format": "[%(levelname)s | %(module)s | L%(lineno)d] %(asctime)s: %(message)s",
+                "datefmt": "%d-%m-%YT%H:%M:%S%z"
+            }
+        },
+        "handlers": {
+            "stderr": {
+                "class": "logging.StreamHandler",
+                "level": "WARNING",
+                "formatter": "simple",
+                "stream": "ext://sys.stderr"
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "INFO",
+                "formatter": "detailed",
+                "filename": f"{logs_dir}/etl_pipeline.log",
+                "maxBytes": 10000000,
+                "backupCount": 3,
+            },
+            "queue_handler": {
+                "class": "logging.handlers.QueueHandler",
+                "handlers": ["stderr", "file"],
+                "respect_handler_level": True
+            }
+        },
+        "loggers": {
+            "root": {"level": "DEBUG", "handlers": ["queue_handler"]}
+        }
+    })
+
+    # Set up non-blocking logger on a separate thread.
+    queue_handler = logging.getHandlerByName("queue_handler")
+    if queue_handler is not None:
+        queue_handler.listener.start() # Start this thread.
+        atexit.register(queue_handler.listener.stop)
+
+    print(
+        "Logger 'etl_pipeline' was successfully set up.",
+        f"Logs shall be saved at {logs_dir}"
+    )
 
 # Utility functions.
 def run_scheduler():
@@ -59,13 +124,14 @@ def create_task(task_str:str):
             start_scheduler()
         task = base64decode_obj(task_str) # Get ETL Task from base64 encoded string.
         DB_MANAGER.create_task(task) # Add task into DB.
-        # task.schedule(schedule=schedule, host=HOST, port=PORT)
         job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
         SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
+        delete_task(task.name) # Remove partially correct entered task.
         response['status'] = 400
-        response['message'] = f"Failure. Could not create task. {e}"
+        logger.error(f"Failure. Could not create task due to {e}.")
+        response['message'] = f"Failure. Could not create task due to {e}."
     return response
 
 @app.delete("/task/")
@@ -85,8 +151,9 @@ def delete_task(task_name: str):
         response['status'] = 200
         response['message'] = f"Success. Task {task_name} deleted."
     except Exception as e:
+        logger.error(f"Failure. Could not delete task {task_name} due to {e}.")
         response['status'] = 400
-        response['message'] = f"Failure. Could not delete task {task_name}. {e}"
+        response['message'] = f"Failure. Could not delete task {task_name} due to {e}."
     response["message"] = f"Success. Deleted task {task_name}."
     return response
 
@@ -114,8 +181,9 @@ def read_task(task_name:str, fields:str=''):
         response["data"] = task
         response["message"] = f"Success. Retrieved task {task_name}."
     except Exception as e:
+        logger.error(f"Failure. Could not get task {task_name} due to {e}.")
         response['status'] = 400
-        response['message'] = f"Failure. Could not get task {task_name}. {e}"
+        response['message'] = f"Failure. Could not get task {task_name} due to {e}."
     return response
 
 @app.get("/task/all/")
@@ -139,8 +207,9 @@ def read_all_tasks():
             })
         response["message"] = f"Success. Retrieved tasks."
     except Exception as e:
+        logger.error(f"Failure. Could not get tasks due to {e}.")
         response['status'] = 400
-        response['message'] = f"Failure. Could not get tasks. {e}"
+        response['message'] = f"Failure. Could not get tasks due to {e}."
     return response
 
 @app.put("/task/")
@@ -157,10 +226,11 @@ def update_task(task_name: str, new_values: dict):
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
         DB_MANAGER.update_task(name=task_name, new_values=new_values)
+        response["message"] = f"Success. Status of task {task_name} updated with new values {new_values}."
     except Exception as e:
+        logger.error(f"Failure. Could not update status of task {task_name} due to {e}.")
         response['status'] = 400
-        response['message'] = f"Failure. Could not update status of task {task_name}. {e}"
-    response["message"] = f"Success. Status of task {task_name} updated with new values {new_values}."
+        response['message'] = f"Failure. Could not update status of task {task_name} due to {e}."
     return response
 
 @app.put("/task/stop/")
@@ -179,9 +249,10 @@ def stop_task(task_name: str):
             print(f"Task {task_name} stopped.")
             response['message'] = 'Success. Task has been stopped.'
     except Exception as e:
-        response['status'] = 400
+        logger.error(f"Failure. Could not stop task {task_name} due to {e}.")
         print(f"Task {task_name} could not be stopped.")
-        response['message'] = f"Failure. Could not stop task {task_name}. {e}"
+        response['status'] = 400
+        response['message'] = f"Failure. Could not stop task {task_name} due to {e}."
     response["message"] = f"Success. Task {task_name} has been stopped."
     return response
 
@@ -203,8 +274,9 @@ def start_scheduler():
             response["status"] = 200
             response["message"] = f"Scheduler started."
     except Exception as e:
+        response["message"] = f"Scheduler could not be started due to {e}."
         response["status"] = 400
-        response["message"] = f"Scheduler could not be started. {e}"
+        response["message"] = f"Scheduler could not be started due to {e}."
     return response
 
 @app.get("/stop_scheduler/")
@@ -223,8 +295,9 @@ def stop_scheduler():
             print("Scheduler stopped.")
             response["message"] = "Scheduler stopped."
     except Exception as e:
+        logger.log(f"Scheduler could not be stopped due to {e}.")
         response["status"] = 400
-        response["message"] = f"Scheduler could not be stopped. {e}"
+        response["message"] = f"Scheduler could not be stopped due to {e}."
     return response
 
 @app.put("/task/start")
@@ -248,6 +321,7 @@ def start_task(task_name:str):
                 print(f'Started task "{task_name}".')
         response['status'] = 200
     except Exception as e:
+        logger.error(f"Failed to start task '{task_name}' due to {e}.")
         response['status'] = 400
         response["message"] = f"Failed to start task '{task_name}' due to {e}."
     return response
@@ -259,9 +333,12 @@ if __name__ == "__main__":
     parser.add_argument('--db-path', type=str, default='.', help='Path to the data base.')
     parser.add_argument('--host', type=str, default="127.0.0.1", help='Name of host where this app shall run.')
     parser.add_argument('--port', type=int, default=8003, help='Name of port where this app shall run.')
+    parser.add_argument('--logs-dir', type=str, default="./logs", help='Path to directory within which logs shall be saved.')
     args = parser.parse_args()
 
-    # Prepare app for running.
+    # Set up logger.
+    configure_logger(args.logs_dir)
+
     # Set up ETL Tasks DB.
     HOST = args.host
     PORT = args.port
