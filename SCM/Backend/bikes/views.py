@@ -15,34 +15,6 @@ class ViewSnapshot(View):
     response_status = 200
     response_data = []
 
-    def get(self, request):
-        """ 
-        Fetches last 30 mins worth of data regarding 
-        every known bike station in dublin from the 
-        DCC API: https://data.smartdublin.ie/dublinbikes-api.
-        """
-        try: # try to fetch data from the database.
-            res = requests.get(f"https://data.smartdublin.ie/dublinbikes-api/last_snapshot")
-            self.response_data = res.json()
-            self.response_message = (
-                'Success. Bike stations last 30 mins '
-                + 'snapshot fetched from DCC API.'
-            )
-            self.response_status = 200        
-        except Exception as e: # if there was some error with fetching data then ...
-            self.response_message= (
-                'Failure. Could not fetch bike stations ' 
-                + 'last 30 mins snapshot from DCC API.'
-            )
-            self.response_status = 400
-            self.response_data = []
-
-        # Return response.
-        return JsonResponse({
-            'message': self.response_message, 
-            'data': self.response_data
-        }, status=self.response_status, safe=True)
-        
     def post(self, request):
         """ 
         Saves given data to DB in the bikes_snapshot table. 

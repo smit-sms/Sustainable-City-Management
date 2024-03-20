@@ -9,12 +9,6 @@ def run():
     # Empty the tables to repopulate them.
     Station.objects.all().delete()
 
-    # monitor
-    # DCC-AQ2
-    # DCC-AQ3
-    # DCC-AQ4
-    # ...
-
     for row in reader:
         print(row)
         m = Station(
