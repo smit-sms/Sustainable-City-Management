@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BASE_URL, DUBLIN_WASTE_FACILITIES } from "../services/api";
 import binIconPng from "../assets/bin_icon.png";
+import currLocIconPng from "../assets/current-location-icon.png";
 
 const binIcon = L.icon({
 	iconSize: [22, 22],
@@ -14,13 +15,23 @@ const binIcon = L.icon({
 	iconUrl: binIconPng,
 });
 
+const currLocIcon = L.icon({
+	iconSize: [22, 22],
+	iconAnchor: [11, 11],
+	popupAnchor: [0, -11],
+	iconUrl: currLocIconPng,
+});
+
 export default function BinLocations() {
 	const [map, setMap] = useState(null);
 	const [mapLayersControl, setMapLayersControl] = useState(null);
 	const [binData, setBinData] = useState(null);
 	const [wasteFacilities, setWasteFacilities] = useState(null);
-	var markersLayer1 = useRef(L.layerGroup());
-	var markersLayer2 = useRef(L.layerGroup());
+	const [currentLocation, setCurrentLocation] = useState(null);
+
+	var binDataMapLayer = useRef(L.layerGroup());
+	var wasteFacilitiesMapLayer = useRef(L.layerGroup());
+	var currentLocationMapLayer = useRef(L.layerGroup());
 
 	function initializeMap() {
 		if (!map) {
@@ -72,8 +83,35 @@ export default function BinLocations() {
 
 	useEffect(() => {
 		initializeMap();
-		if (map && binData && !map.hasLayer(markersLayer1.current)) {
-			markersLayer1.current = L.markerClusterGroup({
+
+		if (!navigator.geolocation) {
+			toast.error("Current location unavailable!");
+		} else {
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					setCurrentLocation([
+						position.coords.latitude,
+						position.coords.longitude,
+					]);
+					if (map && !map.hasLayer(currentLocationMapLayer.current)) {
+						L.marker([position.coords.latitude, position.coords.longitude], {
+							icon: currLocIcon,
+						}).addTo(currentLocationMapLayer.current);
+						map.addLayer(currentLocationMapLayer.current);
+						mapLayersControl.addOverlay(
+							currentLocationMapLayer.current,
+							"Current Location"
+						);
+					}
+				},
+				() => {
+					toast.error("Unable to retrieve your location");
+				}
+			);
+		}
+
+		if (map && binData && !map.hasLayer(binDataMapLayer.current)) {
+			binDataMapLayer.current = L.markerClusterGroup({
 				iconCreateFunction: function (cluster) {
 					return L.divIcon({
 						html:
@@ -95,31 +133,35 @@ export default function BinLocations() {
 				const marker = L.marker(
 					[bin.geometry.coordinates[1], bin.geometry.coordinates[0]],
 					{ icon: binIcon }
-				).addTo(markersLayer1.current);
+				).addTo(binDataMapLayer.current);
 				marker.bindPopup(
 					`<b>${bin.properties.Electoral_Area}</b><br>Bin Type: ${bin.properties.Bin_Type}`
 				);
 			});
-			map.addLayer(markersLayer1.current);
-			mapLayersControl.addOverlay(markersLayer1.current, "Bins");
+			map.addLayer(binDataMapLayer.current);
+			mapLayersControl.addOverlay(binDataMapLayer.current, "Bins");
 		}
 
-		if (map && wasteFacilities && !map.hasLayer(markersLayer2.current)) {
+		if (
+			map &&
+			wasteFacilities &&
+			!map.hasLayer(wasteFacilitiesMapLayer.current)
+		) {
 			wasteFacilities.features.forEach(function (wasteFacility) {
 				// Keeping facilities in Dublin only
 				if (
 					wasteFacility.geometry.coordinates[0][1] > 53.45 ||
-					wasteFacility.geometry.coordinates[0][1] < 53.19  ||
+					wasteFacility.geometry.coordinates[0][1] < 53.19 ||
 					wasteFacility.geometry.coordinates[0][0] < -6.45122489
 				)
 					return;
 
-				console.log(wasteFacility.properties);
-				console.log(wasteFacility.properties.Category);
+				// console.log(wasteFacility.properties);
+				// console.log(wasteFacility.properties.Category);
 				var marker = L.marker([
 					wasteFacility.geometry.coordinates[0][1],
 					wasteFacility.geometry.coordinates[0][0],
-				]).addTo(markersLayer2.current);
+				]).addTo(wasteFacilitiesMapLayer.current);
 				marker.bindPopup(
 					`<h1><b>${wasteFacility.properties.Name}</b></h1>
 					<br/><b>Address:</b> ${wasteFacility.properties.Address}
@@ -129,8 +171,11 @@ export default function BinLocations() {
 					`
 				);
 			});
-			map.addLayer(markersLayer2.current);
-			mapLayersControl.addOverlay(markersLayer2.current, "Waste Facilities");
+			map.addLayer(wasteFacilitiesMapLayer.current);
+			mapLayersControl.addOverlay(
+				wasteFacilitiesMapLayer.current,
+				"Waste Facilities"
+			);
 		}
 	}, [map, binData, wasteFacilities]);
 
