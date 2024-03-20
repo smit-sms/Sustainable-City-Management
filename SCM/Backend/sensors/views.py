@@ -1,19 +1,112 @@
+import os
 import time
 import pytz
 import json
 import requests
+import logging
 from django.views import View
 from django.shortcuts import render
 from django.http import JsonResponse
-from datetime import datetime, timedelta
-from .models import Sensor, Air, Noise
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+from datetime import datetime, timedelta
+from .models import Sensor, Air, Noise
+from .utils import *
+
+class AirView(APIView):
+    '''
+    Class for all the operations related to the Bus Routes.
+    '''
+    # permission_classes = [IsAuthenticated]
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Defining logger here to get the name for the class
+        self.logger = logging.getLogger(__name__)
+        self.sonitos_base_url = os.getenv('SONITOS_API_URL')
+
+    def get(self, request, *args, **kwargs):
+        """
+        GET request handler to retrieve Air Pollution data
+        """
+        try:
+            current_time = datetime.now()
+            minute = (current_time.minute // 15) * 15
+            closest_past_quarter_hour = current_time.replace(minute=minute, second=0, microsecond=0)
+
+            # Define the start and end times for the query
+            datetime_end = closest_past_quarter_hour
+            datetime_start = datetime_end - timedelta(minutes=15)
+
+            sensors = Sensor.objects.filter(sensor_type='air')
+            result = []
+
+            for sensor in sensors:
+                try:
+                    air_obj = Air.objects.get(sensor=sensor)
+                    result.append({
+                        'serial_number': sensor.serial_number,
+                        'latitude': sensor.latitude,
+                        'longitude': sensor.longitude,
+                        'sensor_type': sensor.sensor_type,
+                        'pm2_5': air_obj.pm2_5,
+                        'datetime': datetime_end,
+                    })
+                except Air.DoesNotExist:
+                    continue
+                    # No data found then fetch from external API
+                    response = requests.post(f"{self.sonitos_base_url}/api/data", json={
+                        'username': os.getenv('SONITOS_USERNAME'),
+                        'password': os.getenv('SONITOS_PASSWORD'),
+                        'monitor': sensor.serial_number,
+                        'start': datetime_to_unix_timestamp(datetime_start),
+                        'end': datetime_to_unix_timestamp(datetime_end)
+                    })
+
+                    if response.status_code == 200 and response.text != '' and response.text != 'error':
+                        api_data = response.json()
+
+                        for entry in api_data:
+                            if entry != 'error':
+                                # Create and save a new Air instance for each entry
+                                datetime_str = entry.get('datetime')
+                                datetime_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+                                datetime_obj_gmt = pytz.timezone('GMT').localize(datetime_obj)
+                                sensor_value = entry.get('pm2_5') if entry.get('pm2_5') else entry.get('no2')
+                                air_instance, created = Air.objects.update_or_create(
+                                    sensor=sensor,
+                                    defaults={'pm2_5': sensor_value, 'datetime': datetime_obj_gmt}
+                                )
+
+                                # Add the newly fetched data to the response
+                                result.append({
+                                    'serial_number': sensor.serial_number,
+                                    'latitude': sensor.latitude,
+                                    'longitude': sensor.longitude,
+                                    'sensor_type': sensor.sensor_type,
+                                    'pm2_5': air_instance.pm2_5,
+                                    'datetime': air_instance.datetime,
+                                })
+                
+            return Response({"message": "Successfully fetched the required data", "len":len(result), "data": result},
+                        status=status.HTTP_200_OK)
+        except KeyError as e:
+            return Response({"message": f"Please pass required parameter: {e}", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Sensor.DoesNotExist:
+            return Response({"message": "The given sensor not found. Please check and try again.", "data": None},
+                            status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": f"Some unexpected exception occured: {e}. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
-class AirView(View):
-
+class AirViewOld(View):
     response_message = ''
     response_status = 200
     response_data = []
@@ -61,8 +154,8 @@ class AirView(View):
         if (sensor_db_obj != None): # If requested sensor exists then ...
             try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
                 res = requests.post(f"{url_root}/api/data", json={ 
-                    'username': "dublincityapi",
-                    'password': "Xpa5vAQ9ki",
+                    'username': os.getenv('SONITOS_USERNAME'),
+                    'password': os.getenv('SONITOS_PASSWORD'),
                     'monitor': sensor_serial_number,
                     'start': datetime_start,
                     'end': datetime_end
@@ -139,8 +232,8 @@ class NoiseView(View):
         if (sensor_db_obj != None): # If requested sensor exists then ...
             try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
                 res = requests.post(f"{url_root}/api/data", json={ 
-                    'username': "dublincityapi",
-                    'password': "Xpa5vAQ9ki",
+                    'username': os.getenv('SONITOS_USERNAME'),
+                    'password': os.getenv('SONITOS_PASSWORD'),
                     'monitor': sensor_serial_number,
                     'start': datetime_start,
                     'end': datetime_end
@@ -168,3 +261,6 @@ class NoiseView(View):
         
         # Return response.
         return JsonResponse({'message': self.response_message} , status=self.response_status, safe=True)
+
+class AirPredictions(APIView):
+    pass
