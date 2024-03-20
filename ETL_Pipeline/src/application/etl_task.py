@@ -2,25 +2,6 @@ import requests
 import schedule
 from typing import Callable
 from datetime import datetime
-
-class ETLTaskFunction:
-    """ 
-    A task that is a combination of
-    function and arguments.
-    """
-    def __init__(self, function:Callable, args:list=[]):
-        """
-        Constructor.
-        @param function: Function.
-        @param args: List of arguments for this function.
-        """
-        self.function = function
-        self.args = args
-
-    def run(self):
-        """ Runs this function with set arguments. """
-        return self.function(*self.args)
-
 class ETLTask:
     """ A class that defines a pipeline task. """
 
