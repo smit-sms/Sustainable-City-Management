@@ -1,9 +1,9 @@
 import dill
 import base64
 import sqlite3
-from etl_task import ETLTask
-from datetime import datetime
 from typing import List
+from datetime import datetime
+from .etl_task import ETLTask
 
 def process_value_for_db(value):
     """

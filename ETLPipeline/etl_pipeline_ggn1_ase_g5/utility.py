@@ -1,5 +1,3 @@
-### This files contains functions that all other files use.
-
 import dill
 import base64
 

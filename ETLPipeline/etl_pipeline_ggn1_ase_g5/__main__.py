@@ -1,20 +1,16 @@
 import os
-import dill
 import time
 import atexit
 import uvicorn
-import sqlite3
 import schedule
 import argparse
 import threading
 import logging.config
-import importlib.util
-from typing import List
-from etl_task import ETLTask
-from datetime import datetime, timedelta
-from fastapi import FastAPI, Query, Body
-from etl_db_manager import ETLDataBaseManager
-from utility import base64encode_obj, base64decode_obj
+from fastapi import FastAPI
+from .utility import base64decode_obj
+from .etl_db_manager import ETLDataBaseManager
+
+__version__ = "0.1.0"
 
 # Global variables.
 DB_MANAGER = None
@@ -326,22 +322,20 @@ def start_task(task_name:str):
         response["message"] = f"Failed to start task '{task_name}' due to {e}."
     return response
 
-if __name__ == "__main__":
-    # Received DB name and path as cmd arguments.
-    parser = argparse.ArgumentParser(description='ETL Pipeline argument parser. Please input path to the data base containing ETLTask status and its name.')
-    parser.add_argument('--db-name', type=str, required=True, help='Name of the data base.')
-    parser.add_argument('--db-path', type=str, default='.', help='Path to the data base.')
-    parser.add_argument('--host', type=str, default="127.0.0.1", help='Name of host where this app shall run.')
-    parser.add_argument('--port', type=int, default=8003, help='Name of port where this app shall run.')
-    parser.add_argument('--logs-dir', type=str, default="./logs", help='Path to directory within which logs shall be saved.')
-    args = parser.parse_args()
+parser = argparse.ArgumentParser(description='ETL Pipeline argument parser. Please input path to the data base containing ETLTask status and its name.')
+parser.add_argument('--db-name', type=str, default='db_etl', help='Name of the data base.')
+parser.add_argument('--db-path', type=str, default='.', help='Path to the data base.')
+parser.add_argument('--host', type=str, default="127.0.0.1", help='Name of host where this app shall run.')
+parser.add_argument('--port', type=int, default=8003, help='Name of port where this app shall run.')
+parser.add_argument('--logs-dir', type=str, default="./logs", help='Path to directory within which logs shall be saved.')
+args = parser.parse_args()
 
-    # Set up logger.
-    configure_logger(args.logs_dir)
+# Set up logger.
+configure_logger(args.logs_dir)
 
-    # Set up ETL Tasks DB.
-    HOST = args.host
-    PORT = args.port
-    DB_MANAGER = ETLDataBaseManager(db_name=args.db_name, db_path=args.db_path)
+# Set up ETL Tasks DB.
+HOST = args.host
+PORT = args.port
+DB_MANAGER = ETLDataBaseManager(db_name=args.db_name, db_path=args.db_path)
 
-    uvicorn.run(app, host=args.host, port=args.port)
+uvicorn.run(app, host=args.host, port=args.port)
