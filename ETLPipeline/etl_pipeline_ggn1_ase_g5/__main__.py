@@ -1,5 +1,6 @@
 import os
 import time
+import signal
 import atexit
 import uvicorn
 import schedule
@@ -9,8 +10,6 @@ import logging.config
 from fastapi import FastAPI
 from .utility import base64decode_obj
 from .etl_db_manager import ETLDataBaseManager
-
-__version__ = "0.1.0"
 
 # Global variables.
 DB_MANAGER = None
@@ -138,19 +137,21 @@ def delete_task(task_name: str):
     """
     global DB_MANAGER
     global SCHEDULED_JOBS
-    response = {'status': 200, 'message': f'', 'data':[]}
+    response = {'status': 200, 'message': '', 'data':[]}
     try:
-        stop_task(task_name)
-        DB_MANAGER.delete_task(name=task_name)
-        del(SCHEDULED_JOBS[task_name])
-        print(f"Task {task_name} deleted.")
-        response['status'] = 200
-        response['message'] = f"Success. Task {task_name} deleted."
+        if (task_name in SCHEDULED_JOBS):
+            print('Task "{task_name}" is scheduled. Please stop it before deleting.')
+            response['status'] = 400
+            response['message'] = f'Task "{task_name}" is scheduled. Please stop it before deleting.'
+        else:
+            DB_MANAGER.delete_task(name=task_name)
+            print(f'If the task "{task_name}" existed, it has been deleted.')
+            response['status'] = 200
+            response['message'] = f'Success. If the task "{task_name}" existed, it has been deleted.'
     except Exception as e:
-        logger.error(f"Failure. Could not delete task {task_name} due to {e}.")
+        logger.error(f'Failure. Could not delete task "{task_name}" due to {e}.')
         response['status'] = 400
-        response['message'] = f"Failure. Could not delete task {task_name} due to {e}."
-    response["message"] = f"Success. Deleted task {task_name}."
+        response['message'] = f'Failure. Could not delete task "{task_name}" due to {e}.'
     return response
 
 @app.get("/task/")
@@ -175,11 +176,11 @@ def read_task(task_name:str, fields:str=''):
     try:
         task = DB_MANAGER.read_task(name=task_name, fields=fields)
         response["data"] = task
-        response["message"] = f"Success. Retrieved task {task_name}."
+        response["message"] = f'Success. Retrieved task "{task_name}".'
     except Exception as e:
-        logger.error(f"Failure. Could not get task {task_name} due to {e}.")
+        logger.error(f'Failure. Could not get task "{task_name}" due to {e}.')
         response['status'] = 400
-        response['message'] = f"Failure. Could not get task {task_name} due to {e}."
+        response['message'] = f'Failure. Could not get task "{task_name}" due to {e}.'
     return response
 
 @app.get("/task/all/")
@@ -222,11 +223,11 @@ def update_task(task_name: str, new_values: dict):
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
         DB_MANAGER.update_task(name=task_name, new_values=new_values)
-        response["message"] = f"Success. Status of task {task_name} updated with new values {new_values}."
+        response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
     except Exception as e:
-        logger.error(f"Failure. Could not update status of task {task_name} due to {e}.")
+        logger.error(f'Failure. Could not update status of task "{task_name}" due to {e}.')
         response['status'] = 400
-        response['message'] = f"Failure. Could not update status of task {task_name} due to {e}."
+        response['message'] = f'Failure. Could not update status of task "{task_name}" due to {e}.'
     return response
 
 @app.put("/task/stop/")
@@ -242,14 +243,17 @@ def stop_task(task_name: str):
         if task_name in SCHEDULED_JOBS:
             schedule.cancel_job(job=SCHEDULED_JOBS[task_name])
             DB_MANAGER.update_task(name=task_name, new_values={'status': 'stopped'})
-            print(f"Task {task_name} stopped.")
+            del SCHEDULED_JOBS[task_name]
+            print(f'Task "{task_name}" stopped.')
             response['message'] = 'Success. Task has been stopped.'
+        else:
+            print(f'Task "{task_name}" is not running or scheduled.')
+            response['message'] = f'Task "{task_name}" is not running or scheduled.'
     except Exception as e:
-        logger.error(f"Failure. Could not stop task {task_name} due to {e}.")
-        print(f"Task {task_name} could not be stopped.")
+        logger.error(f'Failure. Could not stop task "{task_name}" due to {e}.')
+        print(f'Task "{task_name}" could not be stopped.')
         response['status'] = 400
-        response['message'] = f"Failure. Could not stop task {task_name} due to {e}."
-    response["message"] = f"Success. Task {task_name} has been stopped."
+        response['message'] = f'Failure. Could not stop task "{task_name}" due to {e}.'
     return response
 
 @app.get("/start_scheduler/")
@@ -321,6 +325,19 @@ def start_task(task_name:str):
         response['status'] = 400
         response["message"] = f"Failed to start task '{task_name}' due to {e}."
     return response
+
+@app.get("/end")
+def end_process():
+    """
+    This function ends the program gracefully.
+    """
+    global SCHEDULER_RUNNING
+    print("Shutting down ...")
+    if SCHEDULER_RUNNING:
+        SCHEDULER_RUNNING = False
+    time.sleep(1)
+    print("Bye :)")
+    os.kill(os.getpid(), signal.SIGINT)
 
 parser = argparse.ArgumentParser(description='ETL Pipeline argument parser. Please input path to the data base containing ETLTask status and its name.')
 parser.add_argument('--db-name', type=str, default='db_etl', help='Name of the data base.')
