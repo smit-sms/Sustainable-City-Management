@@ -83,7 +83,7 @@ function EnergyUsageMap() {
   const [weatherData, setWeatherData] = useState(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [modifiedLayers, setModifiedLayers] = useState(new Set());
-  
+
   // Function to fetch weather data
   const fetchWeatherData = async () => {
     try {
@@ -98,7 +98,7 @@ function EnergyUsageMap() {
       setPowerPlantsData({ ...powerPlantsData, features: updatedPowerPlants });
       
     } catch (error) {
-      toast.error('Failed to fetch weather data, please try again');
+      toast.error('Failed to fetch weather data, please try again',{containerId:'TR'});
       // console.error("Failed to fetch weather data", error);
     }
   };
@@ -121,6 +121,40 @@ function EnergyUsageMap() {
     );
   }, [powerPlantsData]); // The effect depends on powerPlantsData
   
+
+  function Energy_recomendation(){
+    const calculateAndSetEnergySurplus = () => {
+      let overExertion=false;
+      powerPlantsData.features.map((feature, index) => {
+      const currentOutput = parseFloat(feature.properties['Active Production']);
+      const currentRunningPercentage=((currentOutput / feature.properties['Total Capacity (MW)']) * 100).toFixed(2);
+      if(currentRunningPercentage>80){
+        overExertion=true;
+      }});
+
+      const totalActiveProduction = powerPlantsData.features.reduce((acc, feature) => acc + parseFloat(feature.properties['Active Production']), 0);
+      const baselineRequirement = powerPlants.features.reduce((acc, feature) => acc + parseFloat(feature.properties['Active Production']), 0);
+      const energySurplus = totalActiveProduction - baselineRequirement; 
+     
+
+      // Determine the message based on the energy surplus
+      let message = '';
+      if (energySurplus > 0 && overExertion) {
+        message = `Good news! There's an energy surplus of ${energySurplus.toFixed(2)} MW. You may consider lowering energy production from non-renewable resources or plants that are running over 80% of their capacity to avoid Over-exertion `;
+        toast.info(message,{containerId:'BR'});
+      } else if (energySurplus == 0 && overExertion) { //not possible due to the handleSlideChange stopping the surplus from vever going below zero
+        message = `Warning! There is power a plant that is being over-exerted. Consider distributing energy production between the other plants.`;
+        toast.error(message,{containerId:'BR'});
+      } else {
+        message = `The energy production is efficiently balanced with the overall surplus being ${energySurplus.toFixed(2)}.`;
+        toast.success(message,{containerId:'BR'});
+      }
+      
+    };
+  
+    calculateAndSetEnergySurplus();
+
+  }
   
   // State to keep track of the slider values corresponding to power plants power production
   const [sliderValues, setSliderValues] = useState(
@@ -168,7 +202,7 @@ function EnergyUsageMap() {
     } else {
       if (!showErrorToast) {
         // If the surplus is negative, prevent the slider from moving and alert the user
-        toast.error('Unable to adjust production as it would result in a negative energy surplus.');
+        toast.error('Unable to adjust production as it would result in a negative energy surplus.',{containerId:'TR'});
         setShowErrorToast(true); // Prevent further toasts for the same condition
       }
     }
@@ -248,6 +282,9 @@ function EnergyUsageMap() {
             <b>&emsp;Rainfall:  </b>{weatherData[weatherData.length - 1].rainfall}
             </>
           )}
+          <button onClick={Energy_recomendation} className="bg-red-500 text-white py-1 px-1 text-sm rounded-md cursor-pointer hover:bg-red-700">
+          Recommendations
+          </button>
         </p>
       </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -256,9 +293,13 @@ function EnergyUsageMap() {
             const previousFeature = powerPlants.features.find(prevFeature => prevFeature.properties.Name === feature.properties.Name);
             const previousOutput = previousFeature ? parseFloat(previousFeature.properties['Active Production']) : 0;
             const change = currentOutput - previousOutput;
+            const currentRunningPercentage=((currentOutput / feature.properties['Total Capacity (MW)']) * 100).toFixed(2);
+            const isOverCapacity = currentRunningPercentage > 80;
             return (
-              <div key={index} className="border p-2 rounded shadow">
-                <p className="font-semibold text-sm">{feature.properties.Name}</p>
+              <div key={index} className={`border p-2 rounded shadow ${isOverCapacity ? 'bg-red-100' : ''}`}>
+                <p className="font-semibold text-sm">{feature.properties.Name}{isOverCapacity && (
+                <span className="text-red-500 text-xl" >⚠️</span>
+                )}</p>
                 <p className="text-xs">Active Production: {feature.properties['Active Production']} MW</p>
                 <input
                   type="range"
@@ -269,7 +310,7 @@ function EnergyUsageMap() {
                   onChange={(event) => handleSliderChange(event, feature.properties.Name)}
                   className="w-full" />
                 <div className="text-xs">
-                  Current running capacity: {((currentOutput / feature.properties['Total Capacity (MW)']) * 100).toFixed(2)} %
+                  Current % of capacity: {currentRunningPercentage} %
                   <br />
                   Surplus: {change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2)} MWh
                 </div>
@@ -308,7 +349,8 @@ function EnergyUsageMap() {
           Reset
         </button>
       </div>
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer containerId={'TR'} position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer containerId={'BR'} position="bottom-right" autoClose={8000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} theme="colored" pauseOnFocusLoss draggable pauseOnHover />
     </div></>
   );
 }
