@@ -142,7 +142,7 @@ function EnergyUsageMap() {
       if (energySurplus > 0 && overExertion) {
         message = `Good news! There's an energy surplus of ${energySurplus.toFixed(2)} MW. You may consider lowering energy production from non-renewable resources or plants that are running over 80% of their capacity to avoid Over-exertion `;
         toast.info(message,{containerId:'BR'});
-      } else if (energySurplus == 0 && overExertion) { //not possible due to the handleSlideChange stopping the surplus from vever going below zero
+      } else if (energySurplus == 0 && overExertion) {
         message = `Warning! There is power a plant that is being over-exerted. Consider distributing energy production between the other plants.`;
         toast.error(message,{containerId:'BR'});
       } else {
