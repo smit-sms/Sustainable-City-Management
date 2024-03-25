@@ -123,10 +123,10 @@ def create_task(task_str:str):
         SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
-        delete_task(task.name) # Remove partially correct entered task.
+        # delete_task(task.name) # Remove partially correct entered task.
         response['status'] = 400
-        logger.error(f"Failure. Could not create task due to {e}.")
-        response['message'] = f"Failure. Could not create task due to {e}."
+        logger.error(f'Failure. Could not create task due to "{e}".')
+        response['message'] = f'Failure. Could not create task due to "{e}".'
     return response
 
 @app.delete("/task/")
@@ -149,9 +149,9 @@ def delete_task(task_name: str):
             response['status'] = 200
             response['message'] = f'Success. If the task "{task_name}" existed, it has been deleted.'
     except Exception as e:
-        logger.error(f'Failure. Could not delete task "{task_name}" due to {e}.')
+        logger.error(f'Failure. Could not delete task "{task_name}" due to "{e}".')
         response['status'] = 400
-        response['message'] = f'Failure. Could not delete task "{task_name}" due to {e}.'
+        response['message'] = f'Failure. Could not delete task "{task_name}" due to "{e}".'
     return response
 
 @app.get("/task/")
@@ -178,9 +178,9 @@ def read_task(task_name:str, fields:str=''):
         response["data"] = task
         response["message"] = f'Success. Retrieved task "{task_name}".'
     except Exception as e:
-        logger.error(f'Failure. Could not get task "{task_name}" due to {e}.')
+        logger.error(f'Failure. Could not get task "{task_name}" due to "{e}".')
         response['status'] = 400
-        response['message'] = f'Failure. Could not get task "{task_name}" due to {e}.'
+        response['message'] = f'Failure. Could not get task "{task_name}" due to "{e}".'
     return response
 
 @app.get("/task/all/")
@@ -204,9 +204,9 @@ def read_all_tasks():
             })
         response["message"] = f"Success. Retrieved tasks."
     except Exception as e:
-        logger.error(f"Failure. Could not get tasks due to {e}.")
+        logger.error(f'Failure. Could not get tasks due to "{e}".')
         response['status'] = 400
-        response['message'] = f"Failure. Could not get tasks due to {e}."
+        response['message'] = f'Failure. Could not get tasks due to "{e}".'
     return response
 
 @app.put("/task/")
@@ -225,9 +225,9 @@ def update_task(task_name: str, new_values: dict):
         DB_MANAGER.update_task(name=task_name, new_values=new_values)
         response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
     except Exception as e:
-        logger.error(f'Failure. Could not update status of task "{task_name}" due to {e}.')
+        logger.error(f'Failure. Could not update status of task "{task_name}" due to "{e}".')
         response['status'] = 400
-        response['message'] = f'Failure. Could not update status of task "{task_name}" due to {e}.'
+        response['message'] = f'Failure. Could not update status of task "{task_name}" due to "{e}".'
     return response
 
 @app.put("/task/stop/")
@@ -250,10 +250,10 @@ def stop_task(task_name: str):
             print(f'Task "{task_name}" is not running or scheduled.')
             response['message'] = f'Task "{task_name}" is not running or scheduled.'
     except Exception as e:
-        logger.error(f'Failure. Could not stop task "{task_name}" due to {e}.')
+        logger.error(f'Failure. Could not stop task "{task_name}" due to "{e}".')
         print(f'Task "{task_name}" could not be stopped.')
         response['status'] = 400
-        response['message'] = f'Failure. Could not stop task "{task_name}" due to {e}.'
+        response['message'] = f'Failure. Could not stop task "{task_name}" due to "{e}".'
     return response
 
 @app.get("/start_scheduler/")
@@ -274,9 +274,9 @@ def start_scheduler():
             response["status"] = 200
             response["message"] = f"Scheduler started."
     except Exception as e:
-        response["message"] = f"Scheduler could not be started due to {e}."
+        response["message"] = f'Scheduler could not be started due to "{e}".'
         response["status"] = 400
-        response["message"] = f"Scheduler could not be started due to {e}."
+        response["message"] = f'Scheduler could not be started due to "{e}".'
     return response
 
 @app.get("/stop_scheduler/")
@@ -295,9 +295,9 @@ def stop_scheduler():
             print("Scheduler stopped.")
             response["message"] = "Scheduler stopped."
     except Exception as e:
-        logger.log(f"Scheduler could not be stopped due to {e}.")
+        logger.log(f'Scheduler could not be stopped due to "{e}".')
         response["status"] = 400
-        response["message"] = f"Scheduler could not be stopped due to {e}."
+        response["message"] = f'Scheduler could not be stopped due to "{e}".'
     return response
 
 @app.put("/task/start")
@@ -321,9 +321,9 @@ def start_task(task_name:str):
                 print(f'Started task "{task_name}".')
         response['status'] = 200
     except Exception as e:
-        logger.error(f"Failed to start task '{task_name}' due to {e}.")
+        logger.error(f'Failed to start task "{task_name}" due to "{e}".')
         response['status'] = 400
-        response["message"] = f"Failed to start task '{task_name}' due to {e}."
+        response["message"] = f'Failed to start task "{task_name}" due to "{e}".'
     return response
 
 @app.get("/end")
