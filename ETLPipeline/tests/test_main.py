@@ -264,7 +264,7 @@ class TestETLPipeline(unittest.TestCase):
         self.assertEqual(response['status'], 200)
         self.assertIn("started", response['message'])
 
-    def test_06_delete_task(self):
+    def test_07_delete_task(self):
         """ 
         This test checks status of the task deletion
         endpoint. Both success and failure case.
