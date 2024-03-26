@@ -228,8 +228,24 @@ def update_task(task_name: str, new_values: dict):
     """
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
-        DB_MANAGER.update_task(name=task_name, new_values=new_values)
-        response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
+        # Only status, num_runs, time_run_last_start, 
+        # and time_run_last_end can be changed without 
+        # the "is stopped" check since this is 
+        # programmatically invoked.
+        if ((
+            'name' in new_values or
+            'repeat_time_unit' in new_values or
+            'repeat_interval' in new_values or
+            'fun_data_load' in new_values or
+            'fun_data_transform' in new_values or
+            'fun_data_save' in new_values
+        ) and task_name in SCHEDULED_JOBS): 
+            print('Task "{task_name}" is scheduled. Please stop it before updating.')
+            response['status'] = 400
+            response['message'] = f'Task "{task_name}" is scheduled. Please stop it before updating.'
+        else:
+            DB_MANAGER.update_task(name=task_name, new_values=new_values)
+            response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
     except Exception as e:
         logger.error(f'Failure. Could not update status of task "{task_name}" due to "{e}".')
         response['status'] = 400

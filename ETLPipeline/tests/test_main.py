@@ -141,6 +141,41 @@ class TestETLPipeline(unittest.TestCase):
         Tests API endpoint that facilitate 
         updating a task.
         """
+        # Failure case.
+        # Trying to update a task that is not stopped
+        # should result in a response that prompts for this.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task",
+            task_name="task2",
+            data={
+                "repeat_time_unit": "seconds", 
+                "repeat_interval": "5"
+            }
+        ).json()
+        self.assertEqual(response['status'], 400)
+        self.assertIn("Please stop", response['message'])
+
+        # Stop task.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task/stop",
+            task_name="task2"
+        ).json()
+        self.assertEqual(response['status'], 200)
+        self.assertIn("stopped", response['message'])
+
+        # Failure case.
+        # If an invalid field is tried to be updated, then
+        # a failure occurs.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task",
+            task_name="task2",
+            data={
+                "invalid_field": "invalid_field", 
+            }
+        ).json()
+        self.assertEqual(response['status'], 400)
+        self.assertIn("Failure.", response['message'])
+
         # Success case.
         response = make_put_request(
             url="http://127.0.0.1:8003/task",
@@ -151,18 +186,13 @@ class TestETLPipeline(unittest.TestCase):
             }
         ).json()
         self.assertEqual(response['status'], 200)
-        self.assertIn("Success.", response['message'])
-
-        # Failure case.
+        self.assertIn("Success", response['message'])
         response = make_put_request(
-            url="http://127.0.0.1:8003/task",
-            task_name="task2",
-            data={
-                "invalid_field": "invalid_field", 
-            }
+            url="http://127.0.0.1:8003/task/start",
+            task_name="task2"
         ).json()
-        self.assertEqual(response['status'], 400)
-        self.assertIn("Failure.", response['message'])
+        self.assertEqual(response['status'], 200)
+        self.assertIn("Started", response['message'])
 
     def test_05_task_start_stop(self):
         """ 
