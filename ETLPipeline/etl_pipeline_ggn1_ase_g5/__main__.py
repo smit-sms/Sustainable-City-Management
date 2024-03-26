@@ -114,6 +114,7 @@ def create_task(task_str:str):
     @return: Response to request.
     """
     response = {'status': 200, 'message': f'', 'data':[]}
+    task = None
     try:
         if SCHEDULER_RUNNING == False:
             start_scheduler()
@@ -123,10 +124,10 @@ def create_task(task_str:str):
         SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
-        # delete_task(task.name) # Remove partially correct entered task.
+        delete_task(task.name) # Remove partially correct entered task.
         response['status'] = 400
         logger.error(f'Failure. Could not create task due to "{e}".')
-        response['message'] = f'Failure. Could not create task due to "{e}".'
+        response['message'] = f'Failure. Could not create task "{task.name}" due to "{e}".'
     return response
 
 @app.delete("/task/")
@@ -169,14 +170,19 @@ def read_task(task_name:str, fields:str=''):
             "name", "fun_data_load", "fun_data_save",
             "repeat_time_unit", "repeat_interval", 
             "time_run_last_start", "time_run_last_end", 
-            "num_runs", "status", "config"
+            "num_runs", "status"
         ]
     else:
         fields = fields.split(' ')
     try:
         task = DB_MANAGER.read_task(name=task_name, fields=fields)
-        response["data"] = task
-        response["message"] = f'Success. Retrieved task "{task_name}".'
+        if (type(task) == int and task == -1):
+            response['status'] = 200
+            response["message"] = f'Success. No such task as "{task_name}".'
+        else:
+            response['status'] = 200
+            response["data"] = task
+            response["message"] = f'Success. Retrieved task "{task_name}".'
     except Exception as e:
         logger.error(f'Failure. Could not get task "{task_name}" due to "{e}".')
         response['status'] = 400
@@ -230,6 +236,39 @@ def update_task(task_name: str, new_values: dict):
         response['message'] = f'Failure. Could not update status of task "{task_name}" due to "{e}".'
     return response
 
+@app.put("/task/start")
+def start_task(task_name:str):
+    """ 
+    Pass in names of modules that need to be imported. 
+    @param modules: List of strings of module names.
+    """
+    global SCHEDULED_JOBS
+    global HOST
+    global PORT
+    response = {"status": 200, "message": ""}
+    try:
+        if SCHEDULER_RUNNING == False:
+            start_scheduler()
+        tasks = DB_MANAGER.load_tasks(filters={'name':task_name})
+        if len(tasks) == 0:
+            response["message"] = f"No such task as '{task_name}'."
+            print(f"No such task as '{task_name}'.")
+        else:
+            for task in tasks:
+                if task.status == 'stopped':
+                    job = task.schedule(schedule=schedule, host=HOST, port=PORT)
+                    SCHEDULED_JOBS[task.name] = job
+                    response["message"] += f"Started task '{task_name}'. "
+                    print(f'Started task "{task_name}".')
+                else:
+                    response["message"] += f"Task '{task_name}' is already scheduled/running. "
+                    print(f"Task '{task_name}' is already scheduled.")
+    except Exception as e:
+        logger.error(f'Failed to start task "{task_name}" due to "{e}".')
+        response['status'] = 400
+        response["message"] = f'Failed to start task "{task_name}" due to "{e}".'
+    return response
+
 @app.put("/task/stop/")
 def stop_task(task_name: str):
     """
@@ -256,7 +295,7 @@ def stop_task(task_name: str):
         response['message'] = f'Failure. Could not stop task "{task_name}" due to "{e}".'
     return response
 
-@app.get("/start_scheduler/")
+@app.get("/scheduler/start/")
 def start_scheduler():
     """ Start the task scheduler thread. """
     global SCHEDULER_RUNNING
@@ -279,12 +318,12 @@ def start_scheduler():
         response["message"] = f'Scheduler could not be started due to "{e}".'
     return response
 
-@app.get("/stop_scheduler/")
+@app.get("/scheduler/stop/")
 def stop_scheduler():
     """ Stop the task scheduler. """
     global SCHEDULER_RUNNING
     response = {"status": 200, "message": "", "data":[]}
-    try: # Start the scheduler in a separate thread.
+    try:
         if SCHEDULER_RUNNING == False:
             response["status"] = 200
             print("Scheduler is not running.")
@@ -298,32 +337,6 @@ def stop_scheduler():
         logger.log(f'Scheduler could not be stopped due to "{e}".')
         response["status"] = 400
         response["message"] = f'Scheduler could not be stopped due to "{e}".'
-    return response
-
-@app.put("/task/start")
-def start_task(task_name:str):
-    """ 
-    Pass in names of modules that need to be imported. 
-    @param modules: List of strings of module names.
-    """
-    global SCHEDULED_JOBS
-    global HOST
-    global PORT
-    response = {"status": 200, "message": ""}
-    try:
-        print('Started existing scheduled tasks.')
-        if SCHEDULER_RUNNING == False:
-            start_scheduler()
-        for task in DB_MANAGER.load_tasks(filters={'name':task_name}):
-            if task.status == 'stopped':
-                task.schedule(schedule=schedule, host=HOST, port=PORT)
-                response["message"] += f"Started task '{task_name}'. "
-                print(f'Started task "{task_name}".')
-        response['status'] = 200
-    except Exception as e:
-        logger.error(f'Failed to start task "{task_name}" due to "{e}".')
-        response['status'] = 400
-        response["message"] = f'Failed to start task "{task_name}" due to "{e}".'
     return response
 
 @app.get("/end")

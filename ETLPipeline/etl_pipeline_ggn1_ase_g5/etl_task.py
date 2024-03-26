@@ -16,8 +16,7 @@ class ETLTask:
         num_runs:int=0,
         time_run_last_start:datetime=None,
         time_run_last_end:datetime=None,
-        status:str="scheduled",
-        config:dict={}
+        status:str="scheduled"
     ):
         """ 
         Constructor. 
@@ -31,7 +30,6 @@ class ETLTask:
         @param num_runs: No. of times this function has run.
         @param time_run_last_start: Last time at which this function started running.
         @param time_run_last_end: Last time this function finished running.
-        @param config: Data extract/transform configurations.
         """
         self.name = name
         self.repeat_time_unit = repeat_time_unit
@@ -43,7 +41,6 @@ class ETLTask:
         self.fun_data_load = fun_data_load
         self.fun_data_save = fun_data_save
         self.fun_data_transform = fun_data_transform
-        self.config = config
 
     def run(self, url:str):
         """ 
@@ -66,7 +63,7 @@ class ETLTask:
         # Run the load data function.
         data = self.fun_data_load()
 
-        # Apply transformations as per data config.
+        # Apply transformations.
         data = self.fun_data_transform(data)
             
         # Run the save data function.

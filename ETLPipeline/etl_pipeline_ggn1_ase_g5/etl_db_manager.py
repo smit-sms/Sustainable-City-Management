@@ -45,7 +45,6 @@ def process_value_from_db(t:tuple, fields=List[str]):
             'fun_data_load', 
             'fun_data_transform', 
             'fun_data_save', 
-            'config'
         ]: # Stored as BLOB.
             to_return[field] = base64.b64encode(value).decode('utf-8')
         elif field in [ # Stored as datetime iso string.
@@ -93,8 +92,7 @@ class ETLDataBaseManager:
                 time_run_last_start DATETIME,
                 time_run_last_end DATETIME,
                 num_runs INTEGER NOT NULL,
-                status TINYTEXT NOT NULL,
-                config BLOB NOT NULL
+                status TINYTEXT NOT NULL
             )''')
         except Exception as e:
             print(f"Oops. Something went wrong :( . Error: {e}.")
@@ -146,10 +144,9 @@ class ETLDataBaseManager:
                 repeat_time_unit,
                 repeat_interval,
                 status,
-                config,
                 num_runs
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?); 
         """, params=[
             process_value_for_db(task.name),
             process_value_for_db(task.fun_data_load),
@@ -158,7 +155,6 @@ class ETLDataBaseManager:
             process_value_for_db(task.repeat_time_unit),
             process_value_for_db(task.repeat_interval),
             process_value_for_db(task.status),
-            process_value_for_db(task.config),
             process_value_for_db(task.num_runs),
         ])
 
@@ -166,7 +162,7 @@ class ETLDataBaseManager:
         "name", "fun_data_load", "fun_data_transform", 
         "fun_data_save", "repeat_time_unit", "repeat_interval", 
         "time_run_last_start", "time_run_last_end", 
-        "num_runs", "status", "config"
+        "num_runs", "status"
     ]):
         """
         Returns the task in the DB with given name if it exists. 
@@ -178,7 +174,10 @@ class ETLDataBaseManager:
         task_details = self.query(
             f"SELECT {','.join(fields)} FROM etl_tasks WHERE name='{name}';", 
             is_get=True
-        )[0]
+        )
+        # If such a task does not exist, return -1.
+        if len(task_details) == 0: return -1
+        task_details = task_details[0]
         task_details = process_value_from_db(
             t=task_details, 
             fields=fields
@@ -251,7 +250,6 @@ class ETLDataBaseManager:
                 time_run_last_start=td[6],
                 time_run_last_end=td[7],
                 num_runs=td[8],
-                status=td[9],
-                config=td[10]
+                status=td[9]
             ))
         return tasks
