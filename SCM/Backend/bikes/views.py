@@ -2,10 +2,10 @@ import time
 import pytz
 import json
 import requests
-from .models import Snapshot
 from datetime import datetime
 from django.views import View
 from django.http import JsonResponse
+from .models import Snapshot, Station
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -14,6 +14,55 @@ class ViewSnapshot(View):
     response_message = ''
     response_status = 200
     response_data = []
+
+    def get(self, request):
+        """
+        Gets data from the bikes_snapshot table in the DB.
+        @param request: Requests of the form {
+            'station_id': <int>,
+            'time_start': <datetime>,
+            'time_end': <datetime>
+        }
+        @return response: 
+        """
+        # Get station ID, start and end time from the request.
+        station_id = request.GET.get('station_id')
+        time_start = datetime.strptime(
+            request.GET.get('time_start'), "%Y-%m-%d %H:%M:%S"
+        ).replace(tzinfo=pytz.timezone('GMT'))
+        time_end = datetime.strptime(
+            request.GET.get('time_end'), "%Y-%m-%d %H:%M:%S"
+        ).replace(tzinfo=pytz.timezone('GMT'))
+        # Try to get the requested station.
+        station = Station.objects.filter(id=station_id).first()
+        if (station != None): # If requested station does exist, then ...
+            try: # Try to fetch data from the database related to this station.
+                self.response_data = list(Snapshot.objects.filter(
+                    station_id=station.id,
+                    last_update__gte=time_start, # Inclusive.
+                    last_update__lt=time_end # Exclusive.
+                ).values()) # Return data of requested sensor only.
+                self.response_message = (
+                    "Success. Data fetched from DB "
+                    + f"for bike station {station_id}."
+                )
+                self.response_status = 200
+            except Exception as e: # In case of fetching error ...
+                self.response_message= (
+                    "Failure. Could not fetch data from DB for "
+                    + f"bike station {station_id} due to '{e}'."
+                )
+                self.response_status = 400
+                self.self.response_data = []
+        else: # If requested sensor does not exist, then ...
+            self.response_data = []
+            self.response_status = 400
+            self.response_message = f"Failure. Invalid bike station '{station_id}'."
+
+        return JsonResponse({
+            'message': self.response_message,
+            'data': self.response_data
+        } , status=self.response_status, safe=True)
 
     def post(self, request):
         """ 
