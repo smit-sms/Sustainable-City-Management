@@ -7,6 +7,7 @@ import schedule
 import argparse
 import threading
 import logging.config
+from threading import Event
 from fastapi import FastAPI
 from .utility import base64decode_obj
 from .etl_db_manager import ETLDataBaseManager
@@ -100,7 +101,9 @@ def start_tasks():
     if SCHEDULER_RUNNING == False:
         start_scheduler()
     for task in DB_MANAGER.load_tasks(filters={'status':'scheduled'}):
-        task.schedule(schedule=schedule, host=HOST, port=PORT)
+        if not task.name in SCHEDULED_JOBS:
+            job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
+            SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
 
 # Initialize FastAPI app.
 app = FastAPI()
@@ -120,11 +123,15 @@ def create_task(task_str:str):
             start_scheduler()
         task = base64decode_obj(task_str) # Get ETL Task from base64 encoded string.
         DB_MANAGER.create_task(task) # Add task into DB.
-        job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
-        SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
+        if not task.name in SCHEDULED_JOBS:
+            job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
+            SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
-        delete_task(task.name) # Remove partially correct entered task.
+        response = read_task(task.name, fields='status')
+        if 'data' in response and response['data']['status'] == 'running':
+            stop_task(task.name) # Stop this task if running/scheduled and then delete.
+            delete_task(task.name) # Remove partially correct entered task.
         response['status'] = 400
         logger.error(f'Failure. Could not create task due to "{e}".')
         response['message'] = f'Failure. Could not create task "{task.name}" due to "{e}".'
@@ -141,7 +148,7 @@ def delete_task(task_name: str):
     response = {'status': 200, 'message': '', 'data':[]}
     try:
         if (task_name in SCHEDULED_JOBS):
-            print('Task "{task_name}" is scheduled. Please stop it before deleting.')
+            print(f'Task "{task_name}" is scheduled. Please stop it before deleting.')
             response['status'] = 400
             response['message'] = f'Task "{task_name}" is scheduled. Please stop it before deleting.'
         else:
@@ -228,8 +235,24 @@ def update_task(task_name: str, new_values: dict):
     """
     response = {'status': 200, 'message': f'', 'data':[]}
     try:
-        DB_MANAGER.update_task(name=task_name, new_values=new_values)
-        response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
+        # Only status, num_runs, time_run_last_start, 
+        # and time_run_last_end can be changed without 
+        # the "is stopped" check since this is 
+        # programmatically invoked.
+        if ((
+            'name' in new_values or
+            'repeat_time_unit' in new_values or
+            'repeat_interval' in new_values or
+            'fun_data_load' in new_values or
+            'fun_data_transform' in new_values or
+            'fun_data_save' in new_values
+        ) and task_name in SCHEDULED_JOBS): 
+            print(f'Task "{task_name}" is scheduled. Please stop it before updating.')
+            response['status'] = 400
+            response['message'] = f'Task "{task_name}" is scheduled. Please stop it before updating.'
+        else:
+            DB_MANAGER.update_task(name=task_name, new_values=new_values)
+            response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
     except Exception as e:
         logger.error(f'Failure. Could not update status of task "{task_name}" due to "{e}".')
         response['status'] = 400
@@ -255,7 +278,7 @@ def start_task(task_name:str):
             print(f"No such task as '{task_name}'.")
         else:
             for task in tasks:
-                if task.status == 'stopped':
+                if task.status == 'stopped' and not task.name in SCHEDULED_JOBS:
                     job = task.schedule(schedule=schedule, host=HOST, port=PORT)
                     SCHEDULED_JOBS[task.name] = job
                     response["message"] += f"Started task '{task_name}'. "
@@ -305,7 +328,7 @@ def start_scheduler():
             response["status"] = 200
             print('Scheduler is already running.')
             response['message'] = 'Scheduler is already running.'
-        else:
+        else: # SCHEDULER is not running
             SCHEDULER_RUNNING = True
             threading.Thread(target=run_scheduler).start()
             start_tasks()
@@ -316,6 +339,7 @@ def start_scheduler():
         response["message"] = f'Scheduler could not be started due to "{e}".'
         response["status"] = 400
         response["message"] = f'Scheduler could not be started due to "{e}".'
+    print('[DEBUG] start_scheduler(...): # ACTIVE THREADS =', threading.active_count())
     return response
 
 @app.get("/scheduler/stop/")
@@ -337,6 +361,7 @@ def stop_scheduler():
         logger.log(f'Scheduler could not be stopped due to "{e}".')
         response["status"] = 400
         response["message"] = f'Scheduler could not be stopped due to "{e}".'
+    print('[DEBUG] stop_scheduler(...): # ACTIVE THREADS =', threading.active_count())
     return response
 
 @app.get("/end")

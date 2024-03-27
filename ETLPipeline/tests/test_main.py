@@ -1,4 +1,5 @@
 import time
+import threading
 import unittest
 import requests
 from etl_pipeline_ggn1_ase_g5 import ETLTask, base64encode_obj
@@ -39,14 +40,14 @@ class TestETLPipeline(unittest.TestCase):
         # Fails because save function tried to save
         # data to a path that does not exist.
         # Such faults with provided functions should
-        # through errors and also ensure that partially
+        # throw errors and also ensure that partially
         # processed tasks are not in the DB.
         task_failure = ETLTask(
             name="task2",
             fun_data_load=load_toy_data,
             fun_data_transform=transform_toy_data,
             fun_data_save=save_toy_data_fail,
-            repeat_time_unit='minutes',
+            repeat_time_unit='seconds',
             repeat_interval=1
         )
         task_str = base64encode_obj(task_failure)
@@ -69,7 +70,7 @@ class TestETLPipeline(unittest.TestCase):
             fun_data_load=load_toy_data,
             fun_data_transform=transform_toy_data,
             fun_data_save=save_toy_data,
-            repeat_time_unit='minutes',
+            repeat_time_unit='seconds',
             repeat_interval=1
         )
         task_str = base64encode_obj(task_success)
@@ -141,6 +142,41 @@ class TestETLPipeline(unittest.TestCase):
         Tests API endpoint that facilitate 
         updating a task.
         """
+        # Failure case.
+        # Trying to update a task that is not stopped
+        # should result in a response that prompts for this.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task",
+            task_name="task2",
+            data={
+                "repeat_time_unit": "seconds", 
+                "repeat_interval": "5"
+            }
+        ).json()
+        self.assertEqual(response['status'], 400)
+        self.assertIn("Please stop", response['message'])
+
+        # Stop task.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task/stop",
+            task_name="task2"
+        ).json()
+        self.assertEqual(response['status'], 200)
+        self.assertIn("stopped", response['message'])
+
+        # Failure case.
+        # If an invalid field is tried to be updated, then
+        # a failure occurs.
+        response = make_put_request(
+            url="http://127.0.0.1:8003/task",
+            task_name="task2",
+            data={
+                "invalid_field": "invalid_field", 
+            }
+        ).json()
+        self.assertEqual(response['status'], 400)
+        self.assertIn("Failure.", response['message'])
+
         # Success case.
         response = make_put_request(
             url="http://127.0.0.1:8003/task",
@@ -151,18 +187,13 @@ class TestETLPipeline(unittest.TestCase):
             }
         ).json()
         self.assertEqual(response['status'], 200)
-        self.assertIn("Success.", response['message'])
-
-        # Failure case.
+        self.assertIn("Success", response['message'])
         response = make_put_request(
-            url="http://127.0.0.1:8003/task",
-            task_name="task2",
-            data={
-                "invalid_field": "invalid_field", 
-            }
+            url="http://127.0.0.1:8003/task/start",
+            task_name="task2"
         ).json()
-        self.assertEqual(response['status'], 400)
-        self.assertIn("Failure.", response['message'])
+        self.assertEqual(response['status'], 200)
+        self.assertIn("Started", response['message'])
 
     def test_05_task_start_stop(self):
         """ 
@@ -279,13 +310,16 @@ class TestETLPipeline(unittest.TestCase):
         self.assertEqual(response['status'], 400)
         self.assertIn("stop it before deleting", response['message'])
 
-        # Success case.
+        # Stop task 1.
         response = make_put_request(
             url="http://127.0.0.1:8003/task/stop",
             task_name="task1",
         ).json()
         self.assertEqual(response['status'], 200)
         self.assertIn("stopped", response['message'])
+
+        # Success case.
+        # Delete task 1.
         response = make_delete_request(
             url="http://127.0.0.1:8003/task", 
             data={"task_name": "task1"}
@@ -293,12 +327,16 @@ class TestETLPipeline(unittest.TestCase):
         self.assertEqual(response['status'], 200)
         self.assertIn("has been deleted", response['message'])
 
+        # Stop task 2.
         response = make_put_request(
             url="http://127.0.0.1:8003/task/stop",
             task_name="task2",
         ).json()
         self.assertEqual(response['status'], 200)
         self.assertIn("stopped", response['message'])
+
+        # Success case.
+        # Delete task 2.
         response = make_delete_request(
             url="http://127.0.0.1:8003/task", 
             data={"task_name": "task2"}

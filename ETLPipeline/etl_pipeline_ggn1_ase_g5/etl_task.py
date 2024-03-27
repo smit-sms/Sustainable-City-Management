@@ -56,9 +56,7 @@ class ETLTask:
         res = requests.put(url, params={'task_name': self.name}, json={
             'status': 'running',
             'time_run_last_start': self.time_run_last_start
-        }).json()
-        if res['status'] != 200:
-            raise Exception(f"Task {self.name}. Something went wrong. {res['message']}")
+        })
         
         # Run the load data function.
         data = self.fun_data_load()
@@ -71,8 +69,9 @@ class ETLTask:
         
         # Getting no. of times this task has run so far, from the DB.
         res = requests.get(url, params={'task_name': self.name, 'fields': 'num_runs'}).json()
-        if res['status'] != 200:
-            raise Exception(f"Task {self.name}. Something went wrong. {res['message']}")
+        
+        # # Proceed only if task exists.
+        # if not "No such task" in res['message']:
         
         # Changing task status from scheduled to running as task
         # starts running. Also, time at which this task started 
@@ -83,9 +82,7 @@ class ETLTask:
             'status': 'scheduled',
             'time_run_last_end': self.time_run_last_end,
             'num_runs': res['data']['num_runs'] + 1
-        }).json()
-        if res['status'] != 200:
-            raise Exception(f"Task {self.name}. Something went wrong. {res['message']}")
+        })
 
     def schedule(self, schedule:schedule, host:str, port:int):
         """ 
