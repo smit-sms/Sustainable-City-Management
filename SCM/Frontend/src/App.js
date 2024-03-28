@@ -10,7 +10,7 @@ import {
 import LoginPage from "./Components/LoginPage";
 import RegisterPage from "./Components/RegisterPage";
 import BikeMap from "./Components/BikeMap";
-import NoisePollutionMap from './Components/NoisePollutionMap';
+import NoisePollutionMap from "./Components/NoisePollutionMap";
 // import HomePage from './Components/HomePage';
 import BusPage from "./Components/BusPage";
 import EnergyUsageMap from "./Components/EnergyUsageMap";
@@ -142,22 +142,23 @@ function LayoutWithSidebar() {
 }
 
 function App() {
-  return (
-    <div>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route element={<LayoutWithSidebar />}>
-            <Route path="/bus" element={<BusPage />} />
-            <Route path="/energy" element={<EnergyUsageMap />} />
-            <Route path="/bike" element={<BikeMap />} />
+	return (
+		<div>
+			<Router>
+				<Routes>
+					<Route path="/" element={<LoginPage />} />
+					<Route path="/register" element={<RegisterPage />} />
+					<Route element={<LayoutWithSidebar />}>
+						<Route path="/bus" element={<BusPage />} />
+						<Route path="/energy" element={<EnergyUsageMap />} />
+						<Route path="/bike" element={<BikeMap />} />
+						<Route path="/noise" element={<NoisePollutionMap />} />
 						<Route path="/bins" element={<BinLocations />} />
-          </Route>
-        </Routes>
-      </Router>
-    </div>
-  );
+					</Route>
+				</Routes>
+			</Router>
+		</div>
+	);
 }
 
 export default App;
