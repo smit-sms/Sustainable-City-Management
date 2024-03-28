@@ -82,8 +82,7 @@ def make_dataframe(data, freq):
     df.reset_index(inplace=True)
     df.set_index("time", inplace=True, drop=False)
     df.index.name = None
-    df = df.asfreq(freq)
-    df = df.ffill().bfill()
+    df = df.asfreq(freq, method='pad')
     return df
 
 def decompose_time_series(data, period, model_type='additive'):
@@ -207,12 +206,19 @@ class Decomposition(View):
         """
         Post request that shall decompose given time series data
         and return it's trend, seasonal and residual components.
-        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param data: Data in the form {
+            "time":["%Y-%m-%d %H:%M:%S"...], 
+            "data":[<float>...]
+        }
         @param freq: Frequency at which time series values were collected.
+                     This must be a valid pandas library offset aliases. 
+                     Reference: https://pandas.pydata.org/pandas-docs/version/0.9.1/timeseries.html#offset-aliases
         @param period: No. of samples in a season. After how many observation would you like
                        to assume that there are repetitions?
-        @param model_type: Type of decomposition to perform ("additive", "multiplicative").
-        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        @param model_type: Type of decomposition to perform 
+                           ("additive", "multiplicative").
+        @return dict: A dictionary containing the decomposed 
+                      components (trend, seasonal, residual).
         """
         try:
             request_json = json.loads(request.body.decode('utf-8'))
@@ -222,16 +228,26 @@ class Decomposition(View):
             period = request_json['period']
             model_type = request_json['model_type']
             df = make_dataframe(data, freq)
-            self.response_data = decompose_time_series(data=df.data, period=period, model_type=model_type)
-            self.response_data['time'] = df.time.apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
-            self.response_message = f'Success. Extracted trend, seasonal and residual components.'
-        except Exception as e:
-            self.response_message = f"Failure. {e}"
-        finally:
-            return JsonResponse(
-                {'message': self.response_message, 'data': self.response_data}, 
-                status=self.response_status, safe=True
+            self.response_data = decompose_time_series(
+                data=df.data, 
+                period=period, 
+                model_type=model_type
             )
+            self.response_data['time'] = df.time.apply(
+                lambda x: x.strftime('%Y-%m-%d %H:%M:%S')
+            ).to_list()
+            self.response_message = (
+                "Success. Extracted trend, seasonal"
+                + " and residual components."
+            )
+        except Exception as e:
+            self.response_status = 400
+            self.response_message = f"Failure. Could not decompose data due to '{e}'."
+        finally:
+            return JsonResponse({
+                'message': self.response_message, 
+                'data': self.response_data
+            }, status=self.response_status, safe=True)
     
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
@@ -250,9 +266,12 @@ class AdfStationarityCheck(View):
         """
         Post request that shall decompose given time series data
         and return it's trend, seasonal and residual components.
-        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param data: Data in the form {
+            "time":["%Y-%m-%d %H:%M:%S"...], 
+            "data":[<float>...]
+        }
         @param freq: Frequency at which time series values were collected.
-        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        @return dict: A dictionary containing ADF test results.
         """
         try:
             request_json = json.loads(request.body.decode('utf-8'))
@@ -262,6 +281,7 @@ class AdfStationarityCheck(View):
             self.response_data = adf_stationarity_check(data)
             self.response_message = f'Success. Augmented Dickey Fuller test complete.'
         except Exception as e:
+            self.response_status = 400
             self.response_message = f"Failure. {e}"
         finally:
             return JsonResponse(
@@ -279,9 +299,13 @@ class FirstDifference(View):
         """
         Post request that shall decompose given time series data
         and return it's trend, seasonal and residual components.
-        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param data: Data in the form {
+            "time":["%Y-%m-%d %H:%M:%S"...], 
+            "data":[<float>...]
+        }
         @param freq: Frequency at which time series values were collected.
-        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        @return dict: A dictionary containing data and time after
+                      computing first difference.
         """
         try:
             request_json = json.loads(request.body.decode('utf-8'))
@@ -290,9 +314,12 @@ class FirstDifference(View):
             freq = request_json['freq']
             df = make_dataframe(data, freq)
             self.response_data['data'] = compute_first_difference(df)
-            self.response_data['time'] = df.time.iloc[1:].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S')).to_list()
+            self.response_data['time'] = df.time.iloc[1:].apply(
+                lambda x: x.strftime('%Y-%m-%d %H:%M:%S')
+            ).to_list()
             self.response_message = f'Success. First order difference computed.'
         except Exception as e:
+            self.response_status = 400
             self.response_message = f"Failure. {e}"
         finally:
             return JsonResponse(
@@ -315,9 +342,15 @@ class AcfPacf(View):
         """
         Post request that shall decompose given time series data
         and return it's trend, seasonal and residual components.
-        @param data: Data in the form {"time":[<str>...], "data":[<float>...]}
+        @param data: Data in the form {
+            "time":["%Y-%m-%d %H:%M:%S"...], 
+            "data":[<float>...]
+        }
         @param freq: Frequency at which time series values were collected.
-        @return dict: A dictionary containing the decomposed components (trend, seasonal, residual).
+        @param lags: No. of lags to consider.
+        @return dict: A dictionary containing the autocorrelation and
+                      partial autocorrelation associated with each lag
+                      as well as corresponding confidence intervals.
         """
         try:
             request_json = json.loads(request.body.decode('utf-8'))
@@ -329,6 +362,7 @@ class AcfPacf(View):
             self.response_data = acf_pacf(df.data, lags)
             self.response_message = f'Success. ACF and PACF computed.'
         except Exception as e:
+            self.response_status = 400
             self.response_message = f"Failure. {e}"
         finally:
             return JsonResponse(
