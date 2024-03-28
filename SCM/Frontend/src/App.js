@@ -72,7 +72,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
 				</Link>
 				<hr className="border-gray-700" />
 				<Link
-					to="/air"
+					to="/pollution"
 					className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${
 						isActive("/pollution") ? "bg-gray-700" : ""
 					}`}
