@@ -26,7 +26,7 @@ jobs:
         echo "Building backend image"
         docker build ./SCM/Backend --file ./SCM/Backend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:latest
         echo "Building frontend image"
-        docker build ./SCM/frontend --file ./SCM/frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest
+        docker build ./SCM/Frontend --file ./SCM/Frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"
