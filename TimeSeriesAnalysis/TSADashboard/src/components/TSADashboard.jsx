@@ -719,7 +719,7 @@ export const TSADashboard = ({
     }, [selectedLineType]);
 
     return (
-        <div>
+        <div id='tsa_dashboard'>
             {/* Title. */}
             <div className='text-3xl p-5 text-center'>{title}</div>
             <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
