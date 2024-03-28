@@ -1,9 +1,9 @@
 name: Push Image to Dockerhub
 
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -24,9 +24,9 @@ jobs:
     - name: Building Docker Images
       run: |
         echo "Building backend image"
-        docker build ./Backend --file ./Backend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:latest
+        docker build ./SCM/Backend --file ./SCM/Backend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_NAME }}:latest
         echo "Building frontend image"
-        docker build ./frontend --file ./frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest
+        docker build ./SCM/frontend --file ./SCM/frontend/Dockerfile --tag ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_NAME }}:latest
     - name: Pushing Docker Images
       run: |
         echo "pushing backend image"

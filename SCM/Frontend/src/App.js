@@ -13,14 +13,14 @@ import BikeMap from "./Components/BikeMap";
 // import HomePage from './Components/HomePage';
 import BusPage from "./Components/BusPage";
 import EnergyUsageMap from "./Components/EnergyUsageMap";
-import { FaBars, FaBus, FaVolumeUp, FaWind, FaTrash } from "react-icons/fa";
+import PollutionMap from "./Components/PollutionMap";
+import { FaBars, FaBus, FaWind, FaTrash, FaSmog } from "react-icons/fa";
 import {
 	MdDirectionsBike,
 	MdEnergySavingsLeaf,
 	MdLogout,
 } from "react-icons/md";
 import BinLocations from "./Components/BinLocations";
-import { IconContext } from "react-icons";
 
 function Sidebar({ isOpen, toggleSidebar }) {
 	const location = useLocation();
@@ -72,23 +72,13 @@ function Sidebar({ isOpen, toggleSidebar }) {
 				</Link>
 				<hr className="border-gray-700" />
 				<Link
-					to="/air"
+					to="/pollution"
 					className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${
-						isActive("/air") ? "bg-gray-700" : ""
+						isActive("/pollution") ? "bg-gray-700" : ""
 					}`}
 				>
-					<FaWind className="mr-2" />
-					Air
-				</Link>
-				<hr className="border-gray-700" />
-				<Link
-					to="/noise"
-					className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${
-						isActive("/noise") ? "bg-gray-700" : ""
-					}`}
-				>
-					<FaVolumeUp className="mr-2" />
-					Noise
+					<FaSmog className="mr-2" />
+					Pollution
 				</Link>
 				<hr className="border-gray-700" />
 				<Link
@@ -152,6 +142,7 @@ function App() {
 						<Route path="/energy" element={<EnergyUsageMap />} />
 						<Route path="/bike" element={<BikeMap />} />
 						<Route path="/bins" element={<BinLocations />} />
+						<Route path="/pollution" element={<PollutionMap />} />
 					</Route>
 				</Routes>
 			</Router>

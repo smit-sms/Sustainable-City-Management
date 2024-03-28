@@ -18,7 +18,7 @@ class PredictViewTest(TestCase):
         })
 
         # Call the predict view
-        response = self.client.get(reverse('predict'))
+        response = self.client.get(reverse('dublin-bikes'))
 
         # Asserts
         self.assertEqual(response.status_code, 200)
