@@ -252,7 +252,7 @@ class AirPredictions(APIView):
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
-        self.model = pickle.load(open("sensors/data/rf_model.pkl", 'rb'))
+        self.model = pickle.load(open("sensors/data/air_model.pkl", 'rb'))
         
     def get(self, request, *args, **kwargs):
         """
@@ -266,7 +266,7 @@ class AirPredictions(APIView):
                                      'TNO4323': 19,'DCC-AQ1': 2,'DCC-AQ2': 6,'DCC-AQ3': 8}
 
             pred_df = pd.DataFrame(columns=['datetime', 'serial_number', 'pm2_5_lag1', 'latitude', 'longitude'])
-            curr_time = pd.to_datetime(datetime.now())
+            curr_time = pd.to_datetime(datetime.now()) + pd.Timedelta(hours=1)
             air_sensors = Air.objects.all().prefetch_related('sensor')
             for air_sensor in air_sensors:
                 if air_sensor.sensor.serial_number in serial_number_mapping:
@@ -331,7 +331,68 @@ class NoisePredictions(APIView):
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
-        # self.model = pickle.load(open("sensors/data/rf_model.pkl", 'rb'))
+        self.model = pickle.load(open("sensors/data/noise_model.pkl", 'rb'))
         
     def get(self, request, *args, **kwargs):
-        pass
+        """
+        GET request handler to retrieve the Noise predictions
+        """
+        try:
+            serial_number_mapping = {'01508': 0,'01509': 1,'01528': 2,'01529': 3,'01534': 4,'01535': 5,'01548': 6,'01550': 7,'01575': 8,'01737': 9,'01749': 10,'01870': 11,'10.1.1.1': 12,'10.1.1.11': 13,'10.1.1.12': 14,'10.1.1.7': 15,'10115': 16,'10118': 17}
+
+            pred_df = pd.DataFrame(columns=['datetime', 'serial_number', 'laeq_lag1', 'latitude', 'longitude'])
+            curr_time = pd.to_datetime(datetime.now())  + pd.Timedelta(hours=1)
+            noise_sensors = Noise.objects.all().prefetch_related('sensor')
+            for noise_sensor in noise_sensors:
+                if noise_sensor.sensor.serial_number in serial_number_mapping:
+                    new_row = {
+                        'datetime': curr_time,
+                        'serial_number': noise_sensor.sensor.serial_number,
+                        'laeq_lag1': noise_sensor.laeq,
+                        'latitude': noise_sensor.sensor.latitude,
+                        'longitude': noise_sensor.sensor.longitude
+                    }
+                    pred_df = pred_df._append(new_row, ignore_index=True)
+
+            pred_df['hour'] = pred_df['datetime'].dt.hour
+            pred_df['day'] = pred_df['datetime'].dt.day
+            pred_df['dayofweek'] = pred_df['datetime'].dt.dayofweek
+            pred_df['month'] = pred_df['datetime'].dt.month
+            pred_df['sensor_encoded'] = pred_df['serial_number'].map(serial_number_mapping)
+            pred_features = ['laeq_lag1', 'sensor_encoded', 'hour', 'day', 'dayofweek', 'month']
+            pred_df['predicted_laeq'] = self.model.predict(pred_df[pred_features])
+
+            result = []
+            for _, row in pred_df.iterrows():
+                latitude = row['latitude']
+                longitude = row['longitude']
+                sensor_type = "noise"
+                unit = "laeq"
+                sensor_value = row['predicted_laeq']
+                if 0 <= sensor_value <= 54:
+                    color = 'green'
+                elif 55 <= sensor_value <= 64:
+                    color = 'orange'
+                elif 65 <= sensor_value <= 75:
+                    color = 'red'
+                else:
+                    color = 'purple'
+                datetime_str = row['datetime'].strftime('%Y-%m-%d %H:%M:%S')  # Format datetime as string
+
+                result.append({
+                    'serial_number': row['serial_number'],
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    'sensor_type': sensor_type,
+                    'unit': unit,
+                    'value': sensor_value,
+                    'status': color,
+                    'datetime': datetime_str,
+                })
+
+            return Response({"message": "Successfully fetched the required data", "data": result},
+                        status=status.HTTP_200_OK)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": f"Some unexpected exception occured: {e}. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
