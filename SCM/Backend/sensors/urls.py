@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path('pm2.5/', views.AirView.as_view(), name='air_pm2_5'),
     path('laeq/', views.NoiseView.as_view(), name='noise_laeq'),
+    path('sensors/', views.SensorView.as_view(), name='sensors'),
 ]
