@@ -1,10 +1,10 @@
 {
   "name": "tsa-dashboard",
-  "version": "1.0.0",
-  "description": "This is a component that you can call with any time series data in the expected format {\\\"data\\\":[<float>...], \\\"time\\\":[<str>...]} anywhere within your ReactJS project to visualize the data with auto-generated analytics like trend, seasonality, number summary, ACF and PACF plots, etc. Kindly ensure that when using the package, the prerequisite docker container \\\"brian92292/scm\\\" is running on your local machine.",
+  "version": "2.0.0",
+  "description": "This is a component that you can call with any time series data in the expected format {'data':[<float>...], 'time':[<str>...]} anywhere within your ReactJS project to visualize the data with auto-generated analytics like trend, seasonality, number summary, ACF and PACF plots, etc. Kindly ensure that when using the package, the prerequisite docker container 'brian92292/scm' is running on your local machine.",
   "module": "dist/index.es.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo 'Error: no test specified' && exit 1",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build-lib": "rollup -c"
@@ -48,5 +48,8 @@
     "react-dom": "^18.2.0",
     "tailwindcss": "^3.4.1"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "tsa-dashboard": "^2.0.0"
+  }
 }

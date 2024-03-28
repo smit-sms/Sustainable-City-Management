@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import * as d3 from "d3"
-import TextBox from './TextBox'
-import RadioButton from './RadioButton'
+import * as d3 from "d3";
+import TextBox from './TextBox.jsx';
+import RadioButton from './RadioButton.jsx';
+import React, { useEffect, useState } from 'react';
 
 let controls = {
     freq: 'None',
@@ -32,22 +32,22 @@ const roundToNPlaces = (num, n) => {
     return Math.round((num + Number.EPSILON) * (10**n)) / (10**n)
 }
 
-const TSADashboard = ({ 
+export const TSADashboard = ({ 
     data, frequency, period, lags, title, backend_url_root
 }) => {
-    const [numDiff, setNumDiff] = useState(0);
     const [selectedLineType, setSelectedLineType] = useState('base');
     const [statusMessage, setStatusMessage] = useState("");
     const [stateDataProcessed, setStateDataProcessed] = useState({
         base:[], time_base: [], trend:[], 
         seasonal:[], time_decomposed:[], 
         residual:[], stationary: [], time_stationary: [],
-        acf:[], pacf:[], corr_ci:[], corr_lags:[]
+        acf:[], pacf:[], corr_ci:[], corr_lags:[],
+        num_diff: 0,
     });
     const [numSum, setNumSum] = useState({
         'mean': 0, 'median': 0, 'iqr': 0,
-        'q1': 0, 'q3': 0, 'num_outliers':0,
-        'num_diff':0, 'max': 0, 'min': 0
+        'q1': 0, 'q3': 0, 'num_outliers':0, 
+        'max': 0, 'min': 0
     })
 
     const handleTextBoxChange = (id) => {
@@ -99,7 +99,7 @@ const TSADashboard = ({
             base:[], time_base: [], trend:[], 
             seasonal:[], time_decomposed:[], 
             residual:[], stationary: [], time_stationary: [],
-            acf:[], pacf:[], corr_ci:[], corr_lags:[] 
+            acf:[], pacf:[], corr_ci:[], corr_lags:[], num_diff:0
         }
 
         // Base data.
@@ -179,7 +179,7 @@ const TSADashboard = ({
                     break;
                 }
                 dataStationary = diff.data;
-                setNumDiff(prevVal => prevVal + 1);
+                dataProcessed.num_diff += 1;
             }
         }
         dataProcessed.stationary = dataStationary.data;
@@ -692,7 +692,6 @@ const TSADashboard = ({
             prevVal.q1 = roundToNPlaces(q1, 2);
             prevVal.q3 = roundToNPlaces(q3, 2);
             prevVal.num_outliers = roundToNPlaces(outliers.length, 2);
-            prevVal.num_diff = roundToNPlaces(numDiff, 2);
             prevVal.iqr = roundToNPlaces(interQuantileRange, 2);
             return prevVal;
         })
@@ -719,7 +718,7 @@ const TSADashboard = ({
     }, [selectedLineType]);
 
     return (
-        <div>
+        <div id='tsa_dashboard'>
             {/* Title. */}
             <div className='text-3xl p-5 text-center'>{title}</div>
             <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
@@ -790,8 +789,8 @@ const TSADashboard = ({
                                 <td>{numSum.max}</td>
                             </tr>
                             <tr>
-                                <td>Differencing Count</td>
-                                <td>{numSum.num_diff}</td>
+                                <td># Differenced</td>
+                                <td>{stateDataProcessed.num_diff}</td>
                             </tr>
                             <tr>
                                 <td>No. of Outliers</td>
@@ -818,5 +817,3 @@ const TSADashboard = ({
         </div>
     )
 }
-
-export default TSADashboard
