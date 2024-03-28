@@ -10,6 +10,7 @@ import {
 import LoginPage from "./Components/LoginPage";
 import RegisterPage from "./Components/RegisterPage";
 import BikeMap from "./Components/BikeMap";
+import NoisePollutionMap from "./Components/NoisePollutionMap";
 // import HomePage from './Components/HomePage';
 import BusPage from "./Components/BusPage";
 import EnergyUsageMap from "./Components/EnergyUsageMap";
@@ -151,6 +152,7 @@ function App() {
 						<Route path="/bus" element={<BusPage />} />
 						<Route path="/energy" element={<EnergyUsageMap />} />
 						<Route path="/bike" element={<BikeMap />} />
+						<Route path="/noise" element={<NoisePollutionMap />} />
 						<Route path="/bins" element={<BinLocations />} />
 					</Route>
 				</Routes>
