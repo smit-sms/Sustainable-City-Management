@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+# from corsheaders.defaults import default_headers
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +30,24 @@ SECRET_KEY = "django-insecure-$7z!5(9-iym3&qu^3^dmz_sc1xx02mrd4iog6gy@soja=d9qls
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'http://localhost:3000']
 
-CORS_ORIGIN_ALLOW_ALL  = True
+# CORS settings.
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+# # TO DO: Remove this
+# CORS_ALLOW_HEADERS = default_headers + (
+#     'ngrok-skip-browser-warning',
+# )
+
+# CSRF settings.
+CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
+# TO DO: Modify
+CSRF_TRUSTED_ORIGINS = [
+    'https://cce2-2a02-8084-2561-8e80-2c1c-d52d-f7ef-da30.ngrok-free.app/'
+]
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,10 +55,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
+    "rest_framework",
     "corsheaders",
     "django_extensions",
+    "authentication",
     "sensors",
+    "cityservices",
 ]
 
 MIDDLEWARE = [
@@ -130,3 +149,27 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    "formatters": {
+        "default": {
+            "format": "[{asctime}]:{levelname}:{name}: {message}",
+            "style": "{",
+        },
+    },
+    'handlers': {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            'propagate': True,
+        },
+    },
+}

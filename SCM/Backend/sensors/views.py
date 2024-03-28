@@ -1,19 +1,91 @@
+import os
 import time
 import pytz
 import json
 import requests
+import logging
 from django.views import View
 from django.shortcuts import render
 from django.http import JsonResponse
-from datetime import datetime, timedelta
-from .models import Sensor, Air, Noise
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from requests.exceptions import HTTPError
+
+from datetime import datetime, timedelta
+from .models import Sensor, Air, Noise
+from .utils import *
+
+
+class AirNoiseView(APIView):
+    '''
+    Class for all the operations related to the Air and Noise.
+    '''
+    # permission_classes = [IsAuthenticated]
+
+    def __init__(self, **kwargs) -> None:
+        self.logger = logging.getLogger(__name__)
+        self.airnoise_api = os.getenv('AIRNOISE_URL')
+        
+    def get(self, request, *args, **kwargs):
+        """
+        GET request handler to retrieve the Air and Noise Pollution Data
+        """
+        try:
+            result = []
+            res = requests.get(f"{self.airnoise_api}")
+            for record in res.json():
+                datetime_str = record['latest_reading']['recorded_at']
+                datetime_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+                datetime_obj_gmt = pytz.timezone('GMT').localize(datetime_obj)
+                try:
+                    sensor = Sensor.objects.get(serial_number=record['serial_number'])
+                except Sensor.DoesNotExist:
+                    continue
+                if record['monitor_type']['category'] == 'noise':
+                    sensor_value = record['latest_reading']['laeq']
+                    unit = 'laeq'
+                    noise_instance, created = Noise.objects.update_or_create(
+                        sensor=sensor,
+                        defaults={'laeq': sensor_value, 'datetime': datetime_obj_gmt}
+                    )
+                else:
+                    sensor_value = record['latest_reading']['pm2_5'] if record['latest_reading']['pm2_5'] else 1.0
+                    unit = 'pm2.5'
+                    air_instance, created = Air.objects.update_or_create(
+                        sensor=sensor,
+                        defaults={'pm2_5': sensor_value, 'datetime': datetime_obj_gmt}
+                    )
+                    
+                result.append({
+                    'serial_number': record['code'],
+                    'latitude': record['latitude'],
+                    'longitude': record['longitude'],
+                    'sensor_type': record['monitor_type']['category'],
+                    'unit': unit,
+                    'value': sensor_value,
+                    'status': record['latest_reading']['status'],
+                    'datetime': datetime_str,
+                })
+            return Response({"message": "Successfully fetched the required data", "data": result},
+                        status=status.HTTP_200_OK)
+        except HTTPError as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": f"unexpected exception occured with the API, please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Sensor.DoesNotExist:
+            return Response({"message": "The sensor not found. Please check and try again.", "data": None},
+                            status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": f"Some unexpected exception occured: {e}. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 # Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
 class AirView(View):
-
     response_message = ''
     response_status = 200
     response_data = []
@@ -42,8 +114,6 @@ class AirView(View):
     
         # Return response.
         response = JsonResponse({'message': self.response_message, 'data': self.response_data}, status=self.response_status, safe=True)
-        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'  # Replace with your React app's origin
-        response['Access-Control-Allow-Methods'] = 'GET'
         return response
         
     def post(self, request):
@@ -63,8 +133,8 @@ class AirView(View):
         if (sensor_db_obj != None): # If requested sensor exists then ...
             try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
                 res = requests.post(f"{url_root}/api/data", json={ 
-                    'username': "dublincityapi",
-                    'password': "Xpa5vAQ9ki",
+                    'username': os.getenv('SONITOS_USERNAME'),
+                    'password': os.getenv('SONITOS_PASSWORD'),
                     'monitor': sensor_serial_number,
                     'start': datetime_start,
                     'end': datetime_end
@@ -141,8 +211,8 @@ class NoiseView(View):
         if (sensor_db_obj != None): # If requested sensor exists then ...
             try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
                 res = requests.post(f"{url_root}/api/data", json={ 
-                    'username': "dublincityapi",
-                    'password': "Xpa5vAQ9ki",
+                    'username': os.getenv('SONITOS_USERNAME'),
+                    'password': os.getenv('SONITOS_PASSWORD'),
                     'monitor': sensor_serial_number,
                     'start': datetime_start,
                     'end': datetime_end
@@ -170,3 +240,7 @@ class NoiseView(View):
         
         # Return response.
         return JsonResponse({'message': self.response_message} , status=self.response_status, safe=True)
+
+class AirPredictions(APIView):
+    # TODO:
+    pass
