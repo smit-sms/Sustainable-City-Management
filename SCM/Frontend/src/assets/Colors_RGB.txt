@@ -1,0 +1,8 @@
+    Light Green: RGB(144, 238, 144)
+    Lime Green: RGB(50, 205, 50)
+    Green: RGB(0, 128, 0)
+    Dark Green: RGB(0, 100, 0)
+    Yellow Green: RGB(154, 205, 50)
+    Gold: RGB(255, 215, 0)
+    Orange: RGB(255, 165, 0)
+    Bright Red: RGB(255, 0, 0)
