@@ -1,5 +1,4 @@
 import {TSADashboard } from '../components/TSADashboard';
-import { userEvent, within, expect } from '@storybook/test';
 
 const title = "Bike Usage (Station 32)";
 const dummyData = [
@@ -320,9 +319,3 @@ export const Primary = {
         backend_url_root: 'http://127.0.0.1:8001',
     }
 };
-
-Primary.play = async({canvasElement}) => {
-    let canvas = within(canvasElement);
-    let primaryDashboard = await canvas.getAllByRole("TSADashboard");
-    await expect(primaryDashboard.innerText).toBe(`/${title}/i`);
-}

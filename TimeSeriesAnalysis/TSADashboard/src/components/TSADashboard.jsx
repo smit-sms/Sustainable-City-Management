@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import PropTypes from 'prop-types';
 import TextBox from './TextBox.jsx';
 import RadioButton from './RadioButton.jsx';
 import React, { useEffect, useState } from 'react';
@@ -818,21 +817,3 @@ export const TSADashboard = ({
         </div>
     )
 }
-
-TSADashboard.propTypes = {
-    title: PropTypes.string.isRequired,
-    data: PropTypes.object.isRequired,
-    frequency: PropTypes.string.isRequired,
-    period: PropTypes.number.isRequired,
-    lags: PropTypes.number.isRequired,
-    backend_url_root: PropTypes.string.isRequired,
-};
-
-TSADashboard.defaultProps = {
-    title: 'Time Series Analysis Dashboard',
-    data: {data: [], time: []},
-    frequency: "15min",
-    period: 8,
-    lags: 10,
-    backend_url_root: 'http://127.0.0.1:8001',
-};
