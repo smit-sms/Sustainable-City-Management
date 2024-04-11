@@ -6,5 +6,4 @@ urlpatterns = [
     path("auth/",include("authentication.urls")),
     path("sensors/", include("sensors.urls")),
     path("city_services/", include("cityservices.urls")),
-    path("bikes/", include("bikes.urls")),
 ]

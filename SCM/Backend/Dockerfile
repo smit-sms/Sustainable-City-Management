@@ -15,5 +15,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
-EXPOSE 8000
-CMD python manage.py makemigrations; python manage.py migrate; python manage.py runserver 0.0.0.0:8000
+# Make sure the run_services.sh script is executable
+RUN chmod +x /app/run_services.sh
+
+EXPOSE 8000 8003
+# CMD python manage.py makemigrations; python manage.py migrate; python manage.py runserver 0.0.0.0:8000
+
+CMD ["./run_services.sh"]

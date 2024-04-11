@@ -25,6 +25,8 @@
     "react-router-dom": "^6.21.3",
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.4",
+    "tsa-dashboard": "^2.0.1",
+    "victory": "^37.0.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

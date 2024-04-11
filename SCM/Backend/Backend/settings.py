@@ -61,7 +61,6 @@ INSTALLED_APPS = [
     "authentication",
     "sensors",
     "cityservices",
-    "bikes",
 ]
 
 MIDDLEWARE = [

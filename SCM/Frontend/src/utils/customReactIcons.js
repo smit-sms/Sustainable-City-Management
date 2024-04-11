@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import ReactDOMServer from 'react-dom/server';
 import { IconContext } from 'react-icons';
-import { FaWind } from 'react-icons/fa'; // Import the wind icon
 
 export const customReactIcon = (IconComponent, color, fontsize='22px') => {
   const iconHtml = ReactDOMServer.renderToString(

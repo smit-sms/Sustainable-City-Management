@@ -1,40 +1,21 @@
 import { useEffect, useState } from "react";
 import { TSADashboard } from "tsa-dashboard";
+// import { TSADashboard } from "./TimeSeriesAnalysisfix";
 
-// Air Data
-const dataName = "pm2_5"
-const sensorType = "pm2.5"
-const sensorNumber = "DCC-AQ2"
-const title = `Air Pollution (${sensorType}) (Sensor = ${sensorNumber})`
 
-// // Noise Data
-// const dataName = "laeq"
-// const sensorType = "laeq"
-// const sensorNumber = "10.1.1.1"
-// const title = `Noise Pollution (${sensorType}) (Sensor = ${sensorNumber})`
-
-const App = () => {
-
-    // const [data, setData] = useState({data:[], time:[]});
-
-    // const fetchData = () => {
-    //     fetch(`http://127.0.0.1:8000/sensors/${sensorType}/?sensor_serial_number=${sensorNumber}&time_start=2024-03-01 00:00:00&time_end=2024-03-02 00:00:00`)
-    //     .then(response => response.json())
-    //     .then(response => {
-    //         console.log()
-    //         let dataFetched = {data: [], time: []}
-    //         response['data'].forEach(dt => {
-    //             dataFetched.data.push(dt[dataName]);
-    //             dataFetched.time.push(dt.datetime);
-    //         })
-    //         // Adding outliers.
-    //         // dataFetched.data[10] = 50 
-    //         dataFetched.data[5] = -10;
-    //         setData(dataFetched);
-    //     });
-    // }
+const title = `Bike Usage (Station 32)`
+const TimeSeriesAnalysis = () => {
 
     const dummyData = [
+        {
+            "id": 3785,
+            "station_id": 32,
+            "bike_stands": 30,
+            "available_bikes": 9,
+            "usage_percent": 10.0,
+            "last_update": "2024-03-26T13:15:20Z",
+            "status": "open"
+        },
         {
             "id": 3785,
             "station_id": 32,
@@ -334,7 +315,6 @@ const App = () => {
         data.time.push(time)
     });
     
-
     useEffect(() => {
         // fetchData();
     }, [])
@@ -356,4 +336,4 @@ const App = () => {
     );
 }
 
-export default App;
+export default TimeSeriesAnalysis;

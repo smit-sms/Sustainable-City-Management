@@ -141,6 +141,8 @@ export const TSADashboard = ({
             feedback += " Decomposition: " + decomposed.message;
         }
         decomposed = decomposed.data;
+        dataProcessed.time_base = decomposed.time;
+        dataProcessed.base = decomposed.base;
         dataProcessed.time_decomposed = decomposed.time;
         dataProcessed.trend = decomposed.trend;
         dataProcessed.seasonal = decomposed.seasonal;
@@ -294,7 +296,7 @@ export const TSADashboard = ({
             .attr('font-style', 'italic');
         gXAxis.selectAll('.tick')
             .select('text')
-            .attr('font-size', '8px')
+            .attr('font-size', '10px')
             .attr('font-weight', 'bold')
             .attr('transform', 'rotate(-60) translate(-20, -5)')
         gYAxis.selectAll('.axis-label')
@@ -720,7 +722,10 @@ export const TSADashboard = ({
     return (
         <div id='tsa_dashboard'>
             {/* Title. */}
-            <div className='text-3xl p-5 text-center'>{title}</div>
+            <div className="p-4">
+                <h1 className="text-3xl font-bold text-center mb-2">{title}</h1>
+                <hr className="border-t-2 border-gray-200 mb-2" />
+            </div>
             <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
                 <div id='controls mt-10 sm:mt-0'>
                     <div className='text-center grid grid-cols-2 gap-5 mb-5'> {/* Apply button. */}
@@ -743,7 +748,6 @@ export const TSADashboard = ({
                 </div>
                 <div id='line' className='col-span-2 mt-10 sm:mt-0'>
                     <b>Line Plot</b>
-                    <svg id='svg-line' className='w-full h-72 bg-slate-200'></svg>
                     <div className='flex gap-5 justify-between'>
                         <RadioButton label={'Base'} id="radio-base" name="linetype" value="base" selected={selectedLineType == 'base'} uponClick={handleLineTypeSelection} />
                         <RadioButton label={'Trend'} id="radio-trend" name="linetype" value="trend" selected={selectedLineType == 'trend'} uponClick={handleLineTypeSelection} />
@@ -751,6 +755,7 @@ export const TSADashboard = ({
                         <RadioButton label={'Residual'} id="radio-residual" name="linetype" value="residual" selected={selectedLineType == 'residual'} uponClick={handleLineTypeSelection} />
                         <RadioButton label={'Stationary'} id="radio-stationary" name="linetype" value="stationary" selected={selectedLineType == "stationary"} uponClick={handleLineTypeSelection} />
                     </div>
+                    <svg id='svg-line' className='w-full h-72'></svg>
                 </div>
                 <div id='num_sum' className='mt-10 sm:mt-0 text-left'>
                     <b>Number Summary</b>
@@ -801,7 +806,7 @@ export const TSADashboard = ({
                 </div>
                 <div id='hist' className='col-span-2 mt-10 sm:mt-0'>
                     <b>Histogram Plot</b>
-                    <svg id='svg-hist' className='w-full h-72 bg-slate-200'></svg>
+                    <svg id='svg-hist' className='w-full h-72'></svg>
                 </div>
                 <div id='box' className='mt-10 sm:mt-0'>
                     <div className='flex justify-between'>

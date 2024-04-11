@@ -46,18 +46,18 @@ const BikeMap = () => {
   const [isRealOrPred, setIsRealOrPred] = useState("real");
 
   function get_data_from_dublinbikes(pred_data) {
-    fetch(`${DUBLIN_BIKE_API_URL}`)
+    fetch(`${BASE_URL}/city_services/dublin-bikes/`)
     .then((response) => {
         if (response.status === 200) return response.json();
         else throw new Error("Error in fetching live data");
       })
       .then((data) => {
         // Filter logic based on selected time
-        const filteredData = data.filter((entry) => {
-          entry["STATION ID"] = entry["number"];
+        const filteredData = data.data.filter((entry) => {
+          entry["STATION ID"] = entry["station_id"];
           entry["BIKE STANDS"] = entry["bike_stands"];
-          entry["LATITUDE"] = entry["position"]["lat"];
-          entry["LONGITUDE"] = entry["position"]["lng"];
+          entry["LATITUDE"] = entry["latitude"];
+          entry["LONGITUDE"] = entry["longitude"];
           return true;
         });
         setAvailabilityPrediction(filteredData);
@@ -220,8 +220,6 @@ const BikeMap = () => {
                 );
               } catch (error) {
                 toast.error("Some error occured, please try again.");
-                console.log("error", error);
-                console.log(stand["STATION ID"]);
               }
           })}
         </MapContainer>
