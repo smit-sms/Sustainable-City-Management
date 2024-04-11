@@ -232,5 +232,5 @@ class BinLocationsView(APIView):
                                  }, status=status.HTTP_200_OK)
         except Exception as e:
             self.logger.exception(f'Some unexpected exception occured: {e}')
-            return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
+            return Response({"message": "Some unexpected exception occurred. Please try again", "data": None},
                             status=status.HTTP_400_BAD_REQUEST)
