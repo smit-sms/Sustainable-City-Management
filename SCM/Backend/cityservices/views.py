@@ -170,7 +170,6 @@ class DublinBikesView(APIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            #TODO: write code for scheduling the task for dublin bikes using etl_pipeline
             dublin_bike_data = request.data['dublin_bikes']
             result = []
             for station_data in dublin_bike_data:
@@ -201,7 +200,7 @@ class DublinBikesView(APIView):
 
 class DublinBikesPredictionView(APIView):
     '''
-    Class for all the operations related to the Dublin Bikes.
+    Class for all the operations related to the Dublin Bikes Prediction.
     '''
     # permission_classes = [IsAuthenticated]
 

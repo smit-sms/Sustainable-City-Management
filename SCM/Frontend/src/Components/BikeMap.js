@@ -8,7 +8,7 @@ import L from "leaflet";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import bikeImage from "../assets/bike.png";
-import { BASE_URL, DUBLIN_BIKE_API_URL } from "../services/api";
+import { BASE_URL } from "../services/api";
 
 // Setup for the bike icon in Leaflet
 const icon = L.icon({
