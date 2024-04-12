@@ -12,8 +12,6 @@ certifi==2024.2.2
     # via requests
 charset-normalizer==3.3.2
     # via requests
-colorama==0.4.6
-    # via pytest
 django==4.2.7
     # via
     #   -r requirements.in
@@ -28,7 +26,7 @@ djangorestframework==3.14.0
     # via -r requirements.in
 geojson==3.1.0
     # via -r requirements.in
-idna==3.6
+idna==3.7
     # via requests
 iniconfig==2.0.0
     # via pytest
@@ -79,8 +77,6 @@ sqlparse==0.4.4
 threadpoolctl==3.4.0
     # via scikit-learn
 tzdata==2024.1
-    # via
-    #   django
-    #   pandas
+    # via pandas
 urllib3==2.2.1
     # via requests
