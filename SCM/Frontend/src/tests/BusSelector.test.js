@@ -31,7 +31,7 @@ test('loads and displays buses', async () => {
   render(<BusSelector />);
 
   for (const bus of mockBuses) {
-    await waitFor(() => expect(screen.getByText(bus.bus_name)).toBeInTheDocument());
+    await screen.findByText(bus.bus_name);
   }
 
   expect(fetch).toHaveBeenCalledTimes(1);
