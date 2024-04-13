@@ -2,13 +2,16 @@ import * as d3 from "d3";
 import TextBox from './TextBox.jsx';
 import RadioButton from './RadioButton.jsx';
 import React, { useEffect, useState } from 'react';
+import { FaInfoCircle } from "react-icons/fa";
+import { Tooltip } from 'react-tooltip'
 
 let controls = {
     freq: 'None',
     period: 0,
     lags: 1,
     bins: 10,
-    outliers: false
+    outliers: false,
+    decomposition_type: 'additive'
 }
 
 let feedback = "";
@@ -63,7 +66,7 @@ export const TSADashboard = ({
             if (textBoxType == 'freq') controls.freq = frequency;
             if (textBoxType == 'period') controls.period = period;
             if (textBoxType == 'lags') controls.lags = lags;
-            if (textBoxType == 'bins') controls.bins = 10;
+            if (textBoxType == 'bins') controls.bins = Math.max(1, Math.floor(dataProcessed.time_decomposed.length/2));
             textBox.attr('style', 'border: 2px solid red');
         }
     }
@@ -83,9 +86,20 @@ export const TSADashboard = ({
     }
 
     const sanityCheckControls = (textBoxType, val) => {
-        if (textBoxType == 'freq') return typeof val == String && val.length > 0 && val.slice(0, 1) != 0;
-        if (textBoxType == 'period' || textBoxType == 'lags') return isNumeric(val) && val > 0 && val <= Math.floor(data.data.length/2);
-        if (textBoxType == 'bins') return isNumeric(val) && val
+        if (textBoxType == 'freq') {
+            return typeof val == String && 
+                val.length > 0 && val.slice(0, 1) != 0
+        }
+
+        if (textBoxType == 'period' || textBoxType == 'lags') {
+            return isNumeric(val) && Number.isInteger(Number(val)) &&
+            val > 0 && val <= Math.floor(stateDataProcessed.time_decomposed.length/2);
+        }
+
+        if (textBoxType == 'bins') {
+            return isNumeric(val) && Number.isInteger(Number(val)) &&
+            val <= stateDataProcessed.time_decomposed.length && val > 0
+        }
         return false
     }
 
@@ -127,13 +141,23 @@ export const TSADashboard = ({
             }
         }
 
+        // Sort data and time based on time.
+        let data_time = dataProcessed.time_base.map((time, index) => ({
+            time: time,
+            value: dataProcessed.base[index]
+        }));
+
+        data_time.sort((a, b) => new Date(a.time) - new Date(b.time));
+        dataProcessed.base = data_time.map(item => item.value);
+        dataProcessed.time_base = data_time.map(item => item.time);
+
         // Decompose data into trend, seasonal and residual components.
         let decomposed = await fetch(`${backend_url_root}/tsa/decompose/`, {
             method: 'POST',
             body: JSON.stringify({"data": {
                 data: dataProcessed.base,
                 time: dataProcessed.time_base
-            }, "freq": controls.freq, "period": controls.period, "model_type": "additive"}),
+            }, "freq": controls.freq, "period": controls.period, "model_type": controls.decomposition_type}),
             headers: {'Content-Type':'application/json'}
         })
         decomposed = await decomposed.json();
@@ -209,15 +233,10 @@ export const TSADashboard = ({
         // Reset system feedback to user.
         if (feedback.length > 0) {
             setStatusMessage(feedback);
-            setTimeout(() => setStatusMessage(prevVal => ""), 5000);
+            setTimeout(() => setStatusMessage(prevVal => ""), 8000);
         }
 
         // Trigger plot updates.
-        // setChangedDataLine(prevVal => 1 - prevVal);
-        // setChangedDataCorr(prevVal => 1 - prevVal);
-        // setChangedDataNumSum(prevVal => 1 - prevVal);
-        // setChangedDataHist(prevVal => 1 - prevVal);
-        // setChangedDataBox(prevVal => 1 - prevVal);
         setStateDataProcessed(prevVal => dataProcessed);
     }
 
@@ -699,6 +718,9 @@ export const TSADashboard = ({
         })
     }
     
+    const setDecompositionType = (e) => {
+        controls.decomposition_type = e.currentTarget.value;
+    }
     useEffect(() => {
         // Set user controls.
         controls.freq = frequency;
@@ -726,14 +748,9 @@ export const TSADashboard = ({
                 <h1 className="text-3xl font-bold text-center mb-2">{title}</h1>
                 <hr className="border-t-2 border-gray-200 mb-2" />
             </div>
-            <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5'>
+            <div className='sm:grid sm:grid-rows-3 sm:grid-cols-3 p-5 gap-5 mb-5'>
                 <div id='controls mt-10 sm:mt-0'>
-                    <div className='text-center grid grid-cols-2 gap-5 mb-5'> {/* Apply button. */}
-                        <div className='font-bold min-h-full flex flex-row items-center'>CONTROLS</div>
-                        <button className='py-2 px-5 text-center rounded-full text-sm font-bold bg-blue-500 text-white hover:bg-blue-600' onClick={handleApply}>
-                            APPLY
-                        </button>
-                    </div>
+                    <div className='font-bold'>CONTROLS</div>
                     <TextBox label={'Frequency'} placeholder={controls.freq} id="text-box-freq" onChange={() => handleTextBoxChange('text-box-freq')} isEditable={false} />
                     <TextBox label={'Period'} placeholder={controls.period} id="text-box-period" onChange={() => handleTextBoxChange('text-box-period')} isEditable={true} />
                     <TextBox label={'Lags'} placeholder={controls.lags} id="text-box-lags" onChange={() => handleTextBoxChange('text-box-lags')} isEditable={true} />   
@@ -744,10 +761,52 @@ export const TSADashboard = ({
                             <input className='pl-0' type="checkbox" id="box-outliers" name="box-outlier" value="1" onChange={handleChkBoxChange}/>
                         </span>
                     </div>
+                    <div className='grid gap-5 grid-cols-2 mt-2'>
+                        Decomposition Type
+                        <span className="grid-cols-2">
+                            <div className="flex items-center space-x-4">
+                                <label className="flex items-center">
+                                    <input 
+                                        type="radio" 
+                                        name="radio_btn_decomposition_type" 
+                                        value="additive" 
+                                        defaultChecked 
+                                        onClick={setDecompositionType}
+                                        className="text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-600">+</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input 
+                                        type="radio" 
+                                        name="radio_btn_decomposition_type" 
+                                        value="multiplicative" 
+                                        onClick={setDecompositionType}
+                                        className="text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-600">x</span>
+                                </label>
+                            </div>
+                        </span>
+                    </div>
+                    <div className='text-center grid grid-cols-2 gap-5 mb-5'> {/* Apply button. */}
+                        <button className='py-2 px-5 text-center rounded-full text-sm font-bold bg-blue-500 text-white hover:bg-blue-600' onClick={handleApply}>
+                            APPLY
+                        </button>
+                    </div>
                     <div className={statusMessage.includes('Success') ? 'text-green-600' : 'text-red-600'}>{statusMessage}</div>
                 </div>
+
                 <div id='line' className='col-span-2 mt-10 sm:mt-0'>
-                    <b>Line Plot</b>
+                    <div className="flex justify-between items-center mb-2">
+                        <b className="block text-lg font-semibold">Line Plot</b>
+                        <a data-tooltip-id="line-plot" data-tooltip-html="Time series decomposition breaks down a dataset into trend, seasonal
+                         patterns, and random noise; it's like dissecting a signal to understand its trends and cycles. <br/>
+                         When we adjust the data to make it consistent over time—removing upward or downward shifts and repetitive patterns—we make it 'stationary'. The line plot <br />then shows us this smoothed-out data, where any remaining shifts that grow or shrink over time might suggest inconsistent variation in the data's spread.">
+                            <FaInfoCircle className="text-lg" />
+                        </a>
+                        <Tooltip id="line-plot"/>
+                    </div>
                     <div className='flex gap-5 justify-between'>
                         <RadioButton label={'Base'} id="radio-base" name="linetype" value="base" selected={selectedLineType == 'base'} uponClick={handleLineTypeSelection} />
                         <RadioButton label={'Trend'} id="radio-trend" name="linetype" value="trend" selected={selectedLineType == 'trend'} uponClick={handleLineTypeSelection} />
@@ -755,68 +814,68 @@ export const TSADashboard = ({
                         <RadioButton label={'Residual'} id="radio-residual" name="linetype" value="residual" selected={selectedLineType == 'residual'} uponClick={handleLineTypeSelection} />
                         <RadioButton label={'Stationary'} id="radio-stationary" name="linetype" value="stationary" selected={selectedLineType == "stationary"} uponClick={handleLineTypeSelection} />
                     </div>
-                    <svg id='svg-line' className='w-full h-72'></svg>
+                    <svg id='svg-line' className='w-full h-full'></svg>
                 </div>
+
                 <div id='num_sum' className='mt-10 sm:mt-0 text-left'>
-                    <b>Number Summary</b>
-                    <div className='bg-slate-200'>
-                        <table>
-                            <tr>
-                                <th>Metric</th>
-                                <th>Value</th>
+                    <b className="block text-lg font-semibold">Number Summary</b>
+                    <table className="w-full text-sm text-center text-gray-500 rounded-md shadow dark:text-gray-400">
+                        <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-white">
+                        <tr>
+                            <th scope="col" className="py-3 px-6">Metric</th>
+                            <th scope="col" className="py-3 px-6">Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {Object.entries(numSum).map(([metric, value], index) => (
+                            <tr className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <td className="py-1 px-6 font-medium text-gray-900 whitespace-nowrap uppercase">
+                                {metric}
+                            </td>
+                            <td className="py-1 px-6">{value}</td>
                             </tr>
-                            <tr>
-                                <td>Mean</td>
-                                <td>{numSum.mean}</td>
-                            </tr>
-                            <tr>
-                                <td>Median</td>
-                                <td>{numSum.median}</td>
-                            </tr>
-                            <tr>
-                                <td>Q1</td>
-                                <td>{numSum.q1}</td>
-                            </tr>
-                            <tr>
-                                <td>Q3</td>
-                                <td>{numSum.q3}</td>
-                            </tr>
-                            <tr>
-                                <td>IQR</td>
-                                <td>{numSum.iqr}</td>
-                            </tr>
-                            <tr>
-                                <td>Min</td>
-                                <td>{numSum.min}</td>
-                            </tr>
-                            <tr>
-                                <td>Max</td>
-                                <td>{numSum.max}</td>
-                            </tr>
-                            <tr>
-                                <td># Differenced</td>
-                                <td>{stateDataProcessed.num_diff}</td>
-                            </tr>
-                            <tr>
-                                <td>No. of Outliers</td>
-                                <td>{numSum.num_outliers}</td>
-                            </tr>
-                        </table>
-                    </div> 
+                        ))}
+                        <tr>
+                            <td className="py-1 px-6 font-medium text-gray-900 whitespace-nowrap uppercase"># Differenced</td>
+                            <td>{stateDataProcessed.num_diff}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
+
                 <div id='hist' className='col-span-2 mt-10 sm:mt-0'>
-                    <b>Histogram Plot</b>
-                    <svg id='svg-hist' className='w-full h-72'></svg>
-                </div>
-                <div id='box' className='mt-10 sm:mt-0'>
-                    <div className='flex justify-between'>
-                        <b>Box Plot</b>
+                    <div className="flex justify-between items-center mb-2">
+                        <b className="block text-lg font-semibold">Histogram Plot</b>
+                        <a data-tooltip-id="histogram-plot" data-tooltip-html="A histogram is a graphical representation of the distribution of a dataset. <br/>It displays the frequency of data points falling within specified intervals, known as bins, along the x-axis, <br/>with the count or frequency of observations in each bin represented on the y-axis.<br/> The no. of approximate (depends on how data range can be divided) bins may be changed from the 'CONTROLS' section.">
+                            <FaInfoCircle className="text-lg" />
+                        </a>
+                        <Tooltip id="histogram-plot" />
                     </div>
-                    <svg id='svg-box' className='w-full h-72 bg-slate-200'></svg>
+                    <svg id='svg-hist' className='w-full h-full'></svg>
                 </div>
+
+                <div id='box' className='mt-10 sm:mt-0'>
+                    <div className="flex justify-between items-center mb-2">
+                        <b className="block text-lg font-semibold">Box Plot</b>
+                        <a data-tooltip-id="box-plot" data-tooltip-html="A boxplot visualizes data distribution through a five-number summary:<br/> minimum, first quartile, median, third quartile, and maximum. <br/>It shows the data's spread, central point, potential skewness, and outliers, <br/>which are marked as separate points if they're much higher or lower than the rest.">
+                            <FaInfoCircle className="text-lg" />
+                        </a>
+                        <Tooltip id="box-plot" />
+                    </div>
+                    <svg id='svg-box' className='w-full h-full'></svg>
+                </div>
+                
                 <div id='corr' className='col-span-2 mt-10 sm:mt-0'>
-                    <b><font color='red'>ACF</font> & <font color='green'>PACF</font> Plot</b>
-                    <svg id='svg-corr' className='w-full h-72 bg-slate-200'></svg>
+                    <div className="flex justify-between items-center mb-2">
+                        <b className="block text-lg font-semibold">
+                        <font color='red'>ACF</font> & <font color='green'>PACF</font> Plot
+                        </b>
+                        <a data-tooltip-id="corr-plot" data-tooltip-html="The ACF and PACF plots are graphs that help us see how a series of data points relate to their past values (lags), <br/>with ACF including indirect correlations and PACF focusing on direct correlations only. <br/>The plots tell us if past values influence future ones, with lines beyond the blue area hinting at stronger relationships, all adjustable via the control panel.">
+                            <FaInfoCircle className="text-lg" />
+                        </a>
+                        <Tooltip id="corr-plot" />
+                    </div>
+                    <svg id='svg-corr' className='w-full h-full'></svg>
                 </div>
             </div>
         </div>

@@ -120,7 +120,8 @@ def decompose_time_series(data, period, model_type='additive'):
         "trend": trend_list,
         "seasonal": seasonal_list,
         "residual": residual_list,
-        "time": data.index.to_list()
+        "time": data.index.to_list(),
+        "base": data.to_list()
     }
 
 def adf_stationarity_check(data):
@@ -201,7 +202,7 @@ def acf_pacf(data, lags):
 class Decomposition(View):
     response_message = ''
     response_status = 200
-    response_data = {'trend':[], 'seasonal':[], 'residual':[], 'time':[]}
+    response_data = {'base':[], 'trend':[], 'seasonal':[], 'residual':[], 'time':[]}
         
     def post(self, request):
         """

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { BASE_URL } from "../services/api";
 import { TSADashboard } from "tsa-dashboard";
-// import { TSADashboard } from "./TimeSeriesAnalysisfix";
 
 
 const title = `Bike Usage (Station 32)`
@@ -329,7 +329,7 @@ const TimeSeriesAnalysis = () => {
                     frequency={"10min"}
                     period={8}
                     lags={10}
-                    backend_url_root='http://127.0.0.1:8001'
+                    backend_url_root={BASE_URL}
                 /> : <>Time Series Dashboard</>
             }
         </div>

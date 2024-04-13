@@ -12,6 +12,7 @@ import numpy as np
 import requests
 import json
 import math
+import datetime
 from django.utils import timezone
 
 from .models import BusStop, BusRoute, DublinBikeStation, SA_energy_consumption
@@ -172,14 +173,16 @@ class DublinBikesView(APIView):
         try:
             dublin_bike_data = request.data['dublin_bikes']
             result = []
-            for station_data in dublin_bike_data:
+            for station_data in dublin_bike_data:              
+                naive_datetime = datetime.datetime.strptime(station_data.get('last_update'), '%Y-%m-%dT%H:%M:%S')
+                timezone_aware_datetime = naive_datetime.astimezone(timezone.get_default_timezone())
                 station, created = DublinBikeStation.objects.update_or_create(
-                    station_id = station_data.get('station_id'),  # Ensure 'station_id' is provided
+                    station_id = station_data.get('station_id'),
                     defaults = {
                         'bike_stands': station_data.get('bike_stands'),
                         'available_bikes': station_data.get('available_bikes'),
                         'usage_percent': station_data.get('usage_percent'),
-                        'last_update': station_data.get('last_update'),
+                        'last_update': timezone_aware_datetime,
                         'status': station_data.get('status'),
                     }
                 )

@@ -50,10 +50,10 @@ def save_data_bikes(data):
     import requests
     try:
         res = requests.post(
-            url="http://0.0.0.0:8000/bikes/snapshot/", 
-            json={'snapshot':data}
+            url="http://0.0.0.0:8000/city_services/dublin-bikes/", 
+            json={'dublin_bikes':data}
         )
-        print(res.json()['message'])
+        return res
     except Exception as e:
         print(f'Failed to save bikes data. {e}')
         raise Exception(f'Failed to save bikes data. {e}')
@@ -71,7 +71,7 @@ def make_post_request(url, data={}):
 
 
 task = ETLTask(
-    name="Dublin_Bikes_Data_Fetch_Pipeline",
+    name="Dublin_Bikes_Data_Pipeline",
     fun_data_load=load_data_bikes,
     fun_data_transform=transform_data_bikes,
     fun_data_save=save_data_bikes,

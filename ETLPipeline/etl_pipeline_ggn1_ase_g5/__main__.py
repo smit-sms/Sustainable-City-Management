@@ -59,14 +59,14 @@ def configure_logger(logs_dir):
                 "maxBytes": 10000000,
                 "backupCount": 3,
             },
-            # "queue_handler": {
-            #     "class": "logging.handlers.QueueHandler",
-            #     "handlers": ["stderr", "file"],
-            #     "respect_handler_level": True
-            # }
+            "queue_handler": {
+                "class": "logging.handlers.QueueHandler",
+                "handlers": ["stderr", "file"],
+                "respect_handler_level": True
+            }
         },
         "loggers": {
-            "root": {"level": "DEBUG", "handlers": ["stderr", "file"]}
+            "root": {"level": "DEBUG", "handlers": ["queue_handler"]}
         }
     })
 
