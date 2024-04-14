@@ -25,7 +25,13 @@ ReactJS testing:
     > npm test --testPathPattern=<path to file containing steps>
 
 Publish to npm:
+    To build:
     > npm run build-lib
+
+    To update version:
+    > npm version patch
+
+    To publish
     > npm publish
 
 Launch Dashboard (Storybook):

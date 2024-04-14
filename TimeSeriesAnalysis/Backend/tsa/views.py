@@ -215,6 +215,8 @@ class Decomposition(View):
                      Reference: https://pandas.pydata.org/pandas-docs/version/0.9.1/timeseries.html#offset-aliases
         @param period: No. of samples in a season. After how many observation would you like
                        to assume that there are repetitions?
+        @param lags: No. of lags in the past that autocorrelation would need to be 
+                     computed for.
         @param model_type: Type of decomposition to perform 
                            ("additive", "multiplicative").
         @return dict: A dictionary containing the decomposed 

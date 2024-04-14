@@ -1,5 +1,5 @@
-import {TSADashboard } from '../components/TSADashboard';
-// import { TSADashboard } from "tsa-dashboard";
+// import {TSADashboard } from '../components/TSADashboard';
+import { TSADashboard } from "tsa-dashboard";
 
 const title = "Bike Usage (Station 32)";
 const dummyData = [
