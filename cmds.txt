@@ -1,0 +1,34 @@
+Build package.
+> python setup.py sdist bdist_wheel
+
+Install package from wheel file.
+> pip install dist/etl_pipeline_ggn1_ase_g5-4.0-py3-none-any.whl --force-reinstall
+
+Install package from pypi.org @ https://pypi.org/project/etl-pipeline-ggn1-ase-g5/4.0/.
+> pip install etl-pipeline-ggn1-ase-g5 --force-reinstall
+
+Upload package.
+> twine upload dist/*
+
+Run pipeline
+> python app.py --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+> python -m etl_pipeline_ggn1_ase_g5 --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+> etl_pipeline --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+
+Testing
+-------
+# Ensure that current working directory is "ETLPipelinePy3.11Mod".
+
+# Ensure SCM/Backend is running on port 8000.
+  > cd ../SCM/Backend
+  > python manage.py runserver 8000
+
+# Ensure ETLPipeline API is up and running.
+  (if files) > python app.py --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+  (if module on LM) > python -m etl_pipeline_ggn1_ase_g5 --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+  (if installed module) > etl_pipeline --db-name db_etl --db-path ./___test --logs-dir ./___test/logs
+
+# Ensure dst_path in tests.py in save_toy_data(...) function contains the correct absolute path to location of ___test folder on the LM.
+
+# Run tests.
+  > python tests.py
