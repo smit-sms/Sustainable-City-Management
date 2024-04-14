@@ -119,7 +119,9 @@ def decompose_time_series(data, period, model_type='additive'):
     return {
         "trend": trend_list,
         "seasonal": seasonal_list,
-        "residual": residual_list
+        "residual": residual_list,
+        "time": data.index.to_list(),
+        "base": data.to_list()
     }
 
 def adf_stationarity_check(data):
@@ -200,7 +202,7 @@ def acf_pacf(data, lags):
 class Decomposition(View):
     response_message = ''
     response_status = 200
-    response_data = {'trend':[], 'seasonal':[], 'residual':[], 'time':[]}
+    response_data = {'base':[], 'trend':[], 'seasonal':[], 'residual':[], 'time':[]}
         
     def post(self, request):
         """
@@ -215,8 +217,6 @@ class Decomposition(View):
                      Reference: https://pandas.pydata.org/pandas-docs/version/0.9.1/timeseries.html#offset-aliases
         @param period: No. of samples in a season. After how many observation would you like
                        to assume that there are repetitions?
-        @param lags: No. of lags in the past that autocorrelation would need to be 
-                     computed for.
         @param model_type: Type of decomposition to perform 
                            ("additive", "multiplicative").
         @return dict: A dictionary containing the decomposed 

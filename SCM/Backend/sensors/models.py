@@ -1,11 +1,6 @@
 from django.db import models
 
 # Create your models here.
-from django.db import models
-
-# Create your models here.
-
-
 class Sensor(models.Model):
   serial_number = models.CharField(max_length=50)
   latitude = models.FloatField()

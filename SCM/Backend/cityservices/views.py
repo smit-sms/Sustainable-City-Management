@@ -12,6 +12,8 @@ import numpy as np
 import requests
 import json
 import math
+import datetime
+from django.utils import timezone
 
 from .models import BusStop, BusRoute, DublinBikeStation, SA_energy_consumption
 from .serializers import BusRouteSerializer, DublinBikesStationSerializer
@@ -149,6 +151,59 @@ class SA_energy(APIView):
 class DublinBikesView(APIView):
     '''
     Class for all the operations related to the Dublin Bikes.
+    '''
+    # permission_classes = [IsAuthenticated]
+
+    def __init__(self, *args, **kwargs) -> None:
+        # Defining logger here to get the name for the class
+        self.logger = logging.getLogger(__name__)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            dublinbikestations = DublinBikeStation.objects.all()
+            result = DublinBikesStationSerializer(dublinbikestations, many=True).data
+            return Response({"message": "Successfully fetched the required data", "data": result}, 
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            dublin_bike_data = request.data['dublin_bikes']
+            result = []
+            for station_data in dublin_bike_data:              
+                naive_datetime = datetime.datetime.strptime(station_data.get('last_update'), '%Y-%m-%dT%H:%M:%S')
+                timezone_aware_datetime = naive_datetime.astimezone(timezone.get_default_timezone())
+                station, created = DublinBikeStation.objects.update_or_create(
+                    station_id = station_data.get('station_id'),
+                    defaults = {
+                        'bike_stands': station_data.get('bike_stands'),
+                        'available_bikes': station_data.get('available_bikes'),
+                        'usage_percent': station_data.get('usage_percent'),
+                        'last_update': timezone_aware_datetime,
+                        'status': station_data.get('status'),
+                    }
+                )
+                result.append({
+                    'station_id': station.station_id,
+                    'created': created
+                })
+            return Response({"message": "Successfully saved the required data", "data": result},
+                            status=status.HTTP_200_OK)
+        except KeyError as e:
+            return Response({"message": f"Please pass required parameter: {e}", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            self.logger.exception(f'Some unexpected exception occured: {e}')
+            return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class DublinBikesPredictionView(APIView):
+    '''
+    Class for all the operations related to the Dublin Bikes Prediction.
     '''
     # permission_classes = [IsAuthenticated]
 

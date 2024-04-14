@@ -20,13 +20,10 @@ class DublinBikeStation(models.Model):
     station_id = models.CharField(max_length=50)
     name = models.CharField(max_length=50)
     bike_stands = models.CharField(max_length=50)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-
-class DublinBikeStation(models.Model):
-    station_id = models.CharField(max_length=50)
-    name = models.CharField(max_length=50)
-    bike_stands = models.CharField(max_length=50)
+    available_bikes = models.IntegerField()
+    usage_percent = models.FloatField()
+    last_update = models.DateTimeField()
+    status = models.CharField(max_length=20)
     latitude = models.FloatField()
     longitude = models.FloatField()
 

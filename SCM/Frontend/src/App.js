@@ -14,7 +14,8 @@ import BikeMap from "./Components/BikeMap";
 import BusPage from "./Components/BusPage";
 import EnergyUsageMap from "./Components/EnergyUsageMap";
 import PollutionMap from "./Components/PollutionMap";
-import { FaBars, FaBus, FaWind, FaTrash, FaSmog } from "react-icons/fa";
+import TimeSeriesAnalysis from "./Components/TimeSeriesAnalysis";
+import { FaBars, FaBus, FaReact, FaTrash, FaSmog } from "react-icons/fa";
 import {
 	MdDirectionsBike,
 	MdEnergySavingsLeaf,
@@ -90,6 +91,16 @@ function Sidebar({ isOpen, toggleSidebar }) {
 					<MdEnergySavingsLeaf className="mr-2" />
 					Renewable Energy
 				</Link>
+				<hr className="border-gray-700" />
+				<Link
+					to="/time-series-analysis"
+					className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${
+						isActive("/time-series-analysis") ? "bg-gray-700" : ""
+					}`}
+				>
+					<FaReact className="mr-2" />
+					Time Series Analysis
+				</Link>
 			</nav>
 
 			<div className="mt-auto">
@@ -143,6 +154,7 @@ function App() {
 						<Route path="/bike" element={<BikeMap />} />
 						<Route path="/bins" element={<BinLocations />} />
 						<Route path="/pollution" element={<PollutionMap />} />
+						<Route path="/time-series-analysis" element={<TimeSeriesAnalysis />} />
 					</Route>
 				</Routes>
 			</Router>
