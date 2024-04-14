@@ -7,7 +7,7 @@ const dummyData = [
         "station_id": 32,
         "bike_stands": 30,
         "available_bikes": 9,
-        "usage_percent": 0.3,
+        "usage_percent": 1.0,
         "last_update": "2024-03-26T13:29:20Z",
         "status": "open"
     },
@@ -16,7 +16,7 @@ const dummyData = [
         "station_id": 32,
         "bike_stands": 30,
         "available_bikes": 10,
-        "usage_percent": 0.33,
+        "usage_percent": 0.9,
         "last_update": "2024-03-26T13:43:33Z",
         "status": "open"
     },

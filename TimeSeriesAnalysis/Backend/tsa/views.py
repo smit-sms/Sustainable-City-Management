@@ -119,8 +119,7 @@ def decompose_time_series(data, period, model_type='additive'):
     return {
         "trend": trend_list,
         "seasonal": seasonal_list,
-        "residual": residual_list,
-        "time": data.index.to_list()
+        "residual": residual_list
     }
 
 def adf_stationarity_check(data):

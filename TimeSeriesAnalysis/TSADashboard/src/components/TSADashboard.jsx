@@ -165,8 +165,6 @@ export const TSADashboard = ({
             feedback += " Decomposition: " + decomposed.message;
         }
         decomposed = decomposed.data;
-        dataProcessed.time_base = decomposed.time;
-        dataProcessed.base = decomposed.base;
         dataProcessed.time_decomposed = decomposed.time;
         dataProcessed.trend = decomposed.trend;
         dataProcessed.seasonal = decomposed.seasonal;
