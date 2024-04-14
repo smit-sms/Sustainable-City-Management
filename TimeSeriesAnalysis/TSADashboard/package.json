@@ -1,6 +1,6 @@
 {
   "name": "tsa-dashboard",
-  "version": "2.1.0",
+  "version": "2.1.3",
   "description": "This is a component that you can call with any time series data in the expected format {'data':[<float>...], 'time':[<str>...]} anywhere within your ReactJS project to visualize the data with auto-generated analytics like trend, seasonality, number summary, ACF and PACF plots, etc. Kindly ensure that when using the package, the prerequisite docker container 'brian92292/scm' is running on your local machine.",
   "module": "dist/index.es.js",
   "scripts": {
