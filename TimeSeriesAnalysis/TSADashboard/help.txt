@@ -1,0 +1,36 @@
+frontend:
+    > npx create-react-app 'app name'
+    > npm install
+    > npm run dev
+
+backend:
+    > pip install django djangorestframework django-cors-headers
+    > django-admin startproject <project name>
+    > in the settings.py file change DATABASES['default'] to use postgresql DB.
+    > python manage.py createsuperuser
+    > python manage.py check
+    > python manage.py makemigrations
+    > python manage.py migrate
+    > python manage.py startapp <app name>
+    > python manage.py runserver
+    > Table manual delete and migrate restore.
+        1. Delete app migrations folder.
+        2. In the database, run > DELETE FROM django_migrations WHERE app = 'app_name'.
+        3. python manage.py makemigrations app_name
+        4. python manage.py migrate
+    > python manage.py runscript <name of file in scripts folder>
+    > python manage.py test 'app name'
+
+ReactJS testing:
+    > npm test --testPathPattern=<path to file containing steps>
+
+Publish to npm:
+    > npm run build-lib
+    > npm publish
+
+Launch Dashboard (Storybook):
+    > start backend:
+        cd ./TimeSeriesAnalysis/Backend
+        python manage.py runserver 8001
+    > start frontend:
+        npm run storybook

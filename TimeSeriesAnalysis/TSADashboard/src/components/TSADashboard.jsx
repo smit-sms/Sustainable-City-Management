@@ -119,6 +119,7 @@ export const TSADashboard = ({
         // Base data.
         let d;
         let t;
+        console.log(`controls.outliers = ${controls.outliers}`)
         if (controls.outliers) { // Include outliers.
             dataProcessed.base = [];
             dataProcessed.time_base = [];
@@ -795,11 +796,10 @@ export const TSADashboard = ({
                     <div className={statusMessage.includes('Success') ? 'text-green-600' : 'text-red-600'}>{statusMessage}</div>
                 </div>
 
-                <div id='line' className='col-span-2 mt-10 sm:mt-0'>
+                <div id='line' className='col-span-2 mt-10 sm:mt-0 mb-16'>
                     <div className="flex justify-between items-center mb-2">
                         <b className="block text-lg font-semibold">Line Plot</b>
-                        <a data-tooltip-id="line-plot" data-tooltip-html="Time series decomposition breaks down a dataset into trend, seasonal
-                         patterns, and random noise; it's like dissecting a signal to understand its trends and cycles. <br/>
+                        <a data-tooltip-id="line-plot" data-tooltip-html="Time series decomposition breaks down a dataset into trend, seasonal patterns, and random noise; it's like dissecting a signal to understand its trends and cycles. <br/>
                          When we adjust the data to make it consistent over time—removing upward or downward shifts and repetitive patterns—we make it 'stationary'. The line plot <br />then shows us this smoothed-out data, where any remaining shifts that grow or shrink over time might suggest inconsistent variation in the data's spread.">
                             <FaInfoCircle className="text-lg" />
                         </a>
@@ -815,7 +815,7 @@ export const TSADashboard = ({
                     <svg id='svg-line' className='w-full h-full'></svg>
                 </div>
 
-                <div id='num_sum' className='mt-10 sm:mt-0 text-left'>
+                <div id='num_sum' className='mt-10 sm:mt-0 text-left mb-10'>
                     <b className="block text-lg font-semibold">Number Summary</b>
                     <table className="w-full text-sm text-center text-gray-500 rounded-md shadow dark:text-gray-400">
                         <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700 dark:text-white">
@@ -841,7 +841,7 @@ export const TSADashboard = ({
                     </table>
                 </div>
 
-                <div id='hist' className='col-span-2 mt-10 sm:mt-0'>
+                <div id='hist' className='col-span-2 mt-10 sm:mt-0 mb-10'>
                     <div className="flex justify-between items-center mb-2">
                         <b className="block text-lg font-semibold">Histogram Plot</b>
                         <a data-tooltip-id="histogram-plot" data-tooltip-html="A histogram is a graphical representation of the distribution of a dataset. <br/>It displays the frequency of data points falling within specified intervals, known as bins, along the x-axis, <br/>with the count or frequency of observations in each bin represented on the y-axis.<br/> The no. of approximate (depends on how data range can be divided) bins may be changed from the 'CONTROLS' section.">
