@@ -22,6 +22,9 @@ class SA_energy(APITestCase):
 
     # Test with a valid small area code        
     def test_get_valid_small_area_code(self):
+        '''
+        Tests for getting valid small area code.
+        '''
         self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('SA_energy'), {'small_area_code': '268139005'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -30,6 +33,9 @@ class SA_energy(APITestCase):
 
     # Test with an invalid small area code
     def test_get_invalid_small_area_code(self):
+        '''
+        Tests for getting invalid small area code.
+        '''
         self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('SA_energy'), {'small_area_code': 0})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

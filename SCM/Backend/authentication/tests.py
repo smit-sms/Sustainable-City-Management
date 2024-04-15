@@ -9,12 +9,18 @@ class TestWhitelist(APITestCase):
         self.email = 'testuser@tcd.ie'
 
     def test_new_whitelist(self):
+        '''
+        Tests for adding new email to whitelist.
+        '''
         data = {'email': self.email}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data, "New email added to Whitelist")
     
     def test_duplicate_whitelist(self):
+        '''
+        Tests for checking duplicate email in whitelist.
+        '''
         Whitelist.objects.create(email=self.email)
         data = {'email': self.email}
         response = self.client.post(self.url, data)
@@ -32,6 +38,9 @@ class TestAuth(APITestCase):
         Whitelist.objects.create(email='whitelist-test@tcd.ie')
 
     def test_register(self):
+        '''
+        Tests for checking user registration.
+        '''
         data = {'email': 'whitelist-test@tcd.ie', 'password': 'newuserpassword', 'name': 'New User'}
         response = self.client.post(self.register_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -39,6 +48,9 @@ class TestAuth(APITestCase):
         self.assertIn('refresh_token', response.data)
 
     def test_login(self):
+        '''
+        Tests for checking user login.
+        '''
         data = {'email': self.email, 'password': self.password}
         response = self.client.post(self.login_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -46,6 +58,9 @@ class TestAuth(APITestCase):
         self.assertIn('refresh_token', response.data)
 
     def test_logout(self):
+        '''
+        Tests for checking user logout.
+        '''
         data = {'email': self.email, 'password': self.password}
         response = self.client.post(reverse('token_obtain_pair'), data)
         token = response.json()['refresh']
@@ -60,6 +75,9 @@ class TestTokenEndpoints(APITestCase):
         User.objects.create_user(email='testuser@tcd.ie', password='testpassword')
 
     def test_token_obtain_pair(self):
+        '''
+        Tests for getting token pair.
+        '''
         url = reverse('token_obtain_pair')
         data = {'email': 'testuser@tcd.ie', 'password': 'testpassword'}
         response = self.client.post(url, data)
@@ -68,6 +86,9 @@ class TestTokenEndpoints(APITestCase):
         self.assertIn('refresh', response.data)
 
     def test_token_refresh(self):
+        '''
+        Tests for checking refresh token.
+        '''
         data = {'email': 'testuser@tcd.ie', 'password': 'testpassword'}
         response = self.client.post(reverse('token_obtain_pair'), data)
         refresh_token = response.json()['refresh']

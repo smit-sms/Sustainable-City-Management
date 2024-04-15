@@ -20,6 +20,9 @@ class PredictViewTest(APITestCase):
     @patch('cityservices.views.DublinBikesView')
     @patch('pickle.load')
     def test_predict(self, mock_pickle_load, mock_prepare_query_for_model):
+        '''
+        Tests for predictions in Dublin Bikes.
+        '''
         self.client.force_authenticate(user=self.user)
         # Setup mock model with a predictable return value
         mock_model = MagicMock()
