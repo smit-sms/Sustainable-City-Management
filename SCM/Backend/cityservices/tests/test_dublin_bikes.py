@@ -1,12 +1,26 @@
 import pandas as pd
-from django.test import TestCase
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
+from rest_framework.test import APITestCase
+from authentication.models import User, Whitelist
+from rest_framework import status
 
-class PredictViewTest(TestCase):
+class PredictViewTest(APITestCase):
+    def setUp(self):
+        Whitelist.objects.create(email='testuser@tcd.ie')
+        self.user = User.objects.create_user(email='testuser@tcd.ie', password='testpassword')
+
+    def test_predict_view_no_login(self):
+        '''
+        Test for checking if login works properly on Dublin Bikes API.
+        '''
+        response = self.client.get(reverse('dublin-bikes'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     @patch('cityservices.views.DublinBikesView')
     @patch('pickle.load')
     def test_predict(self, mock_pickle_load, mock_prepare_query_for_model):
+        self.client.force_authenticate(user=self.user)
         # Setup mock model with a predictable return value
         mock_model = MagicMock()
         mock_model.predict.return_value = [42]  # Example prediction
@@ -22,4 +36,3 @@ class PredictViewTest(TestCase):
 
         # Asserts
         self.assertEqual(response.status_code, 200)
-        # Further assertions to validate response content

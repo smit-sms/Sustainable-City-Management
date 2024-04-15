@@ -1,16 +1,18 @@
 from django.urls import reverse
 from unittest import mock
-from django.test import TestCase, Client
+from rest_framework.test import APITestCase
 from ..models import BusRoute
 from rest_framework import status
+from rest_framework.test import APITestCase
+from authentication.models import User, Whitelist
 
-
-class BusRouteTests(TestCase):
+class BusRouteTests(APITestCase):
     '''
     Tests for Bus Routes APIView
     '''
     def setUp(self):
-        self.client = Client()
+        Whitelist.objects.create(email='testuser@tcd.ie')
+        self.user = User.objects.create_user(email='testuser@tcd.ie', password='testpassword')
         self.bus_routes_url = reverse('bus-routes')
         # Setup initial data in the database
         bus_route = {
@@ -43,10 +45,18 @@ class BusRouteTests(TestCase):
             ]
         }
 
+    def test_bus_route_no_login(self):
+        '''
+        Test for checking if login works properly on bus route API.
+        '''
+        response = self.client.get(self.bus_routes_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_get_all_bus_routes(self):
         '''
         Test for fetching all bus routes.
         '''
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.bus_routes_url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         result = response.json()
@@ -56,6 +66,7 @@ class BusRouteTests(TestCase):
         '''
         Test for fetching a bus route.
         '''
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.bus_routes_url, {'bus_name':'TestBus1'})
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         result = response.json()
@@ -65,6 +76,7 @@ class BusRouteTests(TestCase):
         '''
         Test for fetching an invalid bus route.
         '''
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.bus_routes_url, {'bus_name':'NOT_FOUND'})
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
         result = response.json()
@@ -74,9 +86,9 @@ class BusRouteTests(TestCase):
         '''
         Test for getting bus route based on co-ordinates passed
         '''
+        self.client.force_authenticate(user=self.user)
         with mock.patch('cityservices.views.get_openroute_geojson'):
-            response = self.client.post(self.bus_routes_url, self.post_data, format='json',
-                                        content_type='application/json')
+            response = self.client.post(self.bus_routes_url, self.post_data, format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertIn('Successfully fetched the required data', response.data['message'])
 
@@ -86,6 +98,7 @@ class BusRouteTests(TestCase):
         '''
         payload = {}
 
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.bus_routes_url, payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Please pass required parameter', response.data['message'])
@@ -94,8 +107,9 @@ class BusRouteTests(TestCase):
         '''
         Test for checking the unexpected exception
         '''
+        self.client.force_authenticate(user=self.user)
         with mock.patch('cityservices.views.get_openroute_geojson', side_effect=Exception("Test exception")):
-            response = self.client.post(self.bus_routes_url, self.post_data, format='json',
+            response = self.client.post(self.bus_routes_url, self.post_data,
                                         content_type='application/json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertIn('Some unexpected exception occured', response.data['message'])
