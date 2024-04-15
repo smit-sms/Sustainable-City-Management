@@ -7,6 +7,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../assets/styles/BusMap.css'
 import { BASE_URL } from '../../services/api';
+import CustomFetch from '../../utils/customFetch';
+import { useNavigate } from 'react-router-dom';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,6 +25,7 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
   const [selectedStartingPoint, setSelectedStartingPoint] = useState(null);
   const [selectedEndPoint, setSelectedEndPoint] = useState(null);
   const [updatedRoute, setRouteData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (customMarkers.length === 2) {
@@ -62,7 +65,6 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
     setIsEditModeEnabled(false);
   };
   const sendDataToBackend = async () => {
-    console.log(customMarkers);
     const payload = {
       bus_name: selectedBus,
       coordinates: [
@@ -71,23 +73,16 @@ const BusMap = ({ selectedBusRoute, selectedBus }) => {
         [selectedEndPoint.lng, selectedEndPoint.lat, selectedStartingPoint.name] // Ending point
       ]
     };
-    console.log(payload);
+
     try {
       // Send POST request to the backend
-      const response = await fetch(`${BASE_URL}/city_services/bus-routes/`, {
+      const response = await CustomFetch(`${BASE_URL}/city_services/bus-routes/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const updatedRouteResponse = await response.json();
-      setRouteData(updatedRouteResponse);
+        body: JSON.stringify(payload)
+      }, navigate);
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      setRouteData(data);
     } catch (error) {
       toast.error('Failed to send data to backend:', error);
     }
