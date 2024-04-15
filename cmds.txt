@@ -1,0 +1,36 @@
+Build package.
+> python setup.py sdist bdist_wheel
+
+Install package from wheel file.
+> pip install dist/etl_pipeline_ggn1_ase_g5-4.0-py3-none-any.whl --force-reinstall
+
+Install package from pypi.org @ https://pypi.org/project/etl-pipeline-ggn1-ase-g5/4.0/.
+> pip install etl-pipeline-ggn1-ase-g5 --force-reinstall
+
+Upload package.
+> twine upload dist/*
+
+Run pipeline
+> python app.py --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+> python -m etl_pipeline_ggn1_ase_g5 --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+> etl_pipeline --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+
+Testing
+-------
+# Ensure that current working directory is "ETLPipelinePy3.11Mod".
+
+# Ensure SCM/Backend is running on port 8000.
+  > cd ../SCM/Backend
+  > python manage.py runserver 8000
+
+# Ensure ETLPipeline API is up and running.
+  (if files) > python app.py --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+  (if module on LM) > python -m etl_pipeline_ggn1_ase_g5 --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+  (if installed module) > etl_pipeline --db-name db_etl --db-path ./tests --logs-dir ./tests/logs
+
+# There are 2 tests.py files. One at "ETLPipelinePy3.11Mod/" and another at "ETLPipelinePy3.11Mod/tests/". This is so that the module on the LM as well as installed may be tested. To test the installed package, run tests from within the the "ETLPipelinePy3.11Mod/tests/" folder. To test the module files, run tests from within the "ETLPipelinePy3.11Mod/" folder.
+
+# Ensure dst_path in tests.py in save_toy_data(...) function contains the correct absolute path to location of "tests/" folder on the LM.
+
+# Run tests.
+  > python tests.py
