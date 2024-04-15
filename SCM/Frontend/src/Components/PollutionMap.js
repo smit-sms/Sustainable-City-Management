@@ -19,36 +19,47 @@ function PollutionMap() {
 
 	const getsensors = () => {
 		CustomFetch(`${BASE_URL}/sensors/air-noise`, {
-			method: 'GET'
-		}, navigate)
-			.then((response) => response.json())
-			.then((json) => {
-				setSensors(json.data);
-			});
+				method: 'GET'
+			}, navigate)
+			.then((response) => {
+			const data = response.json();
+			setSensors(data.data);
+			getPredictions();
+		});
 	};
 
 	const getPredictions = () => {
 		let predictions_temp = [];
 		CustomFetch(`${BASE_URL}/sensors/air-predictions`, {
-			method: 'GET'
-		}, navigate)
-			.then((response) => response.json())
-			.then((json) => {
-				predictions_temp.push(...json.data);
-			});
+				method: 'GET'
+			}, navigate)
+			.then((response) => {
+			if (response.status === 200 || response.status === 201) {
+				const data = response.json().then((data_new) => {
+					console.log(data_new);
+					if (data_new) {
+						predictions_temp.push(...data_new.data);
+					}
+				});
+			}
+		});
 		CustomFetch(`${BASE_URL}/sensors/noise-predictions`, {
-			method: 'GET'
-		}, navigate)
-			.then((response) => response.json())
-			.then((json) => {
-				predictions_temp.push(...json.data);
-			});
-		setPredictions(predictions_temp);
+				method: 'GET'
+			}, navigate)
+			.then((response) => {
+			if (response.status === 200 || response.status === 201) {
+				const data = response.json();
+				if (data) {
+					predictions_temp.push(...data.data);
+					setPredictions(predictions_temp);
+				}
+			}
+		});
 	};
 
 	useEffect(() => {
 		getsensors();
-		getPredictions();
+		// getPredictions();
 	}, []);
 
 	const RenderIcons = () => {

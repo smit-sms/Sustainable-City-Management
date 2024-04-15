@@ -169,6 +169,7 @@ function App() {
 						<Route path="/bins" element={<BinLocations />} />
 						<Route path="/pollution" element={<PollutionMap />} />
 						<Route path="/time-series-analysis" element={<TimeSeriesAnalysis />} />
+						<Route path="*" element={<LoginPage />} />
 					</Route>
 				</Routes>
 			</Router>
