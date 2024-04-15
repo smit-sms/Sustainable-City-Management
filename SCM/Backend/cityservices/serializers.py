@@ -20,5 +20,9 @@ class DublinBikesStationSerializer(serializers.ModelSerializer):
         fields = ('station_id',
                   'name',
                   'bike_stands',
+                  'available_bikes',
+                  'usage_percent',
+                  'last_update',
+                  'status',
                   'latitude',
                   'longitude')
