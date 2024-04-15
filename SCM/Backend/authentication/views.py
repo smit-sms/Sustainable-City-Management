@@ -29,7 +29,13 @@ class RegisterView(APIView):
             serializer = UserSerializer(data = request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data)
+            user = User.objects.get(email = request.data["email"])
+            access_token = AccessToken.for_user(user)
+            refresh_token = RefreshToken.for_user(user)
+            return Response({
+                "access_token" : str(access_token),
+                "refresh_token" : str(refresh_token)
+            }, status=status.HTTP_201_CREATED)
         else:
             return Response("User Not Authorized",status=status.HTTP_401_UNAUTHORIZED)
 

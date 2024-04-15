@@ -30,8 +30,7 @@ const RegisterPage = () => {
       });
 
       const data = await response.json();
-
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         Cookies.set('access_token', data.access_token);
         Cookies.set('refresh_token', data.refresh_token);
         navigate('/bus');

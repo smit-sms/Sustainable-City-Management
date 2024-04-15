@@ -23,6 +23,7 @@ class ETLTask:
         @param name: String identifier.
         @param fun_data_load: Function that loads data from a desired source.
         @param fun_data_save: Function that saves data to a desired destination.
+        @param fun_data_transform: Function that applies desired transformations to loaded data.
         @param repeat_time_unit: The unit of time for periodic execution 
                                  (seconds, minutes, hours, days).
         @param repeat_interval: The units of time after which this function shall

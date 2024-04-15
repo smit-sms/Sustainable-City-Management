@@ -39,7 +39,7 @@ const BusSelector = (props) => {
 
       setBuses(sortedBuses);
     } catch (error) {
-      toast.error('Some Error occurred. Please refresh and try again.');
+      toast.error('Some Error occurred. Please login/refresh and try again.');
       console.log(error);
     }
   };
