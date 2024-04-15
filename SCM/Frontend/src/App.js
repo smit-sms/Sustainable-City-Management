@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -6,26 +6,33 @@ import {
 	Link,
 	Outlet,
 	useLocation,
+	useNavigate
 } from "react-router-dom";
+import Cookies from 'js-cookie';
 import LoginPage from "./Components/LoginPage";
 import RegisterPage from "./Components/RegisterPage";
 import BikeMap from "./Components/BikeMap";
-// import HomePage from './Components/HomePage';
 import BusPage from "./Components/BusPage";
 import EnergyUsageMap from "./Components/EnergyUsageMap";
 import PollutionMap from "./Components/PollutionMap";
 import TimeSeriesAnalysis from "./Components/TimeSeriesAnalysis";
+import BinLocations from "./Components/BinLocations";
 import { FaBars, FaBus, FaReact, FaTrash, FaSmog } from "react-icons/fa";
 import {
 	MdDirectionsBike,
 	MdEnergySavingsLeaf,
 	MdLogout,
 } from "react-icons/md";
-import BinLocations from "./Components/BinLocations";
 
 function Sidebar({ isOpen, toggleSidebar }) {
 	const location = useLocation();
 	const isActive = (pathname) => location.pathname === pathname;
+	const navigate = useNavigate();
+	const handleLogout = () => {
+		Cookies.remove('access_token');
+		Cookies.remove('refresh_token'); // If you use a refresh token
+		navigate('/');
+	};
 
 	return (
 		<div
@@ -65,7 +72,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
 				<Link
 					to="/bins"
 					className={`flex items-center py-2.5 mt-2 mb-2 px-4 rounded transition duration-200 hover:bg-gray-700 ${
-						isActive("/bin") ? "bg-gray-700" : ""
+						isActive("/bins") ? "bg-gray-700" : ""
 					}`}
 				>
 					<FaTrash className="mr-2" />
@@ -105,7 +112,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
 
 			<div className="mt-auto">
 				<button
-					// onClick={handleLogout}
+					onClick={handleLogout}
 					className="flex justify-center items-center w-full py-2 px-4 border border-green-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 mt-4 space-x-2"
 				>
 					<MdLogout className="inline-block" size={20} />
@@ -118,10 +125,17 @@ function Sidebar({ isOpen, toggleSidebar }) {
 
 function LayoutWithSidebar() {
 	const [isOpen, setIsOpen] = useState(false);
+	const navigate = useNavigate();
 
 	const toggleSidebar = () => {
 		setIsOpen(!isOpen);
 	};
+
+	useEffect(() => {
+		if(!Cookies.get('access_token')){
+		  navigate('/');
+		}
+	},[navigate]);
 
 	return (
 		<div className="flex">

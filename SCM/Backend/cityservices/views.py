@@ -24,7 +24,7 @@ class BusRouteView(APIView):
     '''
     Class for all the operations related to the Bus Routes.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
@@ -114,6 +114,8 @@ class SA_energy(APIView):
     '''
     Class for all the operations related to the Energy Consumption for small areas.
     '''
+    permission_classes = [IsAuthenticated]
+
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
         self.logger = logging.getLogger(__name__)
@@ -152,7 +154,7 @@ class DublinBikesView(APIView):
     '''
     Class for all the operations related to the Dublin Bikes.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
@@ -205,7 +207,7 @@ class DublinBikesPredictionView(APIView):
     '''
     Class for all the operations related to the Dublin Bikes Prediction.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
@@ -274,7 +276,7 @@ class BinLocationsView(APIView):
     '''
     Class for all the operations related to the Bin Locations.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
