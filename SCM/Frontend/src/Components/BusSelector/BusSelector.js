@@ -3,17 +3,18 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../assets/styles/BusSelector.css'
 import { BASE_URL } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import CustomFetch from '../../utils/customFetch';
 
 const BusSelector = (props) => {
   const [buses, setBuses] = useState([]);
+  const navigate = useNavigate();
 
   const fetchBuses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/city_services/bus-routes/`,{
-        headers: {
-          // "ngrok-skip-browser-warning": "true"
-        }
-      });
+      const response = await CustomFetch(`${BASE_URL}/city_services/bus-routes/`,{
+        method: 'GET'
+      }, navigate);
       if (!response.ok) {
         throw new Error(`Network response was not ok: ${response.status}`);
       }
@@ -38,7 +39,7 @@ const BusSelector = (props) => {
 
       setBuses(sortedBuses);
     } catch (error) {
-      toast.error('Some Error occurred. Please refresh and try again.');
+      toast.error('Some Error occurred. Please Login/Refresh and try again.');
       console.log(error);
     }
   };
@@ -58,15 +59,11 @@ const BusSelector = (props) => {
   };
 
   const fetchBusDetails = async (busName) => {
-    try {
-      const response = await fetch(`${BASE_URL}/city_services/bus-routes/?bus_name=${busName}`, {
-        headers: {
-          // "ngrok-skip-browser-warning": "true"
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`Network response was not ok: ${response.status}`);
-      }
+    try{
+      const response = await CustomFetch(`${BASE_URL}/city_services/bus-routes/?bus_name=${busName}`, {
+        method: 'GET'
+      }, navigate);
+      if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
       props.onBusSelect(busName,data.data); 
     } catch (error) {

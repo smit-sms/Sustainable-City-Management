@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from requests.exceptions import HTTPError
@@ -26,7 +27,7 @@ class AirNoiseView(APIView):
     '''
     Class for all the operations related to the Air and Noise.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
@@ -248,7 +249,7 @@ class AirPredictions(APIView):
     '''
     Class for all the operations related to the Air Predictions.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
@@ -327,7 +328,7 @@ class NoisePredictions(APIView):
     '''
     Class for all the operations related to the Noise Predictions.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)

@@ -1,13 +1,11 @@
 import os
 import time
 import signal
-import atexit
 import uvicorn
 import schedule
 import argparse
 import threading
 import logging.config
-from threading import Event
 from fastapi import FastAPI
 from .utility import base64decode_obj
 from .etl_db_manager import ETLDataBaseManager
@@ -18,9 +16,8 @@ HOST = None
 PORT = None
 SCHEDULER_RUNNING = False
 SCHEDULED_JOBS = {}
+LOGGER = logging.getLogger("etl_pipeline")
 
-# Logger
-logger = logging.getLogger("etl_pipeline")
 def configure_logger(logs_dir):
     """ 
     Sets up the logger. 
@@ -58,23 +55,15 @@ def configure_logger(logs_dir):
                 "filename": f"{logs_dir}/etl_pipeline.log",
                 "maxBytes": 10000000,
                 "backupCount": 3,
-            },
-            "queue_handler": {
-                "class": "logging.handlers.QueueHandler",
-                "handlers": ["stderr", "file"],
-                "respect_handler_level": True
             }
         },
         "loggers": {
-            "root": {"level": "DEBUG", "handlers": ["queue_handler"]}
+            "root": {
+                "level": "DEBUG", 
+                "handlers": ["stderr", "file"]
+            }
         }
     })
-
-    # Set up non-blocking logger on a separate thread.
-    queue_handler = logging.getHandlerByName("queue_handler")
-    if queue_handler is not None:
-        queue_handler.listener.start() # Start this thread.
-        atexit.register(queue_handler.listener.stop)
 
     print(
         "Logger 'etl_pipeline' was successfully set up.",
@@ -123,8 +112,10 @@ def create_task(task_str:str):
             start_scheduler()
         task = base64decode_obj(task_str) # Get ETL Task from base64 encoded string.
         DB_MANAGER.create_task(task) # Add task into DB.
+        print("[DEBUG] Task created in DB.")
         if not task.name in SCHEDULED_JOBS:
             job = task.schedule(schedule=schedule, host=HOST, port=PORT) # Schedule task.
+            print("[DEBUG] Task scheduled.")
             SCHEDULED_JOBS[task.name] = job # Keep a reference of this scheduled job.
         response['message'] = f"Success. Task created and scheduled {task.name}."
     except Exception as e:
@@ -133,7 +124,7 @@ def create_task(task_str:str):
             stop_task(task.name) # Stop this task if running/scheduled and then delete.
             delete_task(task.name) # Remove partially correct entered task.
         response['status'] = 400
-        logger.error(f'Failure. Could not create task due to "{e}".')
+        LOGGER.error(f'Failure. Could not create task due to "{e}".')
         response['message'] = f'Failure. Could not create task "{task.name}" due to "{e}".'
     return response
 
@@ -157,7 +148,7 @@ def delete_task(task_name: str):
             response['status'] = 200
             response['message'] = f'Success. If the task "{task_name}" existed, it has been deleted.'
     except Exception as e:
-        logger.error(f'Failure. Could not delete task "{task_name}" due to "{e}".')
+        LOGGER.error(f'Failure. Could not delete task "{task_name}" due to "{e}".')
         response['status'] = 400
         response['message'] = f'Failure. Could not delete task "{task_name}" due to "{e}".'
     return response
@@ -191,7 +182,7 @@ def read_task(task_name:str, fields:str=''):
             response["data"] = task
             response["message"] = f'Success. Retrieved task "{task_name}".'
     except Exception as e:
-        logger.error(f'Failure. Could not get task "{task_name}" due to "{e}".')
+        LOGGER.error(f'Failure. Could not get task "{task_name}" due to "{e}".')
         response['status'] = 400
         response['message'] = f'Failure. Could not get task "{task_name}" due to "{e}".'
     return response
@@ -217,7 +208,7 @@ def read_all_tasks():
             })
         response["message"] = f"Success. Retrieved tasks."
     except Exception as e:
-        logger.error(f'Failure. Could not get tasks due to "{e}".')
+        LOGGER.error(f'Failure. Could not get tasks due to "{e}".')
         response['status'] = 400
         response['message'] = f'Failure. Could not get tasks due to "{e}".'
     return response
@@ -254,7 +245,7 @@ def update_task(task_name: str, new_values: dict):
             DB_MANAGER.update_task(name=task_name, new_values=new_values)
             response["message"] = f'Success. Status of task "{task_name}" updated with new values {new_values}.'
     except Exception as e:
-        logger.error(f'Failure. Could not update status of task "{task_name}" due to "{e}".')
+        LOGGER.error(f'Failure. Could not update status of task "{task_name}" due to "{e}".')
         response['status'] = 400
         response['message'] = f'Failure. Could not update status of task "{task_name}" due to "{e}".'
     return response
@@ -287,7 +278,7 @@ def start_task(task_name:str):
                     response["message"] += f"Task '{task_name}' is already scheduled/running. "
                     print(f"Task '{task_name}' is already scheduled.")
     except Exception as e:
-        logger.error(f'Failed to start task "{task_name}" due to "{e}".')
+        LOGGER.error(f'Failed to start task "{task_name}" due to "{e}".')
         response['status'] = 400
         response["message"] = f'Failed to start task "{task_name}" due to "{e}".'
     return response
@@ -312,7 +303,7 @@ def stop_task(task_name: str):
             print(f'Task "{task_name}" is not running or scheduled.')
             response['message'] = f'Task "{task_name}" is not running or scheduled.'
     except Exception as e:
-        logger.error(f'Failure. Could not stop task "{task_name}" due to "{e}".')
+        LOGGER.error(f'Failure. Could not stop task "{task_name}" due to "{e}".')
         print(f'Task "{task_name}" could not be stopped.')
         response['status'] = 400
         response['message'] = f'Failure. Could not stop task "{task_name}" due to "{e}".'
@@ -339,7 +330,6 @@ def start_scheduler():
         response["message"] = f'Scheduler could not be started due to "{e}".'
         response["status"] = 400
         response["message"] = f'Scheduler could not be started due to "{e}".'
-    print('[DEBUG] start_scheduler(...): # ACTIVE THREADS =', threading.active_count())
     return response
 
 @app.get("/scheduler/stop/")
@@ -358,10 +348,9 @@ def stop_scheduler():
             print("Scheduler stopped.")
             response["message"] = "Scheduler stopped."
     except Exception as e:
-        logger.log(f'Scheduler could not be stopped due to "{e}".')
+        LOGGER.log(f'Scheduler could not be stopped due to "{e}".')
         response["status"] = 400
         response["message"] = f'Scheduler could not be stopped due to "{e}".'
-    print('[DEBUG] stop_scheduler(...): # ACTIVE THREADS =', threading.active_count())
     return response
 
 @app.get("/end")

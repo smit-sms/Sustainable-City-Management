@@ -15,3 +15,7 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.login-button, .register-button {
+  background-color: rgb(21 128 61) !important;  
+}

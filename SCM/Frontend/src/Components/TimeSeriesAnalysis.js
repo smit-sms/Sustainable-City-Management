@@ -3,7 +3,7 @@ import { BASE_URL } from "../services/api";
 import { TSADashboard } from "tsa-dashboard";
 
 
-const title = `Bike Usage (Station 32)`
+const title = 'Bike Usage'
 const TimeSeriesAnalysis = () => {
 
     const dummyData = [

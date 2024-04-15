@@ -7,6 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { BASE_URL, DUBLIN_WASTE_FACILITIES } from "../services/api";
 import binIconPng from "../assets/bin_icon.png";
 import currLocIconPng from "../assets/current-location-icon.png";
+import CustomFetch from "../utils/customFetch";
+import { useNavigate } from "react-router-dom";
 
 const binIcon = L.icon({
 	iconSize: [22, 22],
@@ -28,6 +30,7 @@ export default function BinLocations() {
 	const [binData, setBinData] = useState(null);
 	const [wasteFacilities, setWasteFacilities] = useState(null);
 	const [currentLocation, setCurrentLocation] = useState(null);
+	const navigate = useNavigate();
 
 	var binDataMapLayer = useRef(L.layerGroup());
 	var wasteFacilitiesMapLayer = useRef(L.layerGroup());
@@ -53,7 +56,9 @@ export default function BinLocations() {
 	// Fetch the data
 	useEffect(() => {
 		// Fetch bin locations and store in variable `binData`
-		fetch(`${BASE_URL}/city_services/bin-locations/`)
+		CustomFetch(`${BASE_URL}/city_services/bin-locations/`, {
+			method: 'GET'
+		  }, navigate)
 			.then((response) => {
 				if (response.status === 200) return response.json();
 				else throw new Error("Fetching bin location data failed!");

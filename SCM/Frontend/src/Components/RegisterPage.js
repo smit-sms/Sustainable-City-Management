@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../services/api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Cookies from 'js-cookie';
 
 const RegisterPage = () => {
   let navigate = useNavigate();
 
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,17 +21,19 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/auth/signup`, {
+      const response = await fetch(`${BASE_URL}/auth/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
-
-      if (response.status === 201) {
+      // console.log(data);
+      if (response.status === 201 || response.status === 200) {
+        Cookies.set('access_token', data.access_token);
+        Cookies.set('refresh_token', data.refresh_token);
         navigate('/bus');
       } else if (response.status === 400) {
         toast.error(data.message || 'Already existing user');
@@ -56,10 +59,10 @@ const RegisterPage = () => {
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Name"
               className="text-dark w-full p-2 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required />
           </div>
           <div className="mb-4">
@@ -91,7 +94,7 @@ const RegisterPage = () => {
           </div>
           <button
             type="submit"
-            className="w-full p-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+            className="w-full p-2 bg-green-600 register-button text-white rounded hover:bg-green-700 transition duration-300"
           >
             Register
           </button>

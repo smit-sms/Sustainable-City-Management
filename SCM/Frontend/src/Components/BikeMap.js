@@ -9,6 +9,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import bikeImage from "../assets/bike.png";
 import { BASE_URL } from "../services/api";
+import CustomFetch from '../utils/customFetch';
+import { useNavigate } from 'react-router-dom';
 
 // Setup for the bike icon in Leaflet
 const icon = L.icon({
@@ -28,6 +30,7 @@ const BikeMap = () => {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const navigate = useNavigate();
 
   const [minTime, setMinTime] = useState(new Date());
   const [maxTime, setMaxTime] = useState(
@@ -46,7 +49,9 @@ const BikeMap = () => {
   const [isRealOrPred, setIsRealOrPred] = useState("real");
 
   function get_data_from_dublinbikes(pred_data) {
-    fetch(`${BASE_URL}/city_services/dublin-bikes/`)
+    CustomFetch(`${BASE_URL}/city_services/dublin-bikes/`,{
+      method: 'GET'
+    }, navigate)
     .then((response) => {
         if (response.status === 200) return response.json();
         else throw new Error("Error in fetching live data");
@@ -137,7 +142,9 @@ const BikeMap = () => {
   }, [startDate]);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/city_services/dublin-bikes-predictions/`)
+    CustomFetch(`${BASE_URL}/city_services/dublin-bikes-predictions/`,{
+      method: 'GET'
+    }, navigate)
       .then((response) => {
         if (response.status === 200) return response.json();
         else throw new Error("Fetching dublin bikes prediction data failed!");
