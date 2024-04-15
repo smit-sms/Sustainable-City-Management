@@ -1,10 +1,12 @@
 from django.urls import path,include
 from . import views
+from rest_framework_simplejwt import views as jwt_views
 
 urlpatterns = [
-    path("login",views.Authenticate.as_view(), name="authentication_login"),
-    path("signup",views.Signup.as_view(), name="authentication_signup"),
-    path("whitelist",views.New_whitelist.as_view(), name="authentication_whitelist"),
-    path("get",views.get_user.as_view(), name="authentication_get"),
-    path("is_authenticated",views.IsAuthenticated.as_view(), name="authentication_is_authenticated")
+    path("whitelist/",views.New_whitelist.as_view()),
+    path('register/', views.RegisterView.as_view(), name="register"),
+    path('login/', views.Loginview.as_view(), name="login"),
+    path('logout/', views.LogoutView.as_view(), name = "logout"),
+    path('token/', jwt_views.TokenObtainPairView.as_view(), name ="token_obtain_pair"),
+    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
 ]

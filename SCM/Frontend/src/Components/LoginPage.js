@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import { BASE_URL } from '../services/api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,7 +21,6 @@ const LoginPage = () => {
       tempErrors.email = "Email is not valid.";
     }
 
-
     if(password && password.length < password_length){
       tempErrors.password = `Password must be at least ${password_length} characters long.`;
     }
@@ -37,7 +37,7 @@ const LoginPage = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const response = await fetch(`${BASE_URL}/auth/login`, {
+        const response = await fetch(`${BASE_URL}/auth/login/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -46,8 +46,9 @@ const LoginPage = () => {
         });
 
         const data = await response.json();
-        console.log(response.status);
         if (response.status === 200) {
+          Cookies.set('access_token', data.access_token);
+          Cookies.set('refresh_token', data.refresh_token);
           navigate('/bus');
         } else if (response.status === 401) {
           toast.error(data.message || 'Invalid credentials, please check and try again');
@@ -91,7 +92,7 @@ const LoginPage = () => {
           </div>
           <button
             type="submit"
-            className="w-full p-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+            className="w-full p-2 bg-green-600 text-white rounded login-button hover:bg-green-700 transition duration-300"
           >
             Login
           </button>

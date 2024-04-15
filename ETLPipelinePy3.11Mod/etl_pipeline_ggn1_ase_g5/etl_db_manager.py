@@ -224,7 +224,7 @@ class ETLDataBaseManager:
 
     def load_tasks(self, filters:dict={}):
         """
-        Loads tasks from the DB while respecting given fiter
+        Loads tasks from the DB while respecting given filter
         conditions.
         @param filters: A dictionary of filter conditions where
                         the key is the column in the DB table and
@@ -234,7 +234,8 @@ class ETLDataBaseManager:
         q = "SELECT * FROM etl_tasks"
         conditions = []
         for k, v in filters.items():
-            conditions.append(f"{k}={'\''+ v +'\''if type(v)==str else v}")
+            if type(v)==str: v = f"'{v}'"
+            conditions.append(f"{k}={v}")
         if len(conditions) > 0:
             q = q + " WHERE " + " AND ".join(conditions)
         task_details = self.query(q=q, is_get=True)

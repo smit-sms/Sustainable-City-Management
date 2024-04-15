@@ -1,4 +1,4 @@
-import csv
+import csv, datetime
 from cityservices.models import DublinBikeStation
 
 def run():
@@ -17,7 +17,11 @@ def run():
                 name = row[1],
                 bike_stands = row[4],
                 latitude = row[2],
-                longitude = row[3]
+                longitude = row[3],
+                available_bikes=0,
+                usage_percent=0,
+                last_update=datetime.datetime.now(),
+                status='open'
             )
             DublinBikeObj.save()
 
