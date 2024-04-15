@@ -8,14 +8,19 @@ import { FaMicrophone, FaWind } from "react-icons/fa";
 import { BASE_URL } from "../services/api";
 import { ToastContainer } from "react-toastify";
 import L from "leaflet";
+import CustomFetch from "../utils/customFetch";
+import { useNavigate } from "react-router-dom";
 
 function PollutionMap() {
 	const [sensors, setSensors] = useState([]);
 	const [predictions, setPredictions] = useState([]);
 	const [showPredictions, setShowPredictions] = useState(false);
+	const navigate = useNavigate();
 
 	const getsensors = () => {
-		fetch(`${BASE_URL}/sensors/air-noise`)
+		CustomFetch(`${BASE_URL}/sensors/air-noise`, {
+			method: 'GET'
+		}, navigate)
 			.then((response) => response.json())
 			.then((json) => {
 				setSensors(json.data);
@@ -24,20 +29,20 @@ function PollutionMap() {
 
 	const getPredictions = () => {
 		let predictions_temp = [];
-		fetch(`${BASE_URL}/sensors/air-predictions`)
+		CustomFetch(`${BASE_URL}/sensors/air-predictions`, {
+			method: 'GET'
+		}, navigate)
 			.then((response) => response.json())
 			.then((json) => {
-				console.log("json.data1:", json.data);
 				predictions_temp.push(...json.data);
 			});
-		fetch(`${BASE_URL}/sensors/noise-predictions`)
+		CustomFetch(`${BASE_URL}/sensors/noise-predictions`, {
+			method: 'GET'
+		}, navigate)
 			.then((response) => response.json())
 			.then((json) => {
-				console.log("json.data:", json.data);
 				predictions_temp.push(...json.data);
 			});
-		console.log("predictions_temp:", predictions_temp);
-
 		setPredictions(predictions_temp);
 	};
 

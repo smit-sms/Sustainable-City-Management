@@ -30,7 +30,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
 	const navigate = useNavigate();
 	const handleLogout = () => {
 		Cookies.remove('access_token');
-		Cookies.remove('refresh_token'); // If you use a refresh token
+		Cookies.remove('refresh_token');
 		navigate('/');
 	};
 
