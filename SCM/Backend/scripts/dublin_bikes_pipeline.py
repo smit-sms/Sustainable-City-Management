@@ -1,7 +1,7 @@
 import time
 import requests
-from etl_pipeline_ggn1_ase_g5 import ETLTask
-from etl_pipeline_ggn1_ase_g5 import base64encode_obj
+from etl_pipeline_ggn1_ase_g5.etl_task import ETLTask
+from etl_pipeline_ggn1_ase_g5.utility import base64encode_obj
 
 
 def load_data_bikes():
@@ -83,4 +83,4 @@ task = ETLTask(
 # and then submit the task
 time.sleep(5)
 task_str = base64encode_obj(task)
-make_post_request(url="http://0.0.0.0:8003/task", data={"task_str": task_str})
+res = make_post_request(url="http://0.0.0.0:8003/task", data={"task_str": task_str})

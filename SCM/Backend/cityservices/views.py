@@ -154,7 +154,7 @@ class DublinBikesView(APIView):
     '''
     Class for all the operations related to the Dublin Bikes.
     '''
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
@@ -175,7 +175,7 @@ class DublinBikesView(APIView):
         try:
             dublin_bike_data = request.data['dublin_bikes']
             result = []
-            for station_data in dublin_bike_data:              
+            for station_data in dublin_bike_data:
                 naive_datetime = datetime.datetime.strptime(station_data.get('last_update'), '%Y-%m-%dT%H:%M:%S')
                 timezone_aware_datetime = naive_datetime.astimezone(timezone.get_default_timezone())
                 station, created = DublinBikeStation.objects.update_or_create(

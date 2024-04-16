@@ -48,11 +48,13 @@ function PollutionMap() {
 			}, navigate)
 			.then((response) => {
 			if (response.status === 200 || response.status === 201) {
-				const data = response.json();
-				if (data) {
-					predictions_temp.push(...data.data);
-					setPredictions(predictions_temp);
-				}
+				const data = response.json().then((data_new) => {
+					console.log(data_new);
+					if (data_new) {
+						predictions_temp.push(...data_new.data);
+						setPredictions(predictions_temp);
+					}
+				});
 			}
 		});
 	};

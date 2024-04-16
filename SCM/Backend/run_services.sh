@@ -9,22 +9,29 @@ cleanup() {
 }
 
 # Trap SIGINT and SIGTERM signals and call cleanup
-trap cleanup SIGINT SIGTERM
+trap cleanup SIGINT SIGTERM EXIT
 
 # Start Django App
 python manage.py runserver 0.0.0.0:8000 &
 DJANGO_PID=$!
 
+# Wait for django server to startup
+sleep 10
+
 # Start ETL Pipeline
-etl_pipeline &
+etl_pipeline --host "0.0.0.0" --port 8003 &
 ETL_PID=$!
 
-# Start the script to schedule the process
-python ./scripts/dublin_bikes_pipeline.py &
+# Start and wait for the Python script to complete
+python ./scripts/dublin_bikes_pipeline.py
+SCRIPT_STATUS=$?
 
-# Wait for any process to exit
-wait -n
+# Check the exit status of the script
+if [ $SCRIPT_STATUS -ne 0 ]; then
+  echo "Python script exited with error status $SCRIPT_STATUS"
+  cleanup
+  exit $SCRIPT_STATUS
+fi
 
-# Cleanup and exit with the status of the first process to exit
-cleanup
-exit $?
+# Continue running, now only waiting on the server and ETL pipeline
+wait
