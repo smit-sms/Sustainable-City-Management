@@ -1,5 +1,6 @@
 import csv, datetime
 from cityservices.models import DublinBikeStation
+from django.utils import timezone
 
 def run():
     try:
@@ -10,6 +11,9 @@ def run():
         next(stations)
         # Flush the DB tables
         DublinBikeStation.objects.all().delete()
+        
+        naive_datetime = datetime.datetime.strptime(str(datetime.datetime.now()).split('.')[0], '%Y-%m-%d %H:%M:%S')
+        timezone_aware_datetime = naive_datetime.astimezone(timezone.get_default_timezone())
 
         for row in stations:
             DublinBikeObj = DublinBikeStation(
@@ -20,7 +24,7 @@ def run():
                 longitude = row[3],
                 available_bikes=0,
                 usage_percent=0,
-                last_update=datetime.datetime.now(),
+                last_update=timezone_aware_datetime,
                 status='open'
             )
             DublinBikeObj.save()

@@ -21,4 +21,4 @@ RUN chmod +x /app/scripts/dublin_bikes_pipeline.py
 
 EXPOSE 8000 8003
 
-CMD ["./run_services.sh"]
+CMD sed -i 's/\r$//' ./run_services.sh && bash ./run_services.sh
