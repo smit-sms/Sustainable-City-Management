@@ -30,9 +30,7 @@ class PredictViewTest(APITestCase):
         mock_pickle_load.return_value = mock_model
 
         # Mock the prepare_query_for_model to return a predictable DataFrame
-        mock_prepare_query_for_model.return_value = pd.DataFrame({
-            # Fill in with the expected structure
-        })
+        mock_prepare_query_for_model.return_value = pd.DataFrame({})
 
         # Call the predict view
         response = self.client.get(reverse('dublin-bikes'))

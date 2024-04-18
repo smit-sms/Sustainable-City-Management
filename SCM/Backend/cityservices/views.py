@@ -283,7 +283,7 @@ class BinLocationsView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            with open('cityservices/data/dcc_public_bins_locations.json', 'r') as j:
+            with open('/app/cityservices/data/dcc_public_bins_locations.json', 'r') as j:
                 return Response({"message": "Successfully fetched the required data", "data": json.load(j)
                                  }, status=status.HTTP_200_OK)
         except Exception as e:

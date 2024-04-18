@@ -2,15 +2,17 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 import json
 from django.urls import reverse
-from unittest.mock import patch
+from unittest.mock import patch, mock_open
 from authentication.models import User, Whitelist
 
 class BinLocationsViewTestCase(APITestCase):
     def setUp(self):
         Whitelist.objects.create(email='testuser@tcd.ie')
         self.user = User.objects.create_user(email='testuser@tcd.ie', password='testpassword')
-
-    def test_get_bin_locations_success(self):
+        
+    @patch('builtins.open', new_callable=mock_open, read_data='[{"location": "City Centre", "type": "Recycle Bin"}]')
+    @patch('json.load', return_value=[{"location": "City Centre", "type": "Recycle Bin"}])  # Ensure json.load is also mocked if used in your view
+    def test_get_bin_locations_success(self, mock_json_load, mock_file):
         '''
         Tests for getting bin locations.
         '''
