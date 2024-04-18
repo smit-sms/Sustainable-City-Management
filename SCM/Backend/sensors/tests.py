@@ -1,3 +1,4 @@
+from unittest.mock import patch, MagicMock
 from datetime import datetime
 from django.urls import reverse
 from unittest.mock import patch
@@ -58,15 +59,15 @@ class AirPredictionsTestCase(APITestCase):
             sensor.save()
             Air.objects.create(pm2_5=2.5, datetime=timezone_aware_datetime, sensor=sensor)
 
-    def test_get_air_predictions(self):
-        '''
-        Test for checking Air Predictions API.
-        '''
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get(reverse('air_predictions'))
-        print(response.json())
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('data', response.data)
+    # def test_get_air_predictions(self):
+    #     '''
+    #     Test for checking Air Predictions API.
+    #     '''
+    #     self.client.force_authenticate(user=self.user)
+    #     response = self.client.get(reverse('air_predictions'))
+    #     print(response.json())
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertIn('data', response.data)
 
     def test_get_air_predictions_no_login(self):
         '''
@@ -75,6 +76,22 @@ class AirPredictionsTestCase(APITestCase):
         response = self.client.get(reverse('air_predictions'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    @patch('sensors.views.AirPredictions')
+    @patch('pickle.load')
+    def test_get_air_predictions(self, mock_pickle_load, mock_prepare_query_for_model):
+        '''
+        Tests for predictions in Air Predictions API.
+        '''
+        self.client.force_authenticate(user=self.user)
+        # Setup mock model with a predictable return value
+        mock_model = MagicMock()
+        mock_model.predict.return_value = [2.8, 2.8, 2.8]  # Example prediction
+        mock_pickle_load.return_value = mock_model
+
+        # Call the predict view
+        response = self.client.get(reverse('air_predictions'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('data', response.data)
 
 class NoisePredictionsTestCase(APITestCase):
     def setUp(self):
@@ -86,13 +103,30 @@ class NoisePredictionsTestCase(APITestCase):
             sensor.save()
             Noise.objects.create(laeq=2.5, datetime=timezone_aware_datetime, sensor=sensor)
 
-    def test_get_noise_predictions(self):
+    # def test_get_noise_predictions(self):
+    #     '''
+    #     Test for checking Noise Predictions API.
+    #     '''
+    #     self.client.force_authenticate(user=self.user)
+    #     response = self.client.get(reverse('noise_predictions'))
+    #     print(response.json())
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertIn('data', response.data)
+
+    @patch('sensors.views.NoisePredictions')
+    @patch('pickle.load')
+    def test_get_Noise_predictions(self, mock_pickle_load, mock_prepare_query_for_model):
         '''
         Test for checking Noise Predictions API.
         '''
         self.client.force_authenticate(user=self.user)
+        # Setup mock model with a predictable return value
+        mock_model = MagicMock()
+        mock_model.predict.return_value = [2.8, 2.8]  # Example prediction
+        mock_pickle_load.return_value = mock_model
+
+        # Call the predict view
         response = self.client.get(reverse('noise_predictions'))
-        print(response.json())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('data', response.data)
 
