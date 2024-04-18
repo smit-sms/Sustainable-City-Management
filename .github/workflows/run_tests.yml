@@ -31,30 +31,31 @@ jobs:
           --health-timeout 5s 
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Dependencies
-        run: |
-          cd SCM/Backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-        env:
-          DJANGO_SETTINGS_MODULE: Backend.backend.settings
-      - name: Running Backend Tests
-        run: |
-          python manage.py test -v 2
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - name: Install Node Dependencies
-        run: |
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Dependencies
+      run: |
+        cd SCM/Backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      env:
+        DJANGO_SETTINGS_MODULE: Backend.backend.settings
+    - name: Running Backend Tests
+      run: |
+        cd SCM/Backend
+        python manage.py test -v 2
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install Node Dependencies
+      run: |
           cd SCM/Frontend
           npm install
-      - name: Running Frontend Tests
-        run: |
+    - name: Running Frontend Tests
+      run: |
           cd SCM/Frontend
           npm test
