@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure-$7z!5(9-iym3&qu^3^dmz_sc1xx02mrd4iog6gy@soja=d9qls
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'http://localhost:3000']
+ALLOWED_HOSTS = ['*', 'http://localhost:3000', 'http://frontend-scm-1232923463.ap-south-1.elb.amazonaws.com/']
 
 # CORS settings.
 CORS_ALLOW_ALL_ORIGINS = True
@@ -42,10 +42,10 @@ CORS_ORIGIN_ALLOW_ALL = True
 # )
 
 # CSRF settings.
-CSRF_TRUSTED_ORIGINS = ['https://fa80-134-226-214-245.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['http://frontend-scm-1232923463.ap-south-1.elb.amazonaws.com/']
 # TO DO: Modify
 CSRF_TRUSTED_ORIGINS = [
-    'https://cce2-2a02-8084-2561-8e80-2c1c-d52d-f7ef-da30.ngrok-free.app/'
+    'http://frontend-scm-1232923463.ap-south-1.elb.amazonaws.com/'
 ]
 
 # Application definition
