@@ -59,16 +59,6 @@ class AirPredictionsTestCase(APITestCase):
             sensor.save()
             Air.objects.create(pm2_5=2.5, datetime=timezone_aware_datetime, sensor=sensor)
 
-    # def test_get_air_predictions(self):
-    #     '''
-    #     Test for checking Air Predictions API.
-    #     '''
-    #     self.client.force_authenticate(user=self.user)
-    #     response = self.client.get(reverse('air_predictions'))
-    #     print(response.json())
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertIn('data', response.data)
-
     def test_get_air_predictions_no_login(self):
         '''
         Test for checking if login works properly on Air Predictions API.
@@ -102,16 +92,6 @@ class NoisePredictionsTestCase(APITestCase):
                 noise_sensor[1]), longitude=float(noise_sensor[2]), sensor_type=noise_sensor[3])
             sensor.save()
             Noise.objects.create(laeq=2.5, datetime=timezone_aware_datetime, sensor=sensor)
-
-    # def test_get_noise_predictions(self):
-    #     '''
-    #     Test for checking Noise Predictions API.
-    #     '''
-    #     self.client.force_authenticate(user=self.user)
-    #     response = self.client.get(reverse('noise_predictions'))
-    #     print(response.json())
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertIn('data', response.data)
 
     @patch('sensors.views.NoisePredictions')
     @patch('pickle.load')

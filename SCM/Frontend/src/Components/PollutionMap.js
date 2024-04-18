@@ -11,6 +11,8 @@ import CustomFetch from "../utils/customFetch";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Button from './Button'; // ADDED
+import { Link } from "react-router-dom";
 
 function PollutionMap() {
 	const [sensors, setSensors] = useState([]);
@@ -86,7 +88,7 @@ function PollutionMap() {
 				this.openPopup();
 			},
 			mouseout() {
-				this.closePopup();
+				setTimeout(this.closePopup, 500);
 			},
 		}));
 
@@ -116,6 +118,13 @@ function PollutionMap() {
 						{feature.status}
 						<br />
 						{feature.datetime}
+						<p className="text-center">
+                            <Button>
+                                <Link to={`/time-series-analysis?${feature.sensor_type}_${feature.serial_number}`}>
+                                    View Over Time
+                                </Link>
+                            </Button>
+						</p>
 					</div>
 				</Popup>
 			</Marker>
