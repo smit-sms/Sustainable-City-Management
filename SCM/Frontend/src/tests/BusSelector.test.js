@@ -2,6 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BusSelector from '../Components/BusSelector/BusSelector';
 
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => jest.fn(),
+}));
+
 beforeAll(() => {
   global.fetch = jest.fn();
 });
