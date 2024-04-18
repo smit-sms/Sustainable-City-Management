@@ -54,7 +54,7 @@ def run():
                     parsed_datetime = datetime.strptime(sensor_data_value.get('datetime'), '%Y-%m-%d %H:%M:%S')
 
                     # Make the parsed datetime object timezone-aware
-                    timezone = pytz.timezone('GMT')  # Replace 'Your_Timezone_Here' with your desired timezone
+                    timezone = pytz.timezone('GMT')
                     timezone_aware_datetime = timezone.localize(parsed_datetime)
                     try:
                         air_instance = Air.objects.get(sensor=sensor)
