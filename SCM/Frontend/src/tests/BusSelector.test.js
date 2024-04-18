@@ -2,6 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BusSelector from '../Components/BusSelector/BusSelector';
 
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => jest.fn(),
+}));
+
 beforeAll(() => {
   global.fetch = jest.fn();
 });
@@ -31,7 +35,7 @@ test('loads and displays buses', async () => {
   render(<BusSelector />);
 
   for (const bus of mockBuses) {
-    await waitFor(() => expect(screen.getByText(bus.bus_name)).toBeInTheDocument());
+    await screen.findByText(bus.bus_name);
   }
 
   expect(fetch).toHaveBeenCalledTimes(1);

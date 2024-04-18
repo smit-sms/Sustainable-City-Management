@@ -12,6 +12,10 @@ jest.mock('react-leaflet', () => ({
   useMapEvents: jest.fn(),
 }));
 
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => jest.fn(),
+}));
+
 jest.mock('leaflet', () => ({
   ...jest.requireActual('leaflet'),
   geoJSON: () => ({

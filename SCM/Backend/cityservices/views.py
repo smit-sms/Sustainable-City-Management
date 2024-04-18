@@ -154,7 +154,7 @@ class DublinBikesView(APIView):
     '''
     Class for all the operations related to the Dublin Bikes.
     '''
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def __init__(self, *args, **kwargs) -> None:
         # Defining logger here to get the name for the class
@@ -214,8 +214,7 @@ class DublinBikesPredictionView(APIView):
         self.logger = logging.getLogger(__name__)
 
         # self.df_stations = pd.read_csv('cityservices/data/STATION ID - BIKE STANDS.csv')
-        self.model = pickle.load(
-            open("cityservices/data/RFmodel_lr.pkl", 'rb'))
+        self.model = pickle.load(open("/app/cityservices/data/RFmodel.pkl", 'rb'))
 
     def prepare_query_for_model(self, weather_forecast=None):
         if (weather_forecast == None):
@@ -289,5 +288,5 @@ class BinLocationsView(APIView):
                                  }, status=status.HTTP_200_OK)
         except Exception as e:
             self.logger.exception(f'Some unexpected exception occured: {e}')
-            return Response({"message": "Some unexpected exception occured. Please try again", "data": None},
+            return Response({"message": "Some unexpected exception occurred. Please try again", "data": None},
                             status=status.HTTP_400_BAD_REQUEST)

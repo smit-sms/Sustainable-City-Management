@@ -6,10 +6,13 @@ import "leaflet/dist/leaflet.css";
 import { customReactIcon } from "../utils/customReactIcons";
 import { FaMicrophone, FaWind } from "react-icons/fa";
 import { BASE_URL } from "../services/api";
-import { ToastContainer } from "react-toastify";
 import L from "leaflet";
 import CustomFetch from "../utils/customFetch";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Button from './Button'; // ADDED
+import { Link } from "react-router-dom";
 
 function PollutionMap() {
 	const [sensors, setSensors] = useState([]);
@@ -17,51 +20,66 @@ function PollutionMap() {
 	const [showPredictions, setShowPredictions] = useState(false);
 	const navigate = useNavigate();
 
-	const getsensors = () => {
-		CustomFetch(`${BASE_URL}/sensors/air-noise`, {
+	const getsensors = async () => {
+		try {
+			const response = await CustomFetch(`${BASE_URL}/sensors/air-noise/`,{
 				method: 'GET'
-			}, navigate)
-			.then((response) => {
-			const data = response.json();
+			}, navigate);
+			if (!response.ok) {
+				throw new Error(`Network response was not ok: ${response.status}`);
+			}
+			const contentType = response.headers.get("content-type");
+			if (!contentType || !contentType.includes("application/json")) {
+				throw new Error("Received non-JSON response from server");
+			}
+			const data = await response.json();
 			setSensors(data.data);
-			getPredictions();
-		});
+			// getPredictions();
+		} catch (error) {
+			toast.error('Some Error occurred. Please Login/Refresh and try again.');
+			console.log(error);
+		}
 	};
 
-	const getPredictions = () => {
+	const getPredictions = async () => {
 		let predictions_temp = [];
-		CustomFetch(`${BASE_URL}/sensors/air-predictions`, {
+		try {
+			// Get Air Predictions
+			const response = await CustomFetch(`${BASE_URL}/sensors/air-predictions/`,{
 				method: 'GET'
-			}, navigate)
-			.then((response) => {
-			if (response.status === 200 || response.status === 201) {
-				const data = response.json().then((data_new) => {
-					console.log(data_new);
-					if (data_new) {
-						predictions_temp.push(...data_new.data);
-					}
-				});
+			}, navigate);
+			if (!response.ok) {
+				throw new Error(`Network response was not ok: ${response.status}`);
 			}
-		});
-		CustomFetch(`${BASE_URL}/sensors/noise-predictions`, {
+			const contentType = response.headers.get("content-type");
+			if (!contentType || !contentType.includes("application/json")) {
+				throw new Error("Received non-JSON response from server");
+			}
+			const data = await response.json();
+			predictions_temp.push(...data.data);
+			// Get Noise Predictions
+			const noise_response = await CustomFetch(`${BASE_URL}/sensors/noise-predictions/`,{
 				method: 'GET'
-			}, navigate)
-			.then((response) => {
-			if (response.status === 200 || response.status === 201) {
-				const data = response.json().then((data_new) => {
-					console.log(data_new);
-					if (data_new) {
-						predictions_temp.push(...data_new.data);
-						setPredictions(predictions_temp);
-					}
-				});
+			}, navigate);
+			if (!noise_response.ok) {
+				throw new Error(`Network response was not ok: ${response.status}`);
 			}
-		});
+			const contentTypeNoise = noise_response.headers.get("content-type");
+			if (!contentTypeNoise || !contentTypeNoise.includes("application/json")) {
+				throw new Error("Received non-JSON response from server");
+			}
+			const noisedata = await noise_response.json();
+			predictions_temp.push(...noisedata.data);
+			setPredictions(predictions_temp);
+		} catch (error) {
+			toast.error('Some Error occurred. Please Login/Refresh and try again.');
+      		console.log(error);
+		}
 	};
 
 	useEffect(() => {
 		getsensors();
-		// getPredictions();
+		getPredictions();
 	}, []);
 
 	const RenderIcons = () => {
@@ -70,7 +88,7 @@ function PollutionMap() {
 				this.openPopup();
 			},
 			mouseout() {
-				this.closePopup();
+				setTimeout(this.closePopup, 500);
 			},
 		}));
 
@@ -100,6 +118,13 @@ function PollutionMap() {
 						{feature.status}
 						<br />
 						{feature.datetime}
+						<p className="text-center">
+                            <Button>
+                                <Link to={`/time-series-analysis?${feature.sensor_type}_${feature.serial_number}`}>
+                                    View Over Time
+                                </Link>
+                            </Button>
+						</p>
 					</div>
 				</Popup>
 			</Marker>
