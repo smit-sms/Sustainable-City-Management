@@ -14,8 +14,8 @@ jobs:
       BACKEND_NAME: sustainable-city-management-backend
       FRONTEND_NAME: sustainable-city-management-frontend
       ECS_CLUSTER: scm-project
-      ECS_FRONTEND_SERVICE: brian_nginx
-      ECS_BACKEND_SERVICE: brian_nginx
+      ECS_FRONTEND_SERVICE: frontend-scm
+      ECS_BACKEND_SERVICE: backend-scm-load-balancer
       ECS_FRONTED_TASK_DEFINITION: frontend_task_defination.json
       ECS_BACKEND_TASK_DEFINITION: backend_task_defination.json
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
