@@ -1,0 +1,127 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:788894675331:task-definition/backend-scm:11",
+    "containerDefinitions": [
+        {
+            "name": "backend-scm",
+            "image": "smitshah16/sustainable-city-management-backend",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "8000",
+                    "containerPort": 8000,
+                    "hostPort": 8000,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                },
+                {
+                    "name": "8003",
+                    "containerPort": 8003,
+                    "hostPort": 8003,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [
+                {
+                    "sourceVolume": "air_model",
+                    "containerPath": "/app/sensors/data/",
+                    "readOnly": false
+                },
+                {
+                    "sourceVolume": "RF_model",
+                    "containerPath": "/app/cityservices/data/",
+                    "readOnly": false
+                }
+            ],
+            "volumesFrom": [],
+            "linuxParameters": {
+                "initProcessEnabled": true
+            },
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/backend-scm",
+                    "awslogs-region": "ap-south-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "backend-scm",
+    "taskRoleArn": "arn:aws:iam::788894675331:role/ecs-tasks",
+    "executionRoleArn": "arn:aws:iam::788894675331:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 11,
+    "volumes": [
+        {
+            "name": "air_model",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-07d569c62ca268346",
+                "rootDirectory": "/"
+            }
+        },
+        {
+            "name": "RF_model",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0570b3fbf8dc4ddac",
+                "rootDirectory": "/"
+            }
+        }
+    ],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "ecs.capability.efsAuth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.efs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "3072",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "registeredAt": "2024-04-17T17:00:32.819Z",
+    "registeredBy": "arn:aws:iam::788894675331:root",
+    "tags": []
+}
