@@ -87,6 +87,87 @@ class AirNoiseView(APIView):
             return Response({"message": f"Some unexpected exception occured: {e}. Please try again", "data": None},
                             status=status.HTTP_400_BAD_REQUEST)
 
+@method_decorator(csrf_exempt, name='dispatch')
+class AirView(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+        
+    def post(self, request):
+        url_root = "https://data.smartdublin.ie/sonitus-api"
+        
+        # Get requested sensor's serial number.
+        request_json = json.loads(request.body.decode('utf-8'))
+        sensor_serial_number = request_json['sensor_serial_number']
+        
+        # Fetching data from now to 24 hrs ago.
+        datetime_now = datetime.now()
+        datetime_yesterday = datetime_now - timedelta(days=1)
+        datetime_end = time.mktime(datetime_now.timetuple()) # Now.
+        datetime_start = time.mktime(datetime_yesterday.timetuple()) # 24 hrs ago.
+
+        try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
+            res = requests.post(f"{url_root}/api/data", json={ 
+                'username': os.getenv('SONITOS_USERNAME'),
+                'password': os.getenv('SONITOS_PASSWORD'),
+                'monitor': sensor_serial_number,
+                'start': datetime_start,
+                'end': datetime_end
+            })
+            if len(res.text) > 0: # if response data is not empty then ...
+                self.response_data = [{'datetime':d['datetime'], 'pm2_5':d['pm2_5']} for d in res.json()]
+            else: # if response data is empty then ...
+                self.response_data = []
+            self.response_message = f"Success. Fetched data from sonitus api for sensor {sensor_serial_number}."
+            
+        except Exception as e:
+            self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
+            self.response_status = 400
+        
+        # Return response.
+        return JsonResponse({'message': self.response_message, 'data': self.response_data} , status=self.response_status, safe=True)
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class NoiseView(View):
+    response_message = ''
+    response_status = 200
+    response_data = []
+        
+    def post(self, request):
+        url_root = "https://data.smartdublin.ie/sonitus-api"
+        
+        # Get requested sensor's serial number.
+        request_json = json.loads(request.body.decode('utf-8'))
+        sensor_serial_number = request_json['sensor_serial_number']
+        
+        # Fetching data from now to 24 hrs ago.
+        datetime_now = datetime.now()
+        datetime_yesterday = datetime_now - timedelta(days=1)
+        datetime_end = time.mktime(datetime_now.timetuple()) # Now.
+        datetime_start = time.mktime(datetime_yesterday.timetuple()) # 24 hrs ago.
+
+        try: # Try to request data @ https://data.smartdublin.ie/sonitus-api.
+            res = requests.post(f"{url_root}/api/data", json={ 
+                'username': os.getenv('SONITOS_USERNAME'),
+                'password': os.getenv('SONITOS_PASSWORD'),
+                'monitor': sensor_serial_number,
+                'start': datetime_start,
+                'end': datetime_end
+            })
+            print(res.text)
+            if len(res.text) > 0: # if response data is not empty then ...
+                self.response_data = [{'datetime':d['datetime'], 'laeq':d['laeq']} for d in res.json()]
+            else: # if response data is empty then ...
+                self.response_data = []
+            self.response_message = f"Success. Fetched data from sonitus api for sensor {sensor_serial_number}."
+            
+        except Exception as e:
+            self.response_message = f"Failure. Could not fetch data from sonitus api due to '{e}'."
+            self.response_status = 400
+        
+        # Return response.
+        return JsonResponse({'message': self.response_message, 'data': self.response_data} , status=self.response_status, safe=True)
+
 class AirPredictions(APIView):
     '''
     Class for all the operations related to the Air Predictions.
@@ -95,7 +176,7 @@ class AirPredictions(APIView):
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
-        self.model = pickle.load(open("sensors/data/air_model.pkl", 'rb'))
+        self.model = pickle.load(open("/app/sensors/data/air_model.pkl", 'rb'))
         
     def get(self, request, *args, **kwargs):
         """
@@ -174,7 +255,7 @@ class NoisePredictions(APIView):
 
     def __init__(self, **kwargs) -> None:
         self.logger = logging.getLogger(__name__)
-        self.model = pickle.load(open("sensors/data/noise_model.pkl", 'rb'))
+        self.model = pickle.load(open("/app/sensors/data/noise_model.pkl", 'rb'))
         
     def get(self, request, *args, **kwargs):
         """

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import CustomFetch from '../utils/customFetch';
-import BinLocations from '../components/BinLocations';
+import BinLocations from '../Components/BinLocations';
 
 // Mocking Leaflet and its plugin globally
 global.L = {

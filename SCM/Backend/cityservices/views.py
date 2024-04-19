@@ -214,8 +214,7 @@ class DublinBikesPredictionView(APIView):
         self.logger = logging.getLogger(__name__)
 
         # self.df_stations = pd.read_csv('cityservices/data/STATION ID - BIKE STANDS.csv')
-        self.model = pickle.load(
-            open("cityservices/data/RFmodel_lr.pkl", 'rb'))
+        self.model = pickle.load(open("/app/cityservices/data/RFmodel.pkl", 'rb'))
 
     def prepare_query_for_model(self, weather_forecast=None):
         if (weather_forecast == None):
@@ -284,7 +283,7 @@ class BinLocationsView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            with open('cityservices/data/dcc_public_bins_locations.json', 'r') as j:
+            with open('/app/cityservices/data/dcc_public_bins_locations.json', 'r') as j:
                 return Response({"message": "Successfully fetched the required data", "data": json.load(j)
                                  }, status=status.HTTP_200_OK)
         except Exception as e:
