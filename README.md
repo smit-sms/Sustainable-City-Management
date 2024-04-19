@@ -7,7 +7,7 @@ Group 5 - Sustainable-City-Management project.
 ### POSTGRES SETUP
 To initialize the PostgreSQL Database, please follow the below steps:
 
-1. Download the postgresql installer from the following website here[] and follow the installer steps. In the installer please ensure to check the below items as shown in the figure below:
+1. Download the postgresql installer from the following website here [https://www.postgresql.org/download/] and follow the installer steps. In the installer please ensure to check the below items as shown in the figure below:
 <figure align="center">
 <img src="https://i.postimg.cc/4yRYLvDZ/postgres-ss.png"/>
 </figure>
