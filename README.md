@@ -2,16 +2,18 @@
 
 Group 5 - Sustainable-City-Management project. 
 
+# Compile Instructions:
+> NOTE: Please don't change any '`.env`' files for the compile instructions!
+
 ## BACKEND SETUP
 
 ### POSTGRES SETUP
 To initialize the PostgreSQL Database, please follow the below steps:
 
 1. Download the postgresql installer from the following website here [https://www.postgresql.org/download/] and follow the installer steps. In the installer please ensure to check the below items as shown in the figure below:
-<figure align="center">
-<img src="https://i.postimg.cc/4yRYLvDZ/postgres-ss.png"/>
-</figure>
-
+    <figure align="center">
+    <img src="https://i.postimg.cc/4yRYLvDZ/postgres-ss.png"/>
+    </figure>
 2. Once installation is complete, verify that by openining the `pgAdmin` Application.
 3. Ensure that the postgresql service is running by going into `services` of windows machine and checking if it is running or not.
 4. Then, Open the `pgAdmin` Application again and follow the below steps to create a Database. (Please ensure the creds are same as described below to avoid any unneccessary errors):
