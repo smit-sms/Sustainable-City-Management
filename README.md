@@ -2,7 +2,18 @@
 
 Group 5 - Sustainable-City-Management project. 
 
-# Compile Instructions:
+# DEPLOYED PROJECT AT:
+Copy and paste the url into the Browser to access the APP deployed on AWS:
+
+http://frontend-scm-1232923463.ap-south-1.elb.amazonaws.com/
+
+The app will be live until 25th May 2024, after which it will no longer be accesible due to the cost limitations and constraints. The billing increases exponentially when the app is kept running for longer periods and currently we do not have any provision to support these kinds of costs.
+
+
+If any other issue, please do let us know and we can manually restart the app for easier access and visibility.
+
+
+# Compile Instructions for Local Setup:
 > NOTE: Please don't change any '`.env`' files for the compile instructions!
 
 ## BACKEND SETUP
