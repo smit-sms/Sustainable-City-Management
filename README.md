@@ -128,6 +128,19 @@ After installing the requirements for the backend, please follow the steps below
     ```
     npm start
     ```
-
+10. Use the Login email & password from the backend setup step no. 2 for logging into the application
+11. Inorder to register a new user, please follow the below steps:
+    1. Goto the `http://localhost:8000/auth/whitelist/`, it will open a interactive UI like below:
+        <figure align="center">
+        <img src="https://i.postimg.cc/xd6mjFXd/whitelist.png"/>
+        </figure>
+    2. Copy and Paste the following in the `Content` section (replace the email with your desired email to add to whitelist users):
+        ```
+        {
+            "email":"yournewemail@gmail.com"
+        }
+        ```
+    3. Click on the `POST` button on bottom right corner.
+12. Once done, navigate to the application register page and enter your details but make sure to use the email set in the previous step.
 
 # Happy Coding !!
