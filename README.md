@@ -2,8 +2,15 @@
 
 Group 5 - Sustainable-City-Management project. 
 
+
+# Project Video 
+> (Pro tip: Click on the image to view the video.):
+
+[![PROJECT VIDEO](https://img.youtube.com/vi/VgQYaTe-VoM/0.jpg)](https://youtu.be/VgQYaTe-VoM)
+
 # DEPLOYED PROJECT AT:
-Copy and paste the url into the Browser to access the APP deployed on AWS:
+Copy and paste the url into the Browser to access the APP deployed on AWS. Make sure that you are not connected to `TCDWifi` since it blocks the AWS access!
+
 
 http://frontend-scm-1232923463.ap-south-1.elb.amazonaws.com/
 
