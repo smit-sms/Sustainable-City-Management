@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:788894675331:task-definition/backend-scm:11",
+    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:788894675331:task-definition/backend-scm:17",
     "containerDefinitions": [
         {
             "name": "backend-scm",
@@ -46,8 +46,7 @@
                     "awslogs-group": "/ecs/backend-scm",
                     "awslogs-region": "ap-south-1",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
+                }
             },
             "systemControls": []
         }
@@ -56,7 +55,7 @@
     "taskRoleArn": "arn:aws:iam::788894675331:role/ecs-tasks",
     "executionRoleArn": "arn:aws:iam::788894675331:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 11,
+    "revision": 17,
     "volumes": [
         {
             "name": "air_model",
@@ -115,13 +114,13 @@
         "EC2",
         "FARGATE"
     ],
-    "cpu": "1024",
-    "memory": "3072",
+    "cpu": "2048",
+    "memory": "6144",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2024-04-17T17:00:32.819Z",
+    "registeredAt": "2024-04-19T13:35:27.727Z",
     "registeredBy": "arn:aws:iam::788894675331:root",
     "tags": []
 }
