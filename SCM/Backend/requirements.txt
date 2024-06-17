@@ -18,11 +18,6 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   pytest
-    #   tqdm
 dill==0.3.8
     # via
     #   -r requirements.in
@@ -143,10 +138,8 @@ typing-extensions==4.11.0
     #   pydantic
     #   pydantic-core
 tzdata==2024.1
-    # via
-    #   django
-    #   pandas
-urllib3==2.2.1
+    # via pandas
+urllib3==2.2.2
     # via requests
 uvicorn==0.29.0
     # via
