@@ -18,11 +18,6 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   pytest
-    #   tqdm
 dill==0.3.8
     # via
     #   -r requirements.in
@@ -135,7 +130,7 @@ statsmodels==0.14.1
     # via -r requirements.in
 threadpoolctl==3.4.0
     # via scikit-learn
-tqdm==4.66.2
+tqdm==4.66.3
     # via -r requirements.in
 typing-extensions==4.11.0
     # via
@@ -143,9 +138,7 @@ typing-extensions==4.11.0
     #   pydantic
     #   pydantic-core
 tzdata==2024.1
-    # via
-    #   django
-    #   pandas
+    # via pandas
 urllib3==2.2.1
     # via requests
 uvicorn==0.29.0
